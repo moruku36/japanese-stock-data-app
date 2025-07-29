@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 # プロジェクトのモジュールをインポート
 from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
+from company_search import CompanySearch
 
 def print_banner():
     """バナーを表示"""
@@ -46,6 +47,105 @@ def get_ticker_symbol():
         return None
     
     return ticker
+
+def get_ticker_symbol_with_search(company_searcher):
+    """会社名検索付きで銘柄コードを取得"""
+    print("\n🔍 銘柄コードの入力方法を選択してください:")
+    print("1. 銘柄コードを直接入力")
+    print("2. 会社名で検索")
+    print("3. 主要企業から選択")
+    
+    choice = input("選択 (1-3): ").strip()
+    
+    if choice == "1":
+        return get_ticker_symbol()
+    elif choice == "2":
+        return company_searcher.interactive_search()
+    elif choice == "3":
+        return select_from_popular_companies(company_searcher)
+    else:
+        print("❌ 無効な選択です。銘柄コードを直接入力します。")
+        return get_ticker_symbol()
+
+def select_from_popular_companies(company_searcher):
+    """主要企業から選択"""
+    print("\n⭐ 主要企業から選択")
+    
+    popular_companies = company_searcher.get_popular_companies(20)
+    
+    print("主要企業一覧:")
+    print("-" * 60)
+    
+    for i, company in enumerate(popular_companies, 1):
+        print(f"{i:2d}. {company['name']} ({company['code']}) - {company['sector']}")
+    
+    while True:
+        try:
+            choice = input(f"\n選択してください (1-{len(popular_companies)}): ").strip()
+            if choice.lower() in ['q', 'quit', 'cancel', 'キャンセル']:
+                return None
+            
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(popular_companies):
+                selected_company = popular_companies[choice_num - 1]
+                company_searcher.display_company_info(selected_company)
+                return selected_company['code']
+            else:
+                print(f"❌ 1-{len(popular_companies)}の数字を入力してください")
+        except ValueError:
+            print("❌ 有効な数字を入力してください")
+        except KeyboardInterrupt:
+            print("\n❌ 選択をキャンセルしました")
+            return None
+
+def batch_search_companies(company_searcher):
+    """複数銘柄を検索して選択"""
+    print("\n🔍 複数銘柄の検索・選択")
+    
+    selected_tickers = []
+    
+    while True:
+        print(f"\n現在選択済み: {len(selected_tickers)}銘柄")
+        if selected_tickers:
+            print("選択済み銘柄:", ", ".join(selected_tickers))
+        
+        print("\n操作を選択してください:")
+        print("1. 会社名で検索して追加")
+        print("2. 主要企業から追加")
+        print("3. 選択完了")
+        print("4. 選択をリセット")
+        
+        choice = input("選択 (1-4): ").strip()
+        
+        if choice == "1":
+            ticker = company_searcher.interactive_search()
+            if ticker and ticker not in selected_tickers:
+                selected_tickers.append(ticker)
+                print(f"✅ {ticker} を追加しました")
+            elif ticker in selected_tickers:
+                print(f"⚠️ {ticker} は既に選択済みです")
+        
+        elif choice == "2":
+            ticker = select_from_popular_companies(company_searcher)
+            if ticker and ticker not in selected_tickers:
+                selected_tickers.append(ticker)
+                print(f"✅ {ticker} を追加しました")
+            elif ticker in selected_tickers:
+                print(f"⚠️ {ticker} は既に選択済みです")
+        
+        elif choice == "3":
+            if selected_tickers:
+                print(f"\n✅ {len(selected_tickers)}銘柄が選択されました: {', '.join(selected_tickers)}")
+                return selected_tickers
+            else:
+                print("❌ 銘柄が選択されていません")
+        
+        elif choice == "4":
+            selected_tickers.clear()
+            print("✅ 選択をリセットしました")
+        
+        else:
+            print("❌ 無効な選択です")
 
 def get_data_source():
     """データソースを選択してもらう"""
@@ -102,11 +202,11 @@ def get_period():
         print("❌ 無効な選択です。30日間を使用します。")
         return 30
 
-def latest_price_menu(fetcher):
+def latest_price_menu(fetcher, company_searcher):
     """最新株価取得メニュー"""
     print("\n🔍 最新株価取得")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -153,11 +253,11 @@ def latest_price_menu(fetcher):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
-def chart_menu(fetcher, analyzer):
+def chart_menu(fetcher, analyzer, company_searcher):
     """チャート表示メニュー"""
     print("\n📊 株価チャート表示")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -175,11 +275,11 @@ def chart_menu(fetcher, analyzer):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
-def technical_analysis_menu(fetcher, analyzer):
+def technical_analysis_menu(fetcher, analyzer, company_searcher):
     """テクニカル分析メニュー"""
     print("\n🔬 テクニカル分析")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -197,11 +297,11 @@ def technical_analysis_menu(fetcher, analyzer):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
-def report_menu(fetcher, analyzer):
+def report_menu(fetcher, analyzer, company_searcher):
     """レポート生成メニュー"""
     print("\n📋 分析レポート生成")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -219,11 +319,11 @@ def report_menu(fetcher, analyzer):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
-def comparison_menu(fetcher):
+def comparison_menu(fetcher, company_searcher):
     """データソース比較メニュー"""
     print("\n⚖️ データソース比較")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -258,14 +358,20 @@ def comparison_menu(fetcher):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
-def batch_fetch_menu(fetcher):
+def batch_fetch_menu(fetcher, company_searcher):
     """複数銘柄一括取得メニュー"""
     print("\n📦 複数銘柄一括取得")
     
     print("銘柄コードをカンマ区切りで入力してください（例: 4784,7203,6758）:")
-    tickers_input = input("銘柄コード: ").strip()
+    print("または、会社名で検索して複数選択することもできます")
     
-    tickers = [t.strip() for t in tickers_input.split(",") if t.strip().isdigit()]
+    method = input("入力方法を選択 (1: 銘柄コード直接入力, 2: 会社名検索): ").strip()
+    
+    if method == "2":
+        tickers = batch_search_companies(company_searcher)
+    else:
+        tickers_input = input("銘柄コード: ").strip()
+        tickers = [t.strip() for t in tickers_input.split(",") if t.strip().isdigit()]
     
     if not tickers:
         print("❌ 有効な銘柄コードが入力されていません")
@@ -314,11 +420,11 @@ def batch_fetch_menu(fetcher):
     
     print(f"\n✅ {len(results)}銘柄の処理が完了しました")
 
-def save_csv_menu(fetcher):
+def save_csv_menu(fetcher, company_searcher):
     """CSV保存メニュー"""
     print("\n💾 データをCSVに保存")
     
-    ticker = get_ticker_symbol()
+    ticker = get_ticker_symbol_with_search(company_searcher)
     if not ticker:
         return
     
@@ -364,7 +470,9 @@ def main():
     try:
         fetcher = JapaneseStockDataFetcher()
         analyzer = StockAnalyzer(fetcher)
+        company_searcher = CompanySearch()
         print("✅ システムが正常に初期化されました")
+        print(f"📊 登録企業数: {len(company_searcher.companies)}社")
     except Exception as e:
         print(f"❌ システムの初期化に失敗しました: {e}")
         return
@@ -379,19 +487,19 @@ def main():
                 print("\n👋 システムを終了します。お疲れ様でした！")
                 break
             elif choice == "1":
-                latest_price_menu(fetcher)
+                latest_price_menu(fetcher, company_searcher)
             elif choice == "2":
-                chart_menu(fetcher, analyzer)
+                chart_menu(fetcher, analyzer, company_searcher)
             elif choice == "3":
-                technical_analysis_menu(fetcher, analyzer)
+                technical_analysis_menu(fetcher, analyzer, company_searcher)
             elif choice == "4":
-                report_menu(fetcher, analyzer)
+                report_menu(fetcher, analyzer, company_searcher)
             elif choice == "5":
-                comparison_menu(fetcher)
+                comparison_menu(fetcher, company_searcher)
             elif choice == "6":
-                batch_fetch_menu(fetcher)
+                batch_fetch_menu(fetcher, company_searcher)
             elif choice == "7":
-                save_csv_menu(fetcher)
+                save_csv_menu(fetcher, company_searcher)
             else:
                 print("❌ 無効な選択です。0-7の数字を入力してください。")
         

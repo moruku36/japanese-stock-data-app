@@ -11,6 +11,9 @@
 - **データソース比較**: stooqとYahoo Financeのデータを比較
 - **複数銘柄一括取得**: 複数の銘柄を一度に処理
 - **CSV保存**: 取得したデータをCSVファイルに保存
+- **🔍 会社名検索**: 150社以上の上場企業を会社名で検索
+- **⭐ 主要企業選択**: 人気企業から簡単選択
+- **📦 複数銘柄検索**: 会社名検索で複数銘柄を一括選択
 
 ## 🚀 セットアップ
 
@@ -41,28 +44,76 @@ python main.py
 
 ## 🎯 使用例
 
+### 🔍 会社名検索機能
+
+システムは150社以上の日本の主要上場企業のデータベースを内蔵しており、以下の方法で銘柄を選択できます：
+
+1. **銘柄コード直接入力**: 従来通り銘柄コードを直接入力
+2. **会社名検索**: 会社名の一部を入力して検索（例: "トヨタ"、"ソニー"、"任天堂"）
+3. **主要企業選択**: 人気企業のリストから選択
+
+検索機能は以下の特徴があります：
+- **完全一致**: 正確な会社名で検索
+- **部分一致**: 会社名の一部で検索
+- **類似検索**: 類似度30%以上の会社を表示
+- **業種別検索**: 業種で絞り込み検索
+- **複数銘柄選択**: 検索結果から複数銘柄を一括選択
+
 ### 基本的な使用方法
 
 ```python
 from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
+from company_search import CompanySearch
 
 # システムの初期化
 fetcher = JapaneseStockDataFetcher()
 analyzer = StockAnalyzer(fetcher)
+company_searcher = CompanySearch()
+
+# 会社名で検索
+results = company_searcher.search_by_name("トヨタ")
+if results:
+    company = results[0]['company']
+    ticker = company['code']
+    print(f"検索結果: {company['name']} ({ticker})")
 
 # 最新株価を取得
-latest_price = fetcher.get_latest_price("4784", "stooq")
+latest_price = fetcher.get_latest_price(ticker, "stooq")
 print(f"最新終値: {latest_price['close']}円")
 
 # チャートを表示
-analyzer.plot_stock_price("4784", "stooq", days=30)
+analyzer.plot_stock_price(ticker, "stooq", days=30)
 
 # テクニカル分析を実行
-analyzer.plot_technical_analysis("4784", "stooq", days=60)
+analyzer.plot_technical_analysis(ticker, "stooq", days=60)
 
 # 分析レポートを生成
-analyzer.generate_report("4784", "stooq", days=30)
+analyzer.generate_report(ticker, "stooq", days=30)
+```
+
+### 会社名検索の使用例
+
+```python
+from company_search import CompanySearch
+
+searcher = CompanySearch()
+
+# 会社名で検索
+results = searcher.search_by_name("ソフトバンク")
+for result in results:
+    company = result['company']
+    print(f"{company['name']} ({company['code']}) - {company['sector']}")
+
+# 業種で検索
+tech_companies = searcher.search_by_sector("情報・通信")
+for company in tech_companies:
+    print(f"{company['name']} ({company['code']})")
+
+# 主要企業を取得
+popular = searcher.get_popular_companies(10)
+for company in popular:
+    print(f"{company['name']} ({company['code']})")
 ```
 
 ### データの取得と保存
@@ -89,6 +140,8 @@ japanese-stock-data-app/
 ├── main.py                 # メインインターフェース
 ├── stock_data_fetcher.py   # 株価データ取得クラス
 ├── stock_analyzer.py       # 分析・可視化クラス
+├── company_search.py       # 会社名検索機能
+├── company_data.json       # 企業データベース
 ├── requirements.txt        # 依存関係
 ├── README.md              # このファイル
 └── stock_data/            # データ保存ディレクトリ（自動作成）
