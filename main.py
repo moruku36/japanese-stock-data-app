@@ -22,6 +22,8 @@ from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
 from company_search import CompanySearch
 from fundamental_analyzer import FundamentalAnalyzer
+from config import config
+from utils import ProgressBar, format_currency, format_number
 
 def print_banner():
     """バナーを表示"""
@@ -43,6 +45,8 @@ def print_menu():
     print("7. データをCSVに保存")
     print("8. ファンダメンタル分析")
     print("9. 財務指標比較")
+    print("10. システム設定")
+    print("11. キャッシュ管理")
     print("0. 終了")
     print("-" * 60)
 
@@ -224,43 +228,51 @@ def latest_price_menu(fetcher, company_searcher):
     
     print(f"\n📊 {ticker}の最新株価を取得中...")
     
+    # プログレスバーを表示
+    progress = ProgressBar(1, "データ取得中")
+    
     try:
         if source == "both":
             stooq_data = fetcher.get_latest_price(ticker, "stooq")
+            progress.update()
             yahoo_data = fetcher.get_latest_price(ticker, "yahoo")
+            progress.finish()
             
             print("\n📈 stooq データ:")
             if "error" not in stooq_data:
-                print(f"   終値: {stooq_data['close']:,.0f}円")
+                print(f"   終値: {format_currency(stooq_data['close'])}")
                 print(f"   日付: {stooq_data['date']}")
-                print(f"   出来高: {stooq_data['volume']:,}株")
+                print(f"   出来高: {format_number(stooq_data['volume'])}株")
             else:
                 print(f"   ❌ エラー: {stooq_data['error']}")
             
             print("\n📈 Yahoo Finance データ:")
             if "error" not in yahoo_data:
-                print(f"   終値: {yahoo_data['close']:,.0f}円")
+                print(f"   終値: {format_currency(yahoo_data['close'])}")
                 print(f"   日付: {yahoo_data['date']}")
-                print(f"   出来高: {yahoo_data['volume']:,}株")
+                print(f"   出来高: {format_number(yahoo_data['volume'])}株")
             else:
                 print(f"   ⚠️ Yahoo Finance: {yahoo_data['error']}")
                 print("   💡 stooqのデータをご利用ください")
         else:
             data = fetcher.get_latest_price(ticker, source)
+            progress.finish()
+            
             if "error" not in data:
                 print(f"\n✅ 取得成功!")
                 print(f"   銘柄コード: {data['code']}")
-                print(f"   終値: {data['close']:,.0f}円")
-                print(f"   始値: {data['open']:,.0f}円")
-                print(f"   高値: {data['high']:,.0f}円")
-                print(f"   安値: {data['low']:,.0f}円")
-                print(f"   出来高: {data['volume']:,}株")
+                print(f"   終値: {format_currency(data['close'])}")
+                print(f"   始値: {format_currency(data['open'])}")
+                print(f"   高値: {format_currency(data['high'])}")
+                print(f"   安値: {format_currency(data['low'])}")
+                print(f"   出来高: {format_number(data['volume'])}株")
                 print(f"   日付: {data['date']}")
                 print(f"   データソース: {data['source']}")
             else:
                 print(f"❌ エラー: {data['error']}")
     
     except Exception as e:
+        progress.finish()
         print(f"❌ エラーが発生しました: {e}")
 
 def chart_menu(fetcher, analyzer, company_searcher):
@@ -722,6 +734,154 @@ def generate_comparison_report(comparison_data: Dict):
     
     print(f"\n{'='*70}")
 
+def settings_menu():
+    """システム設定メニュー"""
+    print("\n⚙️ システム設定")
+    print("1. 現在の設定を表示")
+    print("2. 設定を変更")
+    print("3. 設定をリセット")
+    print("4. 設定を保存")
+    print("5. 戻る")
+    
+    choice = input("選択 (1-5): ").strip()
+    
+    if choice == "1":
+        print("\n📋 現在の設定:")
+        print(f"   データディレクトリ: {config.get('data.directory')}")
+        print(f"   ログレベル: {config.get('logging.level')}")
+        print(f"   チャートDPI: {config.get('charts.dpi')}")
+        print(f"   検索結果最大数: {config.get('search.max_results')}")
+        print(f"   デフォルト期間: {config.get('analysis.default_period_days')}日")
+        print(f"   stooq有効: {config.is_data_source_enabled('stooq')}")
+        print(f"   Yahoo Finance有効: {config.is_data_source_enabled('yahoo')}")
+    
+    elif choice == "2":
+        print("\n🔧 設定変更")
+        print("変更したい項目を選択してください:")
+        print("1. データディレクトリ")
+        print("2. ログレベル")
+        print("3. チャートDPI")
+        print("4. 検索結果最大数")
+        print("5. デフォルト期間")
+        print("6. データソース設定")
+        
+        sub_choice = input("選択 (1-6): ").strip()
+        
+        if sub_choice == "1":
+            new_dir = input("新しいデータディレクトリ: ").strip()
+            if new_dir:
+                config.set("data.directory", new_dir)
+                print("✅ データディレクトリを更新しました")
+        
+        elif sub_choice == "2":
+            print("利用可能なログレベル: DEBUG, INFO, WARNING, ERROR")
+            new_level = input("新しいログレベル: ").strip().upper()
+            if new_level in ["DEBUG", "INFO", "WARNING", "ERROR"]:
+                config.set("logging.level", new_level)
+                print("✅ ログレベルを更新しました")
+            else:
+                print("❌ 無効なログレベルです")
+        
+        elif sub_choice == "3":
+            try:
+                new_dpi = int(input("新しいDPI: ").strip())
+                config.set("charts.dpi", new_dpi)
+                print("✅ DPIを更新しました")
+            except ValueError:
+                print("❌ 無効なDPIです")
+        
+        elif sub_choice == "4":
+            try:
+                new_max = int(input("新しい最大結果数: ").strip())
+                config.set("search.max_results", new_max)
+                print("✅ 最大結果数を更新しました")
+            except ValueError:
+                print("❌ 無効な数値です")
+        
+        elif sub_choice == "5":
+            try:
+                new_period = int(input("新しいデフォルト期間（日）: ").strip())
+                config.set("analysis.default_period_days", new_period)
+                print("✅ デフォルト期間を更新しました")
+            except ValueError:
+                print("❌ 無効な日数です")
+        
+        elif sub_choice == "6":
+            print("データソース設定:")
+            stooq_enabled = input("stooqを有効にするか？ (y/N): ").strip().lower() == 'y'
+            yahoo_enabled = input("Yahoo Financeを有効にするか？ (y/N): ").strip().lower() == 'y'
+            
+            config.set("data_sources.stooq.enabled", stooq_enabled)
+            config.set("data_sources.yahoo.enabled", yahoo_enabled)
+            print("✅ データソース設定を更新しました")
+    
+    elif choice == "3":
+        confirm = input("設定をリセットしますか？ (y/N): ").strip().lower()
+        if confirm == 'y':
+            # 設定ファイルを削除してリセット
+            import os
+            if os.path.exists("config.json"):
+                os.remove("config.json")
+                print("✅ 設定をリセットしました。システムを再起動してください。")
+            else:
+                print("✅ 設定は既にデフォルト状態です")
+    
+    elif choice == "4":
+        config.save()
+    
+    elif choice == "5":
+        pass
+    else:
+        print("❌ 無効な選択です")
+
+def cache_menu(fetcher):
+    """キャッシュ管理メニュー"""
+    print("\n🗂️ キャッシュ管理")
+    print("1. キャッシュ情報を表示")
+    print("2. キャッシュをクリア")
+    print("3. 期限切れキャッシュを削除")
+    print("4. 戻る")
+    
+    choice = input("選択 (1-4): ").strip()
+    
+    if choice == "1":
+        from pathlib import Path
+        cache_dir = Path("cache")
+        if cache_dir.exists():
+            cache_files = list(cache_dir.glob("*.pkl"))
+            print(f"\n📊 キャッシュ情報:")
+            print(f"   キャッシュファイル数: {len(cache_files)}")
+            
+            total_size = sum(f.stat().st_size for f in cache_files)
+            print(f"   総サイズ: {total_size / (1024*1024):.2f} MB")
+            
+            if cache_files:
+                print("\n📁 キャッシュファイル一覧:")
+                for i, file in enumerate(cache_files[:10], 1):
+                    size_mb = file.stat().st_size / (1024*1024)
+                    mtime = datetime.fromtimestamp(file.stat().st_mtime)
+                    print(f"   {i}. {file.name} ({size_mb:.2f} MB, {mtime.strftime('%Y-%m-%d %H:%M')})")
+                
+                if len(cache_files) > 10:
+                    print(f"   ... 他 {len(cache_files) - 10} ファイル")
+        else:
+            print("📊 キャッシュディレクトリが存在しません")
+    
+    elif choice == "2":
+        confirm = input("すべてのキャッシュを削除しますか？ (y/N): ").strip().lower()
+        if confirm == 'y':
+            fetcher.cache.clear()
+            print("✅ キャッシュをクリアしました")
+    
+    elif choice == "3":
+        fetcher.cache.cleanup_expired()
+        print("✅ 期限切れキャッシュを削除しました")
+    
+    elif choice == "4":
+        pass
+    else:
+        print("❌ 無効な選択です")
+
 def main():
     """メイン関数"""
     print_banner()
@@ -743,7 +903,7 @@ def main():
         print_menu()
         
         try:
-            choice = input("選択してください (0-9): ").strip()
+            choice = input("選択してください (0-11): ").strip()
             
             if choice == "0":
                 print("\n👋 システムを終了します。お疲れ様でした！")
@@ -766,8 +926,12 @@ def main():
                 fundamental_analysis_menu(fetcher, fundamental_analyzer, company_searcher)
             elif choice == "9":
                 financial_comparison_menu(fundamental_analyzer, company_searcher)
+            elif choice == "10":
+                settings_menu()
+            elif choice == "11":
+                cache_menu(fetcher)
             else:
-                print("❌ 無効な選択です。0-9の数字を入力してください。")
+                print("❌ 無効な選択です。0-11の数字を入力してください。")
         
         except KeyboardInterrupt:
             print("\n\n👋 システムを終了します。お疲れ様でした！")

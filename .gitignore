@@ -135,6 +135,17 @@ stock_data/
 *.jpg
 *.jpeg
 
+# Cache files
+cache/
+*.pkl
+
+# Log files
+*.log
+logs/
+
+# Config files (optional - uncomment to ignore user config)
+# config.json
+
 # IDE files
 .vscode/
 .idea/
