@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 import warnings
 warnings.filterwarnings('ignore')
 
-# 日本語フォント設定
-plt.rcParams['font.family'] = 'DejaVu Sans'
+# 日本語フォント設定（シンプル版）
+plt.rcParams['font.family'] = ['Arial Unicode MS', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 class StockAnalyzer:

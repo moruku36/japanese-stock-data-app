@@ -9,11 +9,19 @@
 import sys
 import os
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+from typing import Dict
+import platform
+
+# 日本語フォント設定（シンプル版）
+plt.rcParams['font.family'] = ['Arial Unicode MS', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
 
 # プロジェクトのモジュールをインポート
 from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
 from company_search import CompanySearch
+from fundamental_analyzer import FundamentalAnalyzer
 
 def print_banner():
     """バナーを表示"""
@@ -33,6 +41,8 @@ def print_menu():
     print("5. データソース比較")
     print("6. 複数銘柄の一括取得")
     print("7. データをCSVに保存")
+    print("8. ファンダメンタル分析")
+    print("9. 財務指標比較")
     print("0. 終了")
     print("-" * 60)
 
@@ -462,6 +472,256 @@ def save_csv_menu(fetcher, company_searcher):
     except Exception as e:
         print(f"❌ エラーが発生しました: {e}")
 
+def fundamental_analysis_menu(fetcher, fundamental_analyzer, company_searcher):
+    """ファンダメンタル分析メニュー"""
+    print("\n🏢 ファンダメンタル分析")
+    
+    ticker = get_ticker_symbol_with_search(company_searcher)
+    if not ticker:
+        return
+    
+    print(f"\n🏢 {ticker}のファンダメンタル分析を実行中...")
+    
+    try:
+        # 財務分析チャートを表示
+        fundamental_analyzer.plot_financial_analysis(ticker)
+        
+        # 詳細レポートを生成
+        fundamental_analyzer.generate_fundamental_report(ticker)
+        
+        print("✅ ファンダメンタル分析が完了しました")
+    except Exception as e:
+        print(f"❌ エラーが発生しました: {e}")
+
+def financial_comparison_menu(fundamental_analyzer, company_searcher):
+    """財務指標比較メニュー"""
+    print("\n⚖️ 財務指標比較")
+    
+    # 利用可能な銘柄を表示
+    print("📋 現在利用可能な銘柄:")
+    available_tickers = ["7203 (トヨタ自動車)", "6758 (ソニーグループ)", "9984 (ソフトバンクグループ)", 
+                        "6861 (キーエンス)", "9434 (NTTドコモ)", "4784 (GMOアドパートナーズ)"]
+    for ticker in available_tickers:
+        print(f"   • {ticker}")
+    print()
+    
+    print("比較したい銘柄を選択してください:")
+    tickers = []
+    
+    for i in range(3):  # 最大3銘柄まで比較
+        ticker = get_ticker_symbol_with_search(company_searcher)
+        if not ticker:
+            break
+        
+        if ticker in tickers:
+            print(f"⚠️ {ticker} は既に選択済みです")
+            continue
+        
+        # 財務データの存在確認
+        financial_data = fundamental_analyzer.get_financial_data(ticker)
+        if not financial_data:
+            print(f"❌ {ticker} の財務データが見つかりません")
+            print("📋 上記の利用可能な銘柄から選択してください")
+            continue
+        
+        tickers.append(ticker)
+        print(f"✅ {ticker} ({financial_data['company_name']}) を追加しました")
+        
+        if i < 2:  # 最後の銘柄以外は続行確認
+            continue_choice = input("もう1銘柄追加しますか？ (y/N): ").strip().lower()
+            if continue_choice not in ['y', 'yes']:
+                break
+    
+    if len(tickers) < 2:
+        print("❌ 比較には最低2銘柄が必要です")
+        return
+    
+    print(f"\n⚖️ {len(tickers)}銘柄の財務指標を比較中...")
+    
+    try:
+        # 比較用のデータを収集
+        comparison_data = {}
+        for ticker in tickers:
+            financial_data = fundamental_analyzer.get_financial_data(ticker)
+            if financial_data:
+                comparison_data[ticker] = financial_data
+        
+        if len(comparison_data) < 2:
+            print("❌ 比較可能な財務データが不足しています")
+            return
+        
+        # 比較チャートを表示
+        plot_financial_comparison(comparison_data)
+        
+        # 比較レポートを生成
+        generate_comparison_report(comparison_data)
+        
+        print("✅ 財務指標比較が完了しました")
+    except Exception as e:
+        print(f"❌ エラーが発生しました: {e}")
+
+def plot_financial_comparison(comparison_data: Dict):
+    """財務指標比較チャートを描画"""
+    # 警告を抑制
+    import warnings
+    warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
+    
+    # 日本語フォント設定（シンプル版）
+    plt.rcParams['font.family'] = ['Arial Unicode MS', 'DejaVu Sans']
+    plt.rcParams['axes.unicode_minus'] = False
+    
+    # 図のサイズを適切に調整
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    
+    # 銘柄名のリスト
+    tickers = list(comparison_data.keys())
+    company_names = [comparison_data[ticker]['company_name'] for ticker in tickers]
+    
+    # 色の設定
+    colors = ['#2E86AB', '#A23B72', '#F18F01', '#C73E1D', '#6A994E', '#BC4749']
+    
+    # 1. ROE比較
+    roe_values = [comparison_data[ticker]['roe'] for ticker in tickers]
+    bars1 = axes[0, 0].bar(range(len(company_names)), roe_values, 
+                          color=colors[:len(tickers)], alpha=0.8)
+    axes[0, 0].set_title('ROE比較 (%)', fontweight='bold', fontsize=12)
+    axes[0, 0].set_ylabel('ROE (%)', fontsize=10)
+    axes[0, 0].set_xticks(range(len(company_names)))
+    axes[0, 0].set_xticklabels(company_names, rotation=15, ha='right', fontsize=9)
+    
+    # 値のラベルを追加
+    for bar, value in zip(bars1, roe_values):
+        height = bar.get_height()
+        axes[0, 0].text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                       f'{value:.1f}%', ha='center', va='bottom', fontsize=9)
+    
+    # 2. P/E比較
+    pe_values = [comparison_data[ticker]['pe_ratio'] for ticker in tickers]
+    bars2 = axes[0, 1].bar(range(len(company_names)), pe_values, 
+                          color=colors[1:len(tickers)+1], alpha=0.8)
+    axes[0, 1].set_title('P/E比較', fontweight='bold', fontsize=12)
+    axes[0, 1].set_ylabel('P/E倍率', fontsize=10)
+    axes[0, 1].set_xticks(range(len(company_names)))
+    axes[0, 1].set_xticklabels(company_names, rotation=15, ha='right', fontsize=9)
+    
+    # 値のラベルを追加
+    for bar, value in zip(bars2, pe_values):
+        height = bar.get_height()
+        axes[0, 1].text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                       f'{value:.1f}', ha='center', va='bottom', fontsize=9)
+    
+    # 3. 配当利回り比較
+    dividend_values = [comparison_data[ticker]['dividend_yield'] for ticker in tickers]
+    bars3 = axes[1, 0].bar(range(len(company_names)), dividend_values, 
+                          color=colors[2:len(tickers)+2], alpha=0.8)
+    axes[1, 0].set_title('配当利回り比較 (%)', fontweight='bold', fontsize=12)
+    axes[1, 0].set_ylabel('配当利回り (%)', fontsize=10)
+    axes[1, 0].set_xticks(range(len(company_names)))
+    axes[1, 0].set_xticklabels(company_names, rotation=15, ha='right', fontsize=9)
+    
+    # 値のラベルを追加
+    for bar, value in zip(bars3, dividend_values):
+        height = bar.get_height()
+        axes[1, 0].text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                       f'{value:.1f}%', ha='center', va='bottom', fontsize=9)
+    
+    # 4. 負債比率比較
+    debt_values = [comparison_data[ticker]['debt_to_equity'] for ticker in tickers]
+    bars4 = axes[1, 1].bar(range(len(company_names)), debt_values, 
+                          color=colors[3:len(tickers)+3], alpha=0.8)
+    axes[1, 1].set_title('負債比率比較', fontweight='bold', fontsize=12)
+    axes[1, 1].set_ylabel('負債/自己資本', fontsize=10)
+    axes[1, 1].set_xticks(range(len(company_names)))
+    axes[1, 1].set_xticklabels(company_names, rotation=15, ha='right', fontsize=9)
+    
+    # 値のラベルを追加
+    for bar, value in zip(bars4, debt_values):
+        height = bar.get_height()
+        axes[1, 1].text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                       f'{value:.2f}', ha='center', va='bottom', fontsize=9)
+    
+    plt.suptitle('財務指標比較分析', fontsize=14, fontweight='bold', y=0.98)
+    plt.tight_layout(pad=2.0)
+    
+    # 保存
+    filename = f"financial_comparison_{'_'.join(tickers)}.png"
+    filepath = f"stock_data/{filename}"
+    plt.savefig(filepath, dpi=200, bbox_inches='tight')
+    print(f"📊 比較チャートを保存しました: {filepath}")
+    
+    plt.show()
+
+def generate_comparison_report(comparison_data: Dict):
+    """比較レポートを生成"""
+    print(f"\n{'='*70}")
+    print(f"⚖️ 財務指標比較レポート")
+    print(f"{'='*70}")
+    print(f"📅 比較日: {datetime.now().strftime('%Y年%m月%d日')}")
+    
+    tickers = list(comparison_data.keys())
+    
+    # 基本情報
+    print(f"\n📊 基本情報")
+    print(f"{'─'*50}")
+    for ticker in tickers:
+        data = comparison_data[ticker]
+        market_cap_trillion = data['market_cap'] / 1000000000000
+        print(f"🏢 {data['company_name']} ({ticker})")
+        print(f"   業種: {data['sector']}")
+        print(f"   時価総額: {market_cap_trillion:.1f}兆円")
+        print()
+    
+    # ROE比較
+    print(f"📈 ROE比較 (自己資本利益率)")
+    print(f"{'─'*50}")
+    roe_data = [(ticker, comparison_data[ticker]['roe']) for ticker in tickers]
+    roe_data.sort(key=lambda x: x[1], reverse=True)
+    for i, (ticker, roe) in enumerate(roe_data, 1):
+        company_name = comparison_data[ticker]['company_name']
+        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
+        print(f"   {medal} {i}位: {company_name} ({ticker}) - {roe:.1f}%")
+    
+    # P/E比較
+    print(f"\n💰 P/E比較 (株価収益率)")
+    print(f"{'─'*50}")
+    pe_data = [(ticker, comparison_data[ticker]['pe_ratio']) for ticker in tickers]
+    pe_data.sort(key=lambda x: x[1])  # 低い順
+    for i, (ticker, pe) in enumerate(pe_data, 1):
+        company_name = comparison_data[ticker]['company_name']
+        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
+        print(f"   {medal} {i}位: {company_name} ({ticker}) - {pe:.1f}倍")
+    
+    # 配当利回り比較
+    print(f"\n💵 配当利回り比較")
+    print(f"{'─'*50}")
+    dividend_data = [(ticker, comparison_data[ticker]['dividend_yield']) for ticker in tickers]
+    dividend_data.sort(key=lambda x: x[1], reverse=True)
+    for i, (ticker, dividend) in enumerate(dividend_data, 1):
+        company_name = comparison_data[ticker]['company_name']
+        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
+        print(f"   {medal} {i}位: {company_name} ({ticker}) - {dividend:.1f}%")
+    
+    # 財務健全性比較
+    print(f"\n🏥 財務健全性比較 (負債比率)")
+    print(f"{'─'*50}")
+    debt_data = [(ticker, comparison_data[ticker]['debt_to_equity']) for ticker in tickers]
+    debt_data.sort(key=lambda x: x[1])  # 低い順
+    for i, (ticker, debt) in enumerate(debt_data, 1):
+        company_name = comparison_data[ticker]['company_name']
+        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
+        print(f"   {medal} {i}位: {company_name} ({ticker}) - {debt:.2f}")
+    
+    # 総合評価
+    print(f"\n🎯 総合評価")
+    print(f"{'─'*50}")
+    print("📊 各指標の1位企業:")
+    print(f"   ROE: {roe_data[0][1]:.1f}% ({comparison_data[roe_data[0][0]]['company_name']})")
+    print(f"   P/E: {pe_data[0][1]:.1f}倍 ({comparison_data[pe_data[0][0]]['company_name']})")
+    print(f"   配当利回り: {dividend_data[0][1]:.1f}% ({comparison_data[dividend_data[0][0]]['company_name']})")
+    print(f"   財務健全性: {debt_data[0][1]:.2f} ({comparison_data[debt_data[0][0]]['company_name']})")
+    
+    print(f"\n{'='*70}")
+
 def main():
     """メイン関数"""
     print_banner()
@@ -471,8 +731,10 @@ def main():
         fetcher = JapaneseStockDataFetcher()
         analyzer = StockAnalyzer(fetcher)
         company_searcher = CompanySearch()
+        fundamental_analyzer = FundamentalAnalyzer(fetcher)
         print("✅ システムが正常に初期化されました")
         print(f"📊 登録企業数: {len(company_searcher.companies)}社")
+        print(f"🏢 ファンダメンタル分析対応企業数: {len(fundamental_analyzer.financial_data)}社")
     except Exception as e:
         print(f"❌ システムの初期化に失敗しました: {e}")
         return
@@ -481,7 +743,7 @@ def main():
         print_menu()
         
         try:
-            choice = input("選択してください (0-7): ").strip()
+            choice = input("選択してください (0-9): ").strip()
             
             if choice == "0":
                 print("\n👋 システムを終了します。お疲れ様でした！")
@@ -500,8 +762,12 @@ def main():
                 batch_fetch_menu(fetcher, company_searcher)
             elif choice == "7":
                 save_csv_menu(fetcher, company_searcher)
+            elif choice == "8":
+                fundamental_analysis_menu(fetcher, fundamental_analyzer, company_searcher)
+            elif choice == "9":
+                financial_comparison_menu(fundamental_analyzer, company_searcher)
             else:
-                print("❌ 無効な選択です。0-7の数字を入力してください。")
+                print("❌ 無効な選択です。0-9の数字を入力してください。")
         
         except KeyboardInterrupt:
             print("\n\n👋 システムを終了します。お疲れ様でした！")
