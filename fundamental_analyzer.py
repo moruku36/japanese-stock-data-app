@@ -150,9 +150,427 @@ class FundamentalAnalyzer:
                 "roe": 6.0,
                 "roa": 4.0,
                 "debt_to_equity": 0.25,
-                "current_ratio": 2.2,
-                "dividend_yield": 2.8,
+                "current_ratio": 2.5,
+                "dividend_yield": 1.8,
                 "beta": 1.2
+            },
+            "7974": {  # 任天堂
+                "company_name": "任天堂",
+                "sector": "情報・通信",
+                "market_cap": 9000000000000,   # 9兆円
+                "revenue": 1500000000000,      # 1.5兆円
+                "net_income": 400000000000,    # 4000億円
+                "total_assets": 2000000000000, # 2兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 0,                     # 無借金
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 22.5,
+                "pb_ratio": 6.0,
+                "roe": 26.7,
+                "roa": 20.0,
+                "debt_to_equity": 0.0,
+                "current_ratio": 4.0,
+                "dividend_yield": 1.2,
+                "beta": 0.8
+            },
+            "6954": {  # ファナック
+                "company_name": "ファナック",
+                "sector": "電気機器",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 800000000000,       # 8000億円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 1500000000000, # 1.5兆円
+                "total_equity": 1200000000000, # 1.2兆円
+                "debt": 0,                     # 無借金
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 20.0,
+                "pb_ratio": 3.3,
+                "roe": 16.7,
+                "roa": 13.3,
+                "debt_to_equity": 0.0,
+                "current_ratio": 3.5,
+                "dividend_yield": 1.5,
+                "beta": 0.9
+            },
+            "6594": {  # ニデック
+                "company_name": "ニデック",
+                "sector": "電気機器",
+                "market_cap": 3500000000000,   # 3.5兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 500000000000,          # 5000億円
+                "cash": 600000000000,          # 6000億円
+                "pe_ratio": 11.7,
+                "pb_ratio": 1.75,
+                "roe": 15.0,
+                "roa": 10.0,
+                "debt_to_equity": 0.25,
+                "current_ratio": 2.0,
+                "dividend_yield": 1.0,
+                "beta": 1.0
+            },
+            "7733": {  # オリンパス
+                "company_name": "オリンパス",
+                "sector": "電気機器",
+                "market_cap": 3000000000000,   # 3兆円
+                "revenue": 800000000000,       # 8000億円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 1200000000000, # 1.2兆円
+                "total_equity": 800000000000,  # 8000億円
+                "debt": 200000000000,          # 2000億円
+                "cash": 300000000000,          # 3000億円
+                "pe_ratio": 20.0,
+                "pb_ratio": 3.75,
+                "roe": 18.8,
+                "roa": 12.5,
+                "debt_to_equity": 0.25,
+                "current_ratio": 2.5,
+                "dividend_yield": 1.8,
+                "beta": 0.8
+            },
+            "9983": {  # ファーストリテイリング
+                "company_name": "ファーストリテイリング",
+                "sector": "小売業",
+                "market_cap": 10000000000000,  # 10兆円
+                "revenue": 3000000000000,      # 3兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 33.3,
+                "pb_ratio": 5.0,
+                "roe": 15.0,
+                "roa": 7.5,
+                "debt_to_equity": 0.5,
+                "current_ratio": 2.0,
+                "dividend_yield": 0.8,
+                "beta": 1.1
+            },
+            "9980": {  # ソフトバンクグループ
+                "company_name": "ソフトバンクグループ",
+                "sector": "情報・通信",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 30000000000000, # 30兆円
+                "total_equity": 10000000000000, # 10兆円
+                "debt": 12000000000000,        # 12兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 40.0,
+                "pb_ratio": 0.8,
+                "roe": 2.0,
+                "roa": 0.7,
+                "debt_to_equity": 1.2,
+                "current_ratio": 1.0,
+                "dividend_yield": 0.5,
+                "beta": 1.4
+            },
+            "7269": {  # スズキ
+                "company_name": "スズキ",
+                "sector": "自動車",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.33,
+                "roe": 13.3,
+                "roa": 6.7,
+                "debt_to_equity": 0.53,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.5,
+                "beta": 0.9
+            },
+            "7267": {  # ホンダ
+                "company_name": "ホンダ",
+                "sector": "自動車",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 15000000000000,     # 15兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 20000000000000, # 20兆円
+                "total_equity": 8000000000000,  # 8兆円
+                "debt": 6000000000000,         # 6兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.75,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.8,
+                "beta": 0.8
+            },
+            "8058": {  # 三菱商事
+                "company_name": "三菱商事",
+                "sector": "商社",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 20000000000000,     # 20兆円
+                "net_income": 1000000000000,   # 1兆円
+                "total_assets": 25000000000000, # 25兆円
+                "total_equity": 8000000000000,  # 8兆円
+                "debt": 12000000000000,        # 12兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 8.0,
+                "pb_ratio": 1.0,
+                "roe": 12.5,
+                "roa": 4.0,
+                "debt_to_equity": 1.5,
+                "current_ratio": 1.2,
+                "dividend_yield": 3.2,
+                "beta": 0.7
+            },
+            "8001": {  # 伊藤忠商事
+                "company_name": "伊藤忠商事",
+                "sector": "商社",
+                "market_cap": 7000000000000,   # 7兆円
+                "revenue": 18000000000000,     # 18兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 20000000000000, # 20兆円
+                "total_equity": 7000000000000,  # 7兆円
+                "debt": 10000000000000,        # 10兆円
+                "cash": 2500000000000,         # 2.5兆円
+                "pe_ratio": 8.75,
+                "pb_ratio": 1.0,
+                "roe": 11.4,
+                "roa": 4.0,
+                "debt_to_equity": 1.43,
+                "current_ratio": 1.3,
+                "dividend_yield": 3.5,
+                "beta": 0.8
+            },
+            "8306": {  # 三菱UFJフィナンシャル・グループ
+                "company_name": "三菱UFJフィナンシャル・グループ",
+                "sector": "銀行業",
+                "market_cap": 12000000000000,  # 12兆円
+                "revenue": 8000000000000,      # 8兆円
+                "net_income": 1200000000000,   # 1.2兆円
+                "total_assets": 400000000000000, # 400兆円
+                "total_equity": 20000000000000, # 20兆円
+                "debt": 300000000000000,       # 300兆円
+                "cash": 50000000000000,        # 50兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.6,
+                "roe": 6.0,
+                "roa": 0.3,
+                "debt_to_equity": 15.0,
+                "current_ratio": 1.1,
+                "dividend_yield": 4.0,
+                "beta": 0.6
+            },
+            "8316": {  # 三井住友フィナンシャルグループ
+                "company_name": "三井住友フィナンシャルグループ",
+                "sector": "銀行業",
+                "market_cap": 10000000000000,  # 10兆円
+                "revenue": 7000000000000,      # 7兆円
+                "net_income": 1000000000000,   # 1兆円
+                "total_assets": 300000000000000, # 300兆円
+                "total_equity": 18000000000000, # 18兆円
+                "debt": 250000000000000,       # 250兆円
+                "cash": 40000000000000,        # 40兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.56,
+                "roe": 5.6,
+                "roa": 0.33,
+                "debt_to_equity": 13.9,
+                "current_ratio": 1.0,
+                "dividend_yield": 4.2,
+                "beta": 0.7
+            },
+            "8411": {  # みずほフィナンシャルグループ
+                "company_name": "みずほフィナンシャルグループ",
+                "sector": "銀行業",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 6000000000000,      # 6兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 250000000000000, # 250兆円
+                "total_equity": 15000000000000, # 15兆円
+                "debt": 200000000000000,       # 200兆円
+                "cash": 30000000000000,        # 30兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.53,
+                "roe": 5.3,
+                "roa": 0.32,
+                "debt_to_equity": 13.3,
+                "current_ratio": 1.0,
+                "dividend_yield": 4.5,
+                "beta": 0.8
+            },
+            "9432": {  # NTT
+                "company_name": "NTT",
+                "sector": "情報・通信",
+                "market_cap": 12000000000000,  # 12兆円
+                "revenue": 12000000000000,     # 12兆円
+                "net_income": 1200000000000,   # 1.2兆円
+                "total_assets": 25000000000000, # 25兆円
+                "total_equity": 10000000000000, # 10兆円
+                "debt": 8000000000000,         # 8兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.2,
+                "roe": 12.0,
+                "roa": 4.8,
+                "debt_to_equity": 0.8,
+                "current_ratio": 1.5,
+                "dividend_yield": 3.8,
+                "beta": 0.5
+            },
+            "9433": {  # KDDI
+                "company_name": "KDDI",
+                "sector": "情報・通信",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 6000000000000,      # 6兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 15000000000000, # 15兆円
+                "total_equity": 6000000000000,  # 6兆円
+                "debt": 5000000000000,         # 5兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.33,
+                "roe": 13.3,
+                "roa": 5.3,
+                "debt_to_equity": 0.83,
+                "current_ratio": 1.4,
+                "dividend_yield": 4.0,
+                "beta": 0.6
+            },
+            "4502": {  # 武田薬品工業
+                "company_name": "武田薬品工業",
+                "sector": "医薬品",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 600000000000,    # 6000億円
+                "total_assets": 20000000000000, # 20兆円
+                "total_equity": 8000000000000,  # 8兆円
+                "debt": 8000000000000,         # 8兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.0,
+                "roe": 7.5,
+                "roa": 3.0,
+                "debt_to_equity": 1.0,
+                "current_ratio": 1.2,
+                "dividend_yield": 2.5,
+                "beta": 0.7
+            },
+            "4519": {  # 中外製薬
+                "company_name": "中外製薬",
+                "sector": "医薬品",
+                "market_cap": 6000000000000,   # 6兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 400000000000,    # 4000億円
+                "total_assets": 8000000000000, # 8兆円
+                "total_equity": 5000000000000, # 5兆円
+                "debt": 2000000000000,         # 2兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 15.0,
+                "pb_ratio": 1.2,
+                "roe": 8.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.4,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.0,
+                "beta": 0.6
+            },
+            "6501": {  # 日立製作所
+                "company_name": "日立製作所",
+                "sector": "電気機器",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 12000000000000,     # 12兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 20000000000000, # 20兆円
+                "total_equity": 8000000000000,  # 8兆円
+                "debt": 6000000000000,         # 6兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.75,
+                "current_ratio": 1.5,
+                "dividend_yield": 3.0,
+                "beta": 0.8
+            },
+            "6502": {  # 東芝
+                "company_name": "東芝",
+                "sector": "電気機器",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 6000000000000, # 6兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 2000000000000,         # 2兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 3.3,
+                "debt_to_equity": 1.0,
+                "current_ratio": 1.5,
+                "dividend_yield": 3.5,
+                "beta": 1.0
+            },
+            "6752": {  # パナソニック
+                "company_name": "パナソニック",
+                "sector": "電気機器",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 8000000000000,      # 8兆円
+                "net_income": 400000000000,    # 4000億円
+                "total_assets": 12000000000000, # 12兆円
+                "total_equity": 6000000000000,  # 6兆円
+                "debt": 3000000000000,         # 3兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.67,
+                "roe": 6.7,
+                "roa": 3.3,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.8,
+                "beta": 0.9
+            },
+            "9201": {  # 日本航空
+                "company_name": "日本航空",
+                "sector": "空運業",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.5,
+                "beta": 1.2
+            },
+            "9202": {  # ANAホールディングス
+                "company_name": "ANAホールディングス",
+                "sector": "空運業",
+                "market_cap": 1500000000000,   # 1.5兆円
+                "revenue": 1500000000000,      # 1.5兆円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 400000000000,          # 4000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.53,
+                "current_ratio": 1.6,
+                "dividend_yield": 2.8,
+                "beta": 1.3
             }
         }
         return sample_data
