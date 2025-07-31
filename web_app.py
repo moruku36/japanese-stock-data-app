@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-日本の株価データ取得・分析システム - WebUI版
+日本の株価データ取得・分析システム - WebUI版（最適化版）
 Streamlitを使用したWebインターフェース
 """
 
@@ -13,6 +13,8 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import os
 import sys
+import time
+from typing import Dict, Any, List
 
 # プロジェクトのモジュールをインポート
 from stock_data_fetcher import JapaneseStockDataFetcher
@@ -20,7 +22,10 @@ from stock_analyzer import StockAnalyzer
 from company_search import CompanySearch
 from fundamental_analyzer import FundamentalAnalyzer
 from config import config
-from utils import format_currency, format_number
+from utils import (
+    format_currency, format_number, PerformanceMonitor, 
+    performance_monitor, MemoryOptimizer, OptimizedCache
+)
 
 # ページ設定
 st.set_page_config(
@@ -30,18 +35,38 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# グローバルキャッシュ
+@st.cache_resource
+def get_global_cache():
+    """グローバルキャッシュを取得"""
+    return OptimizedCache(max_size=500, ttl_hours=6)
+
 @st.cache_resource
 def initialize_system():
-    """システムの初期化（キャッシュ付き）"""
+    """システムの初期化（キャッシュ付き・最適化版）"""
     try:
-        fetcher = JapaneseStockDataFetcher()
+        # パフォーマンス監視開始
+        monitor = PerformanceMonitor()
+        monitor.start()
+        
+        # システム初期化
+        fetcher = JapaneseStockDataFetcher(max_workers=3)
         analyzer = StockAnalyzer(fetcher)
         company_searcher = CompanySearch()
         fundamental_analyzer = FundamentalAnalyzer(fetcher)
+        
+        # パフォーマンス監視終了
+        monitor.end("System Initialization")
+        
         return fetcher, analyzer, company_searcher, fundamental_analyzer
     except Exception as e:
         st.error(f"システムの初期化に失敗しました: {e}")
         return None, None, None, None
+
+@st.cache_data(ttl=3600)  # 1時間キャッシュ
+def get_cached_data(key: str, data_func, *args, **kwargs):
+    """データをキャッシュ付きで取得"""
+    return data_func(*args, **kwargs)
 
 def format_currency_web(value):
     """通貨フォーマット（Web用）"""
@@ -55,10 +80,14 @@ def format_percentage(value):
         return "N/A"
     return f"{value:.1f}%"
 
+@performance_monitor
 def create_stock_price_chart(df, ticker_symbol):
-    """株価チャートを作成"""
+    """株価チャートを作成（最適化版）"""
     if df.empty:
         return None
+    
+    # データフレームの最適化
+    df = MemoryOptimizer.optimize_dataframe(df)
     
     fig = go.Figure()
     
@@ -74,7 +103,7 @@ def create_stock_price_chart(df, ticker_symbol):
         decreasing_line_color='#ef5350'
     ))
     
-    # 移動平均線
+    # 移動平均線（データが十分にある場合のみ）
     if len(df) >= 20:
         ma20 = df['Close'].rolling(window=20).mean()
         fig.add_trace(go.Scatter(
@@ -96,7 +125,7 @@ def create_stock_price_chart(df, ticker_symbol):
     return fig
 
 def main():
-    """メイン関数"""
+    """メイン関数（最適化版）"""
     # ヘッダー
     st.title("🇯🇵 日本の株価データ分析システム")
     
@@ -107,6 +136,12 @@ def main():
     if not all([fetcher, analyzer, company_searcher, fundamental_analyzer]):
         st.error("システムの初期化に失敗しました。")
         return
+    
+    # パフォーマンス情報を表示（開発モード）
+    if st.sidebar.checkbox("🔧 開発者モード", value=False):
+        memory_usage = MemoryOptimizer.get_memory_usage()
+        st.sidebar.metric("メモリ使用量", f"{memory_usage['rss_mb']:.1f}MB")
+        st.sidebar.metric("メモリ使用率", f"{memory_usage['percent']:.1f}%")
     
     # サイドバー
     st.sidebar.title("📊 機能選択")
@@ -142,10 +177,15 @@ def main():
         
         st.markdown("---")
         
-        # 主要企業の一覧
+        # 主要企業の一覧（最適化版）
         st.markdown("## ⭐ 主要企業")
         
-        popular_companies = company_searcher.get_popular_companies(10)
+        # キャッシュ付きで主要企業を取得
+        popular_companies = get_cached_data(
+            "popular_companies", 
+            company_searcher.get_popular_companies, 
+            10
+        )
         
         cols = st.columns(2)
         for i, company in enumerate(popular_companies):
@@ -155,9 +195,14 @@ def main():
                     st.write(f"**業種:** {company['sector']}")
                     st.write(f"**市場:** {company['market']}")
                     
-                    # 最新株価を取得
+                    # 最新株価を取得（キャッシュ付き）
                     try:
-                        price_data = fetcher.get_latest_price(company['code'], "stooq")
+                        price_data = get_cached_data(
+                            f"latest_price_{company['code']}", 
+                            fetcher.get_latest_price, 
+                            company['code'], 
+                            "stooq"
+                        )
                         if "error" not in price_data:
                             st.write(f"**現在値:** {format_currency_web(price_data['close'])}")
                             st.write(f"**日付:** {price_data['date']}")
@@ -186,8 +231,18 @@ def main():
                 with st.spinner(f"{ticker}の株価を取得中..."):
                     try:
                         if source == "both":
-                            stooq_data = fetcher.get_latest_price(ticker, "stooq")
-                            yahoo_data = fetcher.get_latest_price(ticker, "yahoo")
+                            stooq_data = get_cached_data(
+                                f"latest_price_stooq_{ticker}", 
+                                fetcher.get_latest_price, 
+                                ticker, 
+                                "stooq"
+                            )
+                            yahoo_data = get_cached_data(
+                                f"latest_price_yahoo_{ticker}", 
+                                fetcher.get_latest_price, 
+                                ticker, 
+                                "yahoo"
+                            )
                             
                             col1, col2 = st.columns(2)
                             
@@ -209,7 +264,12 @@ def main():
                                 else:
                                     st.warning(f"Yahoo Finance: {yahoo_data['error']}")
                         else:
-                            data = fetcher.get_latest_price(ticker, source)
+                            data = get_cached_data(
+                                f"latest_price_{source}_{ticker}", 
+                                fetcher.get_latest_price, 
+                                ticker, 
+                                source
+                            )
                             
                             if "error" not in data:
                                 st.success("✅ データ取得成功!")
@@ -259,13 +319,17 @@ def main():
                         start_date = end_date - timedelta(days=period)
                         
                         if source == "stooq":
-                            df = fetcher.fetch_stock_data_stooq(
+                            df = get_cached_data(
+                                f"stock_data_stooq_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                fetcher.fetch_stock_data_stooq,
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d')
                             )
                         else:
-                            df = fetcher.fetch_stock_data_yahoo(
+                            df = get_cached_data(
+                                f"stock_data_yahoo_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                fetcher.fetch_stock_data_yahoo,
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d')
@@ -295,7 +359,11 @@ def main():
                 
                 with st.spinner(f"{ticker}のファンダメンタル分析を実行中..."):
                     try:
-                        financial_data = fundamental_analyzer.get_financial_data(ticker)
+                        financial_data = get_cached_data(
+                            f"fundamental_data_{ticker}", 
+                            fundamental_analyzer.get_financial_data, 
+                            ticker
+                        )
                         
                         if financial_data:
                             # 基本情報
@@ -335,7 +403,12 @@ def main():
                                 st.markdown("### 🎯 ターゲットプライス分析")
                                 
                                 # 最新価格を取得
-                                latest_price = fetcher.get_latest_price(ticker, "stooq")
+                                latest_price = get_cached_data(
+                                    f"latest_price_stooq_{ticker}", 
+                                    fetcher.get_latest_price, 
+                                    ticker, 
+                                    "stooq"
+                                )
                                 if "error" not in latest_price:
                                     current_price = latest_price['close']
                                     target_price = financial_data['target_price']
@@ -451,7 +524,11 @@ def main():
                             comparison_data = {}
                             
                             for ticker in selected_tickers:
-                                financial_data = fundamental_analyzer.get_financial_data(ticker)
+                                financial_data = get_cached_data(
+                                    f"fundamental_data_{ticker}", 
+                                    fundamental_analyzer.get_financial_data, 
+                                    ticker
+                                )
                                 if financial_data:
                                     comparison_data[ticker] = financial_data
                             
@@ -537,7 +614,11 @@ def main():
             
             if st.button("🏭 業界比較を実行", type="primary"):
                 sector = None if selected_sector == "全業界" else selected_sector
-                sector_stats = fundamental_analyzer.get_industry_per_comparison(sector)
+                sector_stats = get_cached_data(
+                    f"industry_per_stats_{sector}", 
+                    fundamental_analyzer.get_industry_per_comparison, 
+                    sector
+                )
                 
                 if sector_stats:
                     # 業界別統計表
@@ -621,9 +702,19 @@ def main():
                 sector = None if selected_sector == "全業界" else selected_sector
                 
                 # 割安企業
-                undervalued = fundamental_analyzer.find_undervalued_companies(sector, undervalued_threshold)
+                undervalued = get_cached_data(
+                    f"undervalued_companies_{sector}_{undervalued_threshold}", 
+                    fundamental_analyzer.find_undervalued_companies, 
+                    sector, 
+                    undervalued_threshold
+                )
                 # 割高企業
-                overvalued = fundamental_analyzer.find_overvalued_companies(sector, overvalued_threshold)
+                overvalued = get_cached_data(
+                    f"overvalued_companies_{sector}_{overvalued_threshold}", 
+                    fundamental_analyzer.find_overvalued_companies, 
+                    sector, 
+                    overvalued_threshold
+                )
                 
                 col1, col2 = st.columns(2)
                 
@@ -732,7 +823,11 @@ def main():
                 if st.button("🎯 ターゲットプライス分析を実行", type="primary"):
                     with st.spinner("ターゲットプライスを分析中..."):
                         try:
-                            analysis = fundamental_analyzer.analyze_target_price(selected_ticker)
+                            analysis = get_cached_data(
+                                f"target_price_analysis_{selected_ticker}", 
+                                fundamental_analyzer.analyze_target_price, 
+                                selected_ticker
+                            )
                             
                             if "error" in analysis:
                                 st.error(f"❌ {analysis['error']}")
@@ -826,7 +921,12 @@ def main():
                 if st.button("🔍 機会を発見", type="primary"):
                     with st.spinner("投資機会を分析中..."):
                         try:
-                            opportunities = fundamental_analyzer.find_target_price_opportunities(min_upside, max_upside)
+                            opportunities = get_cached_data(
+                                f"target_price_opportunities_{min_upside}_{max_upside}", 
+                                fundamental_analyzer.find_target_price_opportunities, 
+                                min_upside, 
+                                max_upside
+                            )
                             
                             if opportunities:
                                 st.markdown(f"#### 📈 発見された投資機会（{len(opportunities)}社）")
@@ -891,7 +991,11 @@ def main():
                     
                     with st.spinner("業界別分析を実行中..."):
                         try:
-                            sector_analysis = fundamental_analyzer.get_sector_target_price_analysis(sector)
+                            sector_analysis = get_cached_data(
+                                f"sector_target_price_analysis_{sector}", 
+                                fundamental_analyzer.get_sector_target_price_analysis, 
+                                sector
+                            )
                             
                             if sector_analysis:
                                 # 業界別統計表
@@ -978,7 +1082,12 @@ def main():
                         
                         for ticker in tickers:
                             try:
-                                data = fetcher.get_latest_price(ticker, source)
+                                data = get_cached_data(
+                                    f"latest_price_{source}_{ticker}", 
+                                    fetcher.get_latest_price, 
+                                    ticker, 
+                                    source
+                                )
                                 if "error" not in data:
                                     results.append({
                                         '銘柄': ticker,
@@ -1032,13 +1141,17 @@ def main():
                         start_date = end_date - timedelta(days=period)
                         
                         if source == "stooq":
-                            df = fetcher.fetch_stock_data_stooq(
+                            df = get_cached_data(
+                                f"stock_data_stooq_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                fetcher.fetch_stock_data_stooq,
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d')
                             )
                         else:
-                            df = fetcher.fetch_stock_data_yahoo(
+                            df = get_cached_data(
+                                f"stock_data_yahoo_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                fetcher.fetch_stock_data_yahoo,
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d')

@@ -2,20 +2,160 @@
 # -*- coding: utf-8 -*-
 
 """
-ユーティリティ機能
-プログレスバー、キャッシュ、ヘルパー関数などを提供
+ユーティリティ関数群
+データ処理、検証、ファイル操作などの共通機能
 """
 
-import time
+import os
 import json
+import time
 import hashlib
-import pickle
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
-from datetime import datetime, timedelta
 import logging
+import pandas as pd
+import numpy as np
+from typing import Dict, Any, List, Optional, Union, Callable
+from pathlib import Path
+from datetime import datetime, timedelta
+from functools import wraps
+import psutil
+import gc
 
 logger = logging.getLogger(__name__)
+
+class PerformanceMonitor:
+    """パフォーマンス監視クラス"""
+    
+    def __init__(self):
+        self.start_time = None
+        self.memory_start = None
+    
+    def start(self):
+        """監視開始"""
+        self.start_time = time.time()
+        self.memory_start = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+    
+    def end(self, operation_name: str = "Operation"):
+        """監視終了"""
+        if self.start_time is None:
+            return
+        
+        elapsed_time = time.time() - self.start_time
+        memory_end = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        memory_diff = memory_end - self.memory_start
+        
+        logger.info(f"{operation_name}: {elapsed_time:.2f}s, Memory: {memory_diff:+.1f}MB")
+        
+        self.start_time = None
+        self.memory_start = None
+
+def performance_monitor(func):
+    """パフォーマンス監視デコレータ"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        monitor = PerformanceMonitor()
+        monitor.start()
+        try:
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            monitor.end(func.__name__)
+    return wrapper
+
+class OptimizedCache:
+    """最適化されたキャッシュクラス"""
+    
+    def __init__(self, max_size: int = 1000, ttl_hours: int = 24):
+        self.max_size = max_size
+        self.ttl_hours = ttl_hours
+        self.cache = {}
+        self.access_times = {}
+    
+    def get(self, key: str) -> Any:
+        """キャッシュから値を取得"""
+        if key in self.cache:
+            # TTLチェック
+            if time.time() - self.access_times[key] > self.ttl_hours * 3600:
+                del self.cache[key]
+                del self.access_times[key]
+                return None
+            
+            # アクセス時間を更新
+            self.access_times[key] = time.time()
+            return self.cache[key]
+        return None
+    
+    def set(self, key: str, value: Any):
+        """キャッシュに値を設定"""
+        # サイズ制限チェック
+        if len(self.cache) >= self.max_size:
+            # 最も古いアクセスを削除
+            oldest_key = min(self.access_times.keys(), key=lambda k: self.access_times[k])
+            del self.cache[oldest_key]
+            del self.access_times[oldest_key]
+        
+        self.cache[key] = value
+        self.access_times[key] = time.time()
+    
+    def clear(self):
+        """キャッシュをクリア"""
+        self.cache.clear()
+        self.access_times.clear()
+
+class MemoryOptimizer:
+    """メモリ最適化クラス"""
+    
+    @staticmethod
+    def optimize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+        """データフレームのメモリ使用量を最適化"""
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                # 文字列カラムの最適化
+                if df[col].nunique() / len(df) < 0.5:
+                    df[col] = df[col].astype('category')
+            elif df[col].dtype == 'float64':
+                # 浮動小数点の最適化
+                if df[col].isnull().sum() == 0:
+                    df[col] = pd.to_numeric(df[col], downcast='float')
+            elif df[col].dtype == 'int64':
+                # 整数の最適化
+                df[col] = pd.to_numeric(df[col], downcast='integer')
+        
+        return df
+    
+    @staticmethod
+    def cleanup_memory():
+        """メモリクリーンアップ"""
+        gc.collect()
+    
+    @staticmethod
+    def get_memory_usage() -> Dict[str, float]:
+        """メモリ使用量を取得"""
+        process = psutil.Process()
+        memory_info = process.memory_info()
+        return {
+            'rss_mb': memory_info.rss / 1024 / 1024,
+            'vms_mb': memory_info.vms / 1024 / 1024,
+            'percent': process.memory_percent()
+        }
+
+class BatchProcessor:
+    """バッチ処理クラス"""
+    
+    def __init__(self, batch_size: int = 10):
+        self.batch_size = batch_size
+    
+    def process_batch(self, items: List[Any], processor_func) -> List[Any]:
+        """バッチ処理を実行"""
+        results = []
+        for i in range(0, len(items), self.batch_size):
+            batch = items[i:i + self.batch_size]
+            batch_results = [processor_func(item) for item in batch]
+            results.extend(batch_results)
+            
+            # メモリクリーンアップ
+            MemoryOptimizer.cleanup_memory()
+        
+        return results
 
 class ProgressBar:
     """プログレスバークラス"""
