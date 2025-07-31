@@ -57,7 +57,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.8,
                 "current_ratio": 1.2,
                 "dividend_yield": 2.1,
-                "beta": 0.9
+                "beta": 0.9,
+                "pe_ratio_ntm": 15.2,  # NTM PER
+                "target_price": 3200,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6758": {  # ソニーグループ
                 "company_name": "ソニーグループ",
@@ -76,7 +79,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.75,
                 "current_ratio": 1.4,
                 "dividend_yield": 0.8,
-                "beta": 1.1
+                "beta": 1.1,
+                "pe_ratio_ntm": 17.5,  # NTM PER
+                "target_price": 13500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9984": {  # ソフトバンクグループ
                 "company_name": "ソフトバンクグループ",
@@ -95,7 +101,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.0,
                 "current_ratio": 1.1,
                 "dividend_yield": 1.2,
-                "beta": 1.3
+                "beta": 1.3,
+                "pe_ratio_ntm": 23.5,  # NTM PER
+                "target_price": 8500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6861": {  # キーエンス
                 "company_name": "キーエンス",
@@ -114,7 +123,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.05,
                 "current_ratio": 3.0,
                 "dividend_yield": 0.5,
-                "beta": 0.7
+                "beta": 0.7,
+                "pe_ratio_ntm": 5.8,  # NTM PER
+                "target_price": 75000,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9434": {  # NTTドコモ
                 "company_name": "NTTドコモ",
@@ -133,7 +145,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.38,
                 "current_ratio": 1.8,
                 "dividend_yield": 3.5,
-                "beta": 0.6
+                "beta": 0.6,
+                "pe_ratio_ntm": 10.8,  # NTM PER
+                "target_price": 1800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "4784": {  # GMOアドパートナーズ
                 "company_name": "GMOアドパートナーズ",
@@ -152,7 +167,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.25,
                 "current_ratio": 2.5,
                 "dividend_yield": 1.8,
-                "beta": 1.2
+                "beta": 1.2,
+                "pe_ratio_ntm": 11.8,  # NTM PER
+                "target_price": 2800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "7974": {  # 任天堂
                 "company_name": "任天堂",
@@ -171,7 +189,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.0,
                 "current_ratio": 4.0,
                 "dividend_yield": 1.2,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 21.2,  # NTM PER
+                "target_price": 8500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6954": {  # ファナック
                 "company_name": "ファナック",
@@ -190,7 +211,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.0,
                 "current_ratio": 3.5,
                 "dividend_yield": 1.5,
-                "beta": 0.9
+                "beta": 0.9,
+                "pe_ratio_ntm": 18.5,  # NTM PER
+                "target_price": 42000,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6594": {  # ニデック
                 "company_name": "ニデック",
@@ -209,7 +233,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.25,
                 "current_ratio": 2.0,
                 "dividend_yield": 1.0,
-                "beta": 1.0
+                "beta": 1.0,
+                "pe_ratio_ntm": 11.2,  # NTM PER
+                "target_price": 5800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "7733": {  # オリンパス
                 "company_name": "オリンパス",
@@ -228,7 +255,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.25,
                 "current_ratio": 2.5,
                 "dividend_yield": 1.8,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 19.2,  # NTM PER
+                "target_price": 2800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9983": {  # ファーストリテイリング
                 "company_name": "ファーストリテイリング",
@@ -247,7 +277,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.5,
                 "current_ratio": 2.0,
                 "dividend_yield": 0.8,
-                "beta": 1.1
+                "beta": 1.1,
+                "pe_ratio_ntm": 31.8,  # NTM PER
+                "target_price": 45000,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9980": {  # ソフトバンクグループ
                 "company_name": "ソフトバンクグループ",
@@ -266,7 +299,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.2,
                 "current_ratio": 1.0,
                 "dividend_yield": 0.5,
-                "beta": 1.4
+                "beta": 1.4,
+                "pe_ratio_ntm": 40.0,  # NTM PER
+                "target_price": 6500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "7269": {  # スズキ
                 "company_name": "スズキ",
@@ -285,7 +321,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.53,
                 "current_ratio": 1.8,
                 "dividend_yield": 2.5,
-                "beta": 0.9
+                "beta": 0.9,
+                "pe_ratio_ntm": 9.5,  # NTM PER
+                "target_price": 1200,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "7267": {  # ホンダ
                 "company_name": "ホンダ",
@@ -304,7 +343,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.75,
                 "current_ratio": 1.5,
                 "dividend_yield": 2.8,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 1800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "8058": {  # 三菱商事
                 "company_name": "三菱商事",
@@ -323,7 +365,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.5,
                 "current_ratio": 1.2,
                 "dividend_yield": 3.2,
-                "beta": 0.7
+                "beta": 0.7,
+                "pe_ratio_ntm": 7.5,  # NTM PER
+                "target_price": 8500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "8001": {  # 伊藤忠商事
                 "company_name": "伊藤忠商事",
@@ -342,7 +387,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.43,
                 "current_ratio": 1.3,
                 "dividend_yield": 3.5,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 8.2,  # NTM PER
+                "target_price": 7500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "8306": {  # 三菱UFJフィナンシャル・グループ
                 "company_name": "三菱UFJフィナンシャル・グループ",
@@ -361,7 +409,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 15.0,
                 "current_ratio": 1.1,
                 "dividend_yield": 4.0,
-                "beta": 0.6
+                "beta": 0.6,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 1200,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "8316": {  # 三井住友フィナンシャルグループ
                 "company_name": "三井住友フィナンシャルグループ",
@@ -380,7 +431,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 13.9,
                 "current_ratio": 1.0,
                 "dividend_yield": 4.2,
-                "beta": 0.7
+                "beta": 0.7,
+                "pe_ratio_ntm": 9.5,  # NTM PER
+                "target_price": 1100,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "8411": {  # みずほフィナンシャルグループ
                 "company_name": "みずほフィナンシャルグループ",
@@ -399,7 +453,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 13.3,
                 "current_ratio": 1.0,
                 "dividend_yield": 4.5,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 9.2,  # NTM PER
+                "target_price": 1000,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9432": {  # NTT
                 "company_name": "NTT",
@@ -418,7 +475,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.8,
                 "current_ratio": 1.5,
                 "dividend_yield": 3.8,
-                "beta": 0.5
+                "beta": 0.5,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 1800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9433": {  # KDDI
                 "company_name": "KDDI",
@@ -437,7 +497,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.83,
                 "current_ratio": 1.4,
                 "dividend_yield": 4.0,
-                "beta": 0.6
+                "beta": 0.6,
+                "pe_ratio_ntm": 10.2,  # NTM PER
+                "target_price": 1600,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "4502": {  # 武田薬品工業
                 "company_name": "武田薬品工業",
@@ -456,7 +519,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.0,
                 "current_ratio": 1.2,
                 "dividend_yield": 2.5,
-                "beta": 0.7
+                "beta": 0.7,
+                "pe_ratio_ntm": 12.8,  # NTM PER
+                "target_price": 4500,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "4519": {  # 中外製薬
                 "company_name": "中外製薬",
@@ -475,7 +541,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.4,
                 "current_ratio": 1.8,
                 "dividend_yield": 2.0,
-                "beta": 0.6
+                "beta": 0.6,
+                "pe_ratio_ntm": 14.5,  # NTM PER
+                "target_price": 3800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6501": {  # 日立製作所
                 "company_name": "日立製作所",
@@ -494,7 +563,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.75,
                 "current_ratio": 1.5,
                 "dividend_yield": 3.0,
-                "beta": 0.8
+                "beta": 0.8,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 2200,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6502": {  # 東芝
                 "company_name": "東芝",
@@ -513,7 +585,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 1.0,
                 "current_ratio": 1.5,
                 "dividend_yield": 3.5,
-                "beta": 1.0
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,  # NTM PER
+                "target_price": 1800,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "6752": {  # パナソニック
                 "company_name": "パナソニック",
@@ -532,7 +607,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.5,
                 "current_ratio": 1.8,
                 "dividend_yield": 2.8,
-                "beta": 0.9
+                "beta": 0.9,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 1600,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9201": {  # 日本航空
                 "company_name": "日本航空",
@@ -551,7 +629,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.5,
                 "current_ratio": 1.5,
                 "dividend_yield": 2.5,
-                "beta": 1.2
+                "beta": 1.2,
+                "pe_ratio_ntm": 9.8,  # NTM PER
+                "target_price": 1400,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             },
             "9202": {  # ANAホールディングス
                 "company_name": "ANAホールディングス",
@@ -570,7 +651,10 @@ class FundamentalAnalyzer:
                 "debt_to_equity": 0.53,
                 "current_ratio": 1.6,
                 "dividend_yield": 2.8,
-                "beta": 1.3
+                "beta": 1.3,
+                "pe_ratio_ntm": 9.5,  # NTM PER
+                "target_price": 1200,  # アナリストターゲットプライス（円）
+                "target_price_date": "2024-12-01"  # ターゲットプライス設定日
             }
         }
         return sample_data
@@ -746,6 +830,303 @@ class FundamentalAnalyzer:
                 }
         
         return comparison
+    
+    def get_industry_per_comparison(self, sector: str = None) -> Dict:
+        """
+        業界別PER比較（NTM PER使用）
+        
+        Args:
+            sector (str): 業界名（Noneの場合は全業界）
+            
+        Returns:
+            Dict: 業界別PER比較結果
+        """
+        # 業界別の企業をグループ化
+        companies_by_sector = {}
+        for ticker, data in self.financial_data.items():
+            sector_name = data['sector']
+            if sector is None or sector_name == sector:
+                if sector_name not in companies_by_sector:
+                    companies_by_sector[sector_name] = []
+                companies_by_sector[sector_name].append({
+                    'ticker': ticker,
+                    'company_name': data['company_name'],
+                    'pe_ratio': data.get('pe_ratio', 0),
+                    'pe_ratio_ntm': data.get('pe_ratio_ntm', data.get('pe_ratio', 0)),  # NTM PER
+                    'market_cap': data['market_cap'],
+                    'roe': data.get('roe', 0),
+                    'dividend_yield': data.get('dividend_yield', 0)
+                })
+        
+        # 業界別の統計を計算
+        sector_stats = {}
+        for sector_name, companies in companies_by_sector.items():
+            if companies:
+                pe_ratios = [c['pe_ratio'] for c in companies if c['pe_ratio'] > 0]
+                pe_ntm_ratios = [c['pe_ratio_ntm'] for c in companies if c['pe_ratio_ntm'] > 0]
+                
+                sector_stats[sector_name] = {
+                    'companies': companies,
+                    'avg_pe': sum(pe_ratios) / len(pe_ratios) if pe_ratios else 0,
+                    'avg_pe_ntm': sum(pe_ntm_ratios) / len(pe_ntm_ratios) if pe_ntm_ratios else 0,
+                    'min_pe_ntm': min(pe_ntm_ratios) if pe_ntm_ratios else 0,
+                    'max_pe_ntm': max(pe_ntm_ratios) if pe_ntm_ratios else 0,
+                    'company_count': len(companies)
+                }
+        
+        return sector_stats
+    
+    def find_undervalued_companies(self, sector: str = None, threshold: float = -20.0) -> List[Dict]:
+        """
+        割安企業を発見（NTM PER基準）
+        
+        Args:
+            sector (str): 業界名（Noneの場合は全業界）
+            threshold (float): 割安判定の閾値（%）
+            
+        Returns:
+            List[Dict]: 割安企業のリスト
+        """
+        sector_stats = self.get_industry_per_comparison(sector)
+        undervalued = []
+        
+        for sector_name, stats in sector_stats.items():
+            avg_pe_ntm = stats['avg_pe_ntm']
+            if avg_pe_ntm <= 0:
+                continue
+                
+            for company in stats['companies']:
+                pe_ntm = company['pe_ratio_ntm']
+                if pe_ntm <= 0:
+                    continue
+                    
+                # 業界平均との比較
+                percent_diff = ((pe_ntm - avg_pe_ntm) / avg_pe_ntm) * 100
+                
+                if percent_diff <= threshold:  # 割安判定
+                    undervalued.append({
+                        'ticker': company['ticker'],
+                        'company_name': company['company_name'],
+                        'sector': sector_name,
+                        'pe_ratio_ntm': pe_ntm,
+                        'sector_avg_pe_ntm': avg_pe_ntm,
+                        'percent_diff': percent_diff,
+                        'market_cap': company['market_cap'],
+                        'roe': company['roe'],
+                        'dividend_yield': company['dividend_yield']
+                    })
+        
+        # 割安度でソート（最も割安な順）
+        undervalued.sort(key=lambda x: x['percent_diff'])
+        return undervalued
+    
+    def find_overvalued_companies(self, sector: str = None, threshold: float = 20.0) -> List[Dict]:
+        """
+        割高企業を発見（NTM PER基準）
+        
+        Args:
+            sector (str): 業界名（Noneの場合は全業界）
+            threshold (float): 割高判定の閾値（%）
+            
+        Returns:
+            List[Dict]: 割高企業のリスト
+        """
+        sector_stats = self.get_industry_per_comparison(sector)
+        overvalued = []
+        
+        for sector_name, stats in sector_stats.items():
+            avg_pe_ntm = stats['avg_pe_ntm']
+            if avg_pe_ntm <= 0:
+                continue
+                
+            for company in stats['companies']:
+                pe_ntm = company['pe_ratio_ntm']
+                if pe_ntm <= 0:
+                    continue
+                    
+                # 業界平均との比較
+                percent_diff = ((pe_ntm - avg_pe_ntm) / avg_pe_ntm) * 100
+                
+                if percent_diff >= threshold:  # 割高判定
+                    overvalued.append({
+                        'ticker': company['ticker'],
+                        'company_name': company['company_name'],
+                        'sector': sector_name,
+                        'pe_ratio_ntm': pe_ntm,
+                        'sector_avg_pe_ntm': avg_pe_ntm,
+                        'percent_diff': percent_diff,
+                        'market_cap': company['market_cap'],
+                        'roe': company['roe'],
+                        'dividend_yield': company['dividend_yield']
+                    })
+        
+        # 割高度でソート（最も割高な順）
+        overvalued.sort(key=lambda x: x['percent_diff'], reverse=True)
+        return overvalued
+    
+    def analyze_target_price(self, ticker_symbol: str, current_price: float = None) -> Dict:
+        """
+        ターゲットプライス分析
+        
+        Args:
+            ticker_symbol (str): 銘柄コード
+            current_price (float): 現在の株価（Noneの場合は最新価格を取得）
+            
+        Returns:
+            Dict: ターゲットプライス分析結果
+        """
+        company_data = self.get_financial_data(ticker_symbol)
+        if not company_data:
+            return {}
+        
+        # 現在価格を取得
+        if current_price is None:
+            latest_price = self.fetcher.get_latest_price(ticker_symbol, "stooq")
+            if "error" in latest_price:
+                return {"error": "現在価格の取得に失敗しました"}
+            current_price = latest_price['close']
+        
+        target_price = company_data.get('target_price', 0)
+        if target_price <= 0:
+            return {"error": "ターゲットプライスが設定されていません"}
+        
+        # 分析結果を計算
+        price_diff = target_price - current_price
+        price_diff_percent = (price_diff / current_price) * 100
+        
+        # 投資推奨度を判定
+        if price_diff_percent >= 20:
+            recommendation = "強力買い"
+            recommendation_color = "green"
+        elif price_diff_percent >= 10:
+            recommendation = "買い"
+            recommendation_color = "lightgreen"
+        elif price_diff_percent >= -10:
+            recommendation = "中立"
+            recommendation_color = "yellow"
+        elif price_diff_percent >= -20:
+            recommendation = "売り"
+            recommendation_color = "orange"
+        else:
+            recommendation = "強力売り"
+            recommendation_color = "red"
+        
+        return {
+            'ticker': ticker_symbol,
+            'company_name': company_data['company_name'],
+            'current_price': current_price,
+            'target_price': target_price,
+            'price_diff': price_diff,
+            'price_diff_percent': price_diff_percent,
+            'recommendation': recommendation,
+            'recommendation_color': recommendation_color,
+            'target_price_date': company_data.get('target_price_date', ''),
+            'sector': company_data['sector'],
+            'pe_ratio_ntm': company_data.get('pe_ratio_ntm', 0),
+            'roe': company_data.get('roe', 0),
+            'dividend_yield': company_data.get('dividend_yield', 0)
+        }
+    
+    def find_target_price_opportunities(self, min_upside: float = 10.0, max_upside: float = 100.0) -> List[Dict]:
+        """
+        ターゲットプライス機会を発見
+        
+        Args:
+            min_upside (float): 最小上昇率（%）
+            max_upside (float): 最大上昇率（%）
+            
+        Returns:
+            List[Dict]: ターゲットプライス機会のリスト
+        """
+        opportunities = []
+        
+        for ticker, company_data in self.financial_data.items():
+            target_price = company_data.get('target_price', 0)
+            if target_price <= 0:
+                continue
+            
+            # 最新価格を取得
+            latest_price = self.fetcher.get_latest_price(ticker, "stooq")
+            if "error" in latest_price:
+                continue
+            
+            current_price = latest_price['close']
+            upside = ((target_price - current_price) / current_price) * 100
+            
+            # 条件に合致する場合
+            if min_upside <= upside <= max_upside:
+                opportunities.append({
+                    'ticker': ticker,
+                    'company_name': company_data['company_name'],
+                    'sector': company_data['sector'],
+                    'current_price': current_price,
+                    'target_price': target_price,
+                    'upside': upside,
+                    'pe_ratio_ntm': company_data.get('pe_ratio_ntm', 0),
+                    'roe': company_data.get('roe', 0),
+                    'dividend_yield': company_data.get('dividend_yield', 0),
+                    'target_price_date': company_data.get('target_price_date', '')
+                })
+        
+        # 上昇率でソート（高い順）
+        opportunities.sort(key=lambda x: x['upside'], reverse=True)
+        return opportunities
+    
+    def get_sector_target_price_analysis(self, sector: str = None) -> Dict:
+        """
+        業界別ターゲットプライス分析
+        
+        Args:
+            sector (str): 業界名（Noneの場合は全業界）
+            
+        Returns:
+            Dict: 業界別ターゲットプライス分析結果
+        """
+        sector_analysis = {}
+        
+        for ticker, company_data in self.financial_data.items():
+            sector_name = company_data['sector']
+            if sector is not None and sector_name != sector:
+                continue
+            
+            target_price = company_data.get('target_price', 0)
+            if target_price <= 0:
+                continue
+            
+            # 最新価格を取得
+            latest_price = self.fetcher.get_latest_price(ticker, "stooq")
+            if "error" in latest_price:
+                continue
+            
+            current_price = latest_price['close']
+            upside = ((target_price - current_price) / current_price) * 100
+            
+            if sector_name not in sector_analysis:
+                sector_analysis[sector_name] = {
+                    'companies': [],
+                    'avg_upside': 0,
+                    'max_upside': 0,
+                    'min_upside': 0,
+                    'company_count': 0
+                }
+            
+            sector_analysis[sector_name]['companies'].append({
+                'ticker': ticker,
+                'company_name': company_data['company_name'],
+                'current_price': current_price,
+                'target_price': target_price,
+                'upside': upside
+            })
+        
+        # 業界別統計を計算
+        for sector_name, data in sector_analysis.items():
+            upsides = [c['upside'] for c in data['companies']]
+            data['avg_upside'] = sum(upsides) / len(upsides) if upsides else 0
+            data['max_upside'] = max(upsides) if upsides else 0
+            data['min_upside'] = min(upsides) if upsides else 0
+            data['company_count'] = len(data['companies'])
+        
+        return sector_analysis
     
     def plot_financial_analysis(self, ticker_symbol: str, save_plot: bool = True):
         """

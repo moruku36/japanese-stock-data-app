@@ -329,6 +329,84 @@ def main():
                                 st.write(f"**流動比率:** {financial_data['current_ratio']:.1f}")
                                 st.write(f"**配当利回り:** {format_percentage(financial_data['dividend_yield'])}")
                                 st.write(f"**ベータ値:** {financial_data['beta']:.1f}")
+                            
+                            # ターゲットプライス分析
+                            if 'target_price' in financial_data and financial_data['target_price'] > 0:
+                                st.markdown("### 🎯 ターゲットプライス分析")
+                                
+                                # 最新価格を取得
+                                latest_price = fetcher.get_latest_price(ticker, "stooq")
+                                if "error" not in latest_price:
+                                    current_price = latest_price['close']
+                                    target_price = financial_data['target_price']
+                                    price_diff = target_price - current_price
+                                    price_diff_percent = (price_diff / current_price) * 100
+                                    
+                                    col1, col2, col3, col4 = st.columns(4)
+                                    
+                                    with col1:
+                                        st.metric("現在価格", f"¥{current_price:,.0f}")
+                                    with col2:
+                                        st.metric("ターゲットプライス", f"¥{target_price:,.0f}")
+                                    with col3:
+                                        st.metric("価格差", f"¥{price_diff:+,.0f}")
+                                    with col4:
+                                        st.metric("上昇率", f"{price_diff_percent:+.1f}%")
+                                    
+                                    # 推奨度を判定
+                                    if price_diff_percent >= 20:
+                                        recommendation = "強力買い"
+                                        recommendation_color = "green"
+                                    elif price_diff_percent >= 10:
+                                        recommendation = "買い"
+                                        recommendation_color = "lightgreen"
+                                    elif price_diff_percent >= -10:
+                                        recommendation = "中立"
+                                        recommendation_color = "yellow"
+                                    elif price_diff_percent >= -20:
+                                        recommendation = "売り"
+                                        recommendation_color = "orange"
+                                    else:
+                                        recommendation = "強力売り"
+                                        recommendation_color = "red"
+                                    
+                                    st.markdown(f"""
+                                    <div style="text-align: center; padding: 15px; background-color: {recommendation_color}; border-radius: 10px; margin: 10px 0;">
+                                        <h3>投資推奨度</h3>
+                                        <h2>{recommendation}</h2>
+                                        <p>設定日: {financial_data.get('target_price_date', 'N/A')}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    # 価格比較チャート
+                                    fig_target = go.Figure()
+                                    fig_target.add_trace(go.Bar(
+                                        name='現在価格',
+                                        x=['現在価格'],
+                                        y=[current_price],
+                                        marker_color='blue',
+                                        text=f"¥{current_price:,.0f}",
+                                        textposition='auto'
+                                    ))
+                                    fig_target.add_trace(go.Bar(
+                                        name='ターゲットプライス',
+                                        x=['ターゲットプライス'],
+                                        y=[target_price],
+                                        marker_color='green',
+                                        text=f"¥{target_price:,.0f}",
+                                        textposition='auto'
+                                    ))
+                                    fig_target.update_layout(
+                                        title=f"{financial_data['company_name']} 価格比較",
+                                        xaxis_title="価格タイプ",
+                                        yaxis_title="価格（円）",
+                                        height=400
+                                    )
+                                    st.plotly_chart(fig_target, use_container_width=True)
+                                else:
+                                    st.warning("現在価格の取得に失敗しました")
+                            else:
+                                st.info("この企業にはターゲットプライスが設定されていません")
                         
                         else:
                             st.error(f"❌ {ticker}の財務データが見つかりません")
@@ -341,82 +419,545 @@ def main():
     elif page == "⚖️ 財務指標比較":
         st.markdown("## ⚖️ 財務指標比較")
         
-        st.info("📋 比較したい銘柄を選択してください（最大3銘柄）")
+        # タブを作成
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 銘柄比較", "🏭 業界別PER比較", "💰 割安・割高企業", "🎯 ターゲットプライス分析"])
         
-        # 利用可能な銘柄
-        available_tickers = ["7203", "6758", "9984", "6861", "9434", "4784", "7974", "6954", "6594", "7733", "9983", "7269", "7267", "8058", "8001", "8306", "8316", "8411", "9432", "9433", "4502", "4519", "6501", "6502", "6752", "9201", "9202"]
-        available_names = ["トヨタ自動車", "ソニーグループ", "ソフトバンクグループ", "キーエンス", "NTTドコモ", "GMOアドパートナーズ", "任天堂", "ファナック", "ニデック", "オリンパス", "ファーストリテイリング", "スズキ", "ホンダ", "三菱商事", "伊藤忠商事", "三菱UFJフィナンシャル・グループ", "三井住友フィナンシャルグループ", "みずほフィナンシャルグループ", "NTT", "KDDI", "武田薬品工業", "中外製薬", "日立製作所", "東芝", "パナソニック", "日本航空", "ANAホールディングス"]
-        
-        selected_tickers = []
-        
-        for i in range(3):
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                ticker = st.selectbox(
-                    f"銘柄 {i+1}",
-                    [""] + available_tickers,
-                    format_func=lambda x: f"{x} ({available_names[available_tickers.index(x)]})" if x in available_tickers else x
-                )
-            with col2:
-                if ticker and ticker not in selected_tickers:
-                    selected_tickers.append(ticker)
-        
-        if st.button("⚖️ 比較を実行", type="primary"):
-            if len(selected_tickers) >= 2:
-                with st.spinner("財務指標を比較中..."):
-                    try:
-                        comparison_data = {}
+        with tab1:
+            st.info("📋 比較したい銘柄を選択してください（最大3銘柄）")
+            
+            # 利用可能な銘柄
+            available_tickers = ["7203", "6758", "9984", "6861", "9434", "4784", "7974", "6954", "6594", "7733", "9983", "7269", "7267", "8058", "8001", "8306", "8316", "8411", "9432", "9433", "4502", "4519", "6501", "6502", "6752", "9201", "9202"]
+            available_names = ["トヨタ自動車", "ソニーグループ", "ソフトバンクグループ", "キーエンス", "NTTドコモ", "GMOアドパートナーズ", "任天堂", "ファナック", "ニデック", "オリンパス", "ファーストリテイリング", "スズキ", "ホンダ", "三菱商事", "伊藤忠商事", "三菱UFJフィナンシャル・グループ", "三井住友フィナンシャルグループ", "みずほフィナンシャルグループ", "NTT", "KDDI", "武田薬品工業", "中外製薬", "日立製作所", "東芝", "パナソニック", "日本航空", "ANAホールディングス"]
+            
+            selected_tickers = []
+            
+            for i in range(3):
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    ticker = st.selectbox(
+                        f"銘柄 {i+1}",
+                        [""] + available_tickers,
+                        format_func=lambda x: f"{x} ({available_names[available_tickers.index(x)]})" if x in available_tickers else x,
+                        key=f"ticker_{i}"
+                    )
+                with col2:
+                    if ticker and ticker not in selected_tickers:
+                        selected_tickers.append(ticker)
+            
+            if st.button("⚖️ 比較を実行", type="primary"):
+                if len(selected_tickers) >= 2:
+                    with st.spinner("財務指標を比較中..."):
+                        try:
+                            comparison_data = {}
+                            
+                            for ticker in selected_tickers:
+                                financial_data = fundamental_analyzer.get_financial_data(ticker)
+                                if financial_data:
+                                    comparison_data[ticker] = financial_data
+                            
+                            if len(comparison_data) >= 2:
+                                # 比較チャート
+                                st.markdown("### 📊 財務指標比較")
+                                
+                                # NTM PER比較
+                                per_data = []
+                                for ticker in comparison_data.keys():
+                                    data = comparison_data[ticker]
+                                    ntm_per = data.get('pe_ratio_ntm', data.get('pe_ratio', 0))
+                                    per_data.append({
+                                        '銘柄': ticker,
+                                        '企業名': data['company_name'],
+                                        'NTM PER': ntm_per,
+                                        'PER': data.get('pe_ratio', 0)
+                                    })
+                                
+                                per_df = pd.DataFrame(per_data)
+                                
+                                fig_per = px.bar(
+                                    per_df,
+                                    x='企業名',
+                                    y='NTM PER',
+                                    title='NTM PER比較（Next Twelve Months）',
+                                    color='NTM PER',
+                                    color_continuous_scale='RdYlGn'
+                                )
+                                st.plotly_chart(fig_per, use_container_width=True)
+                                
+                                # ROE比較
+                                roe_data = [(ticker, comparison_data[ticker]['roe']) for ticker in comparison_data.keys()]
+                                roe_df = pd.DataFrame(roe_data, columns=['銘柄', 'ROE'])
+                                roe_df['企業名'] = [comparison_data[ticker]['company_name'] for ticker in roe_df['銘柄']]
+                                
+                                fig_roe = px.bar(
+                                    roe_df,
+                                    x='企業名',
+                                    y='ROE',
+                                    title='ROE比較 (%)',
+                                    color='ROE',
+                                    color_continuous_scale='RdYlGn'
+                                )
+                                st.plotly_chart(fig_roe, use_container_width=True)
+                                
+                                # 詳細比較表
+                                st.markdown("### 📋 詳細比較表")
+                                
+                                comparison_table = []
+                                for ticker in comparison_data.keys():
+                                    data = comparison_data[ticker]
+                                    ntm_per = data.get('pe_ratio_ntm', data.get('pe_ratio', 0))
+                                    comparison_table.append({
+                                        '銘柄': ticker,
+                                        '企業名': data['company_name'],
+                                        '業種': data['sector'],
+                                        'ROE (%)': f"{data['roe']:.1f}",
+                                        'PER (倍)': f"{data['pe_ratio']:.1f}",
+                                        'NTM PER (倍)': f"{ntm_per:.1f}",
+                                        'P/B (倍)': f"{data['pb_ratio']:.1f}",
+                                        '配当利回り (%)': f"{data['dividend_yield']:.1f}",
+                                        '負債比率': f"{data['debt_to_equity']:.2f}"
+                                    })
+                                
+                                st.dataframe(pd.DataFrame(comparison_table), use_container_width=True)
+                            
+                            else:
+                                st.error("比較可能な財務データが不足しています")
                         
-                        for ticker in selected_tickers:
-                            financial_data = fundamental_analyzer.get_financial_data(ticker)
-                            if financial_data:
-                                comparison_data[ticker] = financial_data
-                        
-                        if len(comparison_data) >= 2:
-                            # 比較チャート
-                            st.markdown("### 📊 財務指標比較")
-                            
-                            # ROE比較
-                            roe_data = [(ticker, comparison_data[ticker]['roe']) for ticker in comparison_data.keys()]
-                            roe_df = pd.DataFrame(roe_data, columns=['銘柄', 'ROE'])
-                            roe_df['企業名'] = [comparison_data[ticker]['company_name'] for ticker in roe_df['銘柄']]
-                            
-                            fig_roe = px.bar(
-                                roe_df,
-                                x='企業名',
-                                y='ROE',
-                                title='ROE比較 (%)',
-                                color='ROE',
-                                color_continuous_scale='RdYlGn'
-                            )
-                            st.plotly_chart(fig_roe, use_container_width=True)
-                            
-                            # 詳細比較表
-                            st.markdown("### 📋 詳細比較表")
-                            
-                            comparison_table = []
-                            for ticker in comparison_data.keys():
-                                data = comparison_data[ticker]
-                                comparison_table.append({
-                                    '銘柄': ticker,
-                                    '企業名': data['company_name'],
-                                    '業種': data['sector'],
-                                    'ROE (%)': f"{data['roe']:.1f}",
-                                    'P/E (倍)': f"{data['pe_ratio']:.1f}",
-                                    'P/B (倍)': f"{data['pb_ratio']:.1f}",
-                                    '配当利回り (%)': f"{data['dividend_yield']:.1f}",
-                                    '負債比率': f"{data['debt_to_equity']:.2f}"
-                                })
-                            
-                            st.dataframe(pd.DataFrame(comparison_table), use_container_width=True)
-                        
-                        else:
-                            st.error("比較可能な財務データが不足しています")
+                        except Exception as e:
+                            st.error(f"❌ エラーが発生しました: {e}")
+                else:
+                    st.warning("比較には最低2銘柄が必要です")
+        
+        with tab2:
+            st.markdown("### 🏭 業界別PER比較（NTM PER）")
+            st.info("📊 業界別のNTM PER比較と統計情報を表示します")
+            
+            # 業界選択
+            sectors = ["全業界", "自動車", "電気機器", "情報・通信", "商社", "銀行業", "医薬品", "小売業", "空運業"]
+            selected_sector = st.selectbox("業界を選択", sectors, key="sector_select")
+            
+            if st.button("🏭 業界比較を実行", type="primary"):
+                sector = None if selected_sector == "全業界" else selected_sector
+                sector_stats = fundamental_analyzer.get_industry_per_comparison(sector)
+                
+                if sector_stats:
+                    # 業界別統計表
+                    st.markdown("#### 📊 業界別統計")
+                    stats_data = []
+                    for sector_name, stats in sector_stats.items():
+                        stats_data.append({
+                            '業界': sector_name,
+                            '企業数': stats['company_count'],
+                            '平均PER': f"{stats['avg_pe']:.1f}",
+                            '平均NTM PER': f"{stats['avg_pe_ntm']:.1f}",
+                            '最小NTM PER': f"{stats['min_pe_ntm']:.1f}",
+                            '最大NTM PER': f"{stats['max_pe_ntm']:.1f}"
+                        })
                     
-                    except Exception as e:
-                        st.error(f"❌ エラーが発生しました: {e}")
-            else:
-                st.warning("比較には最低2銘柄が必要です")
+                    stats_df = pd.DataFrame(stats_data)
+                    st.dataframe(stats_df, use_container_width=True)
+                    
+                    # 業界別PER分布チャート
+                    st.markdown("#### 📈 業界別NTM PER分布")
+                    fig_sector = go.Figure()
+                    
+                    for sector_name, stats in sector_stats.items():
+                        companies = stats['companies']
+                        pe_values = [c['pe_ratio_ntm'] for c in companies if c['pe_ratio_ntm'] > 0]
+                        company_names = [c['company_name'] for c in companies if c['pe_ratio_ntm'] > 0]
+                        
+                        if pe_values:
+                            fig_sector.add_trace(go.Bar(
+                                name=sector_name,
+                                x=company_names,
+                                y=pe_values,
+                                text=[f"{v:.1f}" for v in pe_values],
+                                textposition='auto'
+                            ))
+                    
+                    fig_sector.update_layout(
+                        title="業界別NTM PER分布",
+                        xaxis_title="企業",
+                        yaxis_title="NTM PER",
+                        height=500,
+                        barmode='group'
+                    )
+                    st.plotly_chart(fig_sector, use_container_width=True)
+                    
+                    # 詳細企業リスト
+                    st.markdown("#### 📋 企業詳細リスト")
+                    all_companies = []
+                    for sector_name, stats in sector_stats.items():
+                        for company in stats['companies']:
+                            all_companies.append({
+                                '銘柄コード': company['ticker'],
+                                '企業名': company['company_name'],
+                                '業界': sector_name,
+                                'PER': company['pe_ratio'],
+                                'NTM PER': company['pe_ratio_ntm'],
+                                'ROE(%)': company['roe'],
+                                '配当利回り(%)': company['dividend_yield'],
+                                '時価総額(兆円)': f"{company['market_cap'] / 1000000000000:.1f}"
+                            })
+                    
+                    companies_df = pd.DataFrame(all_companies)
+                    companies_df = companies_df.sort_values('NTM PER')
+                    st.dataframe(companies_df, use_container_width=True)
+        
+        with tab3:
+            st.markdown("### 💰 割安・割高企業分析")
+            st.info("📊 NTM PER基準で割安・割高企業を発見します")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                undervalued_threshold = st.slider("割安判定閾値(%)", -50, 0, -20, key="undervalued")
+            with col2:
+                overvalued_threshold = st.slider("割高判定閾値(%)", 0, 50, 20, key="overvalued")
+            
+            # 業界選択
+            sectors = ["全業界", "自動車", "電気機器", "情報・通信", "商社", "銀行業", "医薬品", "小売業", "空運業"]
+            selected_sector = st.selectbox("業界を選択", sectors, key="sector_analysis")
+            
+            if st.button("💰 割安・割高分析を実行", type="primary"):
+                sector = None if selected_sector == "全業界" else selected_sector
+                
+                # 割安企業
+                undervalued = fundamental_analyzer.find_undervalued_companies(sector, undervalued_threshold)
+                # 割高企業
+                overvalued = fundamental_analyzer.find_overvalued_companies(sector, overvalued_threshold)
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown(f"#### 📉 割安企業（{len(undervalued)}社）")
+                    if undervalued:
+                        undervalued_data = []
+                        for company in undervalued:
+                            undervalued_data.append({
+                                '銘柄コード': company['ticker'],
+                                '企業名': company['company_name'],
+                                '業界': company['sector'],
+                                'NTM PER': f"{company['pe_ratio_ntm']:.1f}",
+                                '業界平均': f"{company['sector_avg_pe_ntm']:.1f}",
+                                '割安度(%)': f"{company['percent_diff']:.1f}",
+                                'ROE(%)': f"{company['roe']:.1f}",
+                                '配当利回り(%)': f"{company['dividend_yield']:.1f}"
+                            })
+                        
+                        undervalued_df = pd.DataFrame(undervalued_data)
+                        st.dataframe(undervalued_df, use_container_width=True)
+                    else:
+                        st.info("該当する割安企業はありません")
+                
+                with col2:
+                    st.markdown(f"#### 📈 割高企業（{len(overvalued)}社）")
+                    if overvalued:
+                        overvalued_data = []
+                        for company in overvalued:
+                            overvalued_data.append({
+                                '銘柄コード': company['ticker'],
+                                '企業名': company['company_name'],
+                                '業界': company['sector'],
+                                'NTM PER': f"{company['pe_ratio_ntm']:.1f}",
+                                '業界平均': f"{company['sector_avg_pe_ntm']:.1f}",
+                                '割高度(%)': f"{company['percent_diff']:.1f}",
+                                'ROE(%)': f"{company['roe']:.1f}",
+                                '配当利回り(%)': f"{company['dividend_yield']:.1f}"
+                            })
+                        
+                        overvalued_df = pd.DataFrame(overvalued_data)
+                        st.dataframe(overvalued_df, use_container_width=True)
+                    else:
+                        st.info("該当する割高企業はありません")
+                
+                # 割安・割高企業のチャート
+                if undervalued or overvalued:
+                    st.markdown("#### 📊 割安・割高企業のNTM PER比較")
+                    fig_comparison = go.Figure()
+                    
+                    # 割安企業
+                    if undervalued:
+                        undervalued_names = [c['company_name'] for c in undervalued]
+                        undervalued_per = [c['pe_ratio_ntm'] for c in undervalued]
+                        fig_comparison.add_trace(go.Bar(
+                            name='割安企業',
+                            x=undervalued_names,
+                            y=undervalued_per,
+                            marker_color='green',
+                            text=[f"{v:.1f}" for v in undervalued_per],
+                            textposition='auto'
+                        ))
+                    
+                    # 割高企業
+                    if overvalued:
+                        overvalued_names = [c['company_name'] for c in overvalued]
+                        overvalued_per = [c['pe_ratio_ntm'] for c in overvalued]
+                        fig_comparison.add_trace(go.Bar(
+                            name='割高企業',
+                            x=overvalued_names,
+                            y=overvalued_per,
+                            marker_color='red',
+                            text=[f"{v:.1f}" for v in overvalued_per],
+                            textposition='auto'
+                        ))
+                    
+                    fig_comparison.update_layout(
+                        title="割安・割高企業のNTM PER比較",
+                        xaxis_title="企業",
+                        yaxis_title="NTM PER",
+                        height=500
+                    )
+                    st.plotly_chart(fig_comparison, use_container_width=True)
+        
+        with tab4:
+            st.markdown("### 🎯 ターゲットプライス分析")
+            st.info("📊 アナリストのターゲットプライスと現在価格を比較して投資機会を分析します")
+            
+            # サブタブを作成
+            sub_tab1, sub_tab2, sub_tab3 = st.tabs(["📈 個別分析", "🔍 機会発見", "🏭 業界別分析"])
+            
+            with sub_tab1:
+                st.markdown("#### 📈 個別企業のターゲットプライス分析")
+                
+                # 銘柄選択
+                available_tickers = ["7203", "6758", "9984", "6861", "9434", "4784", "7974", "6954", "6594", "7733", "9983", "7269", "7267", "8058", "8001", "8306", "8316", "8411", "9432", "9433", "4502", "4519", "6501", "6502", "6752", "9201", "9202"]
+                available_names = ["トヨタ自動車", "ソニーグループ", "ソフトバンクグループ", "キーエンス", "NTTドコモ", "GMOアドパートナーズ", "任天堂", "ファナック", "ニデック", "オリンパス", "ファーストリテイリング", "スズキ", "ホンダ", "三菱商事", "伊藤忠商事", "三菱UFJフィナンシャル・グループ", "三井住友フィナンシャルグループ", "みずほフィナンシャルグループ", "NTT", "KDDI", "武田薬品工業", "中外製薬", "日立製作所", "東芝", "パナソニック", "日本航空", "ANAホールディングス"]
+                
+                selected_ticker = st.selectbox(
+                    "分析する銘柄を選択",
+                    available_tickers,
+                    format_func=lambda x: f"{x} ({available_names[available_tickers.index(x)]})" if x in available_tickers else x,
+                    key="target_price_ticker"
+                )
+                
+                if st.button("🎯 ターゲットプライス分析を実行", type="primary"):
+                    with st.spinner("ターゲットプライスを分析中..."):
+                        try:
+                            analysis = fundamental_analyzer.analyze_target_price(selected_ticker)
+                            
+                            if "error" in analysis:
+                                st.error(f"❌ {analysis['error']}")
+                            else:
+                                # 分析結果を表示
+                                col1, col2, col3 = st.columns(3)
+                                
+                                with col1:
+                                    st.metric(
+                                        "現在価格",
+                                        f"¥{analysis['current_price']:,.0f}",
+                                        delta=f"¥{analysis['price_diff']:+,.0f}"
+                                    )
+                                
+                                with col2:
+                                    st.metric(
+                                        "ターゲットプライス",
+                                        f"¥{analysis['target_price']:,.0f}",
+                                        delta=f"{analysis['price_diff_percent']:+.1f}%"
+                                    )
+                                
+                                with col3:
+                                    # 推奨度を色付きで表示
+                                    recommendation_color = analysis['recommendation_color']
+                                    st.markdown(f"""
+                                    <div style="text-align: center; padding: 10px; background-color: {recommendation_color}; border-radius: 5px;">
+                                        <h3>推奨度</h3>
+                                        <h2>{analysis['recommendation']}</h2>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                # 詳細情報
+                                st.markdown("#### 📋 詳細情報")
+                                detail_data = {
+                                    '項目': ['銘柄コード', '企業名', '業界', 'NTM PER', 'ROE(%)', '配当利回り(%)', 'ターゲットプライス設定日'],
+                                    '値': [
+                                        analysis['ticker'],
+                                        analysis['company_name'],
+                                        analysis['sector'],
+                                        f"{analysis['pe_ratio_ntm']:.1f}",
+                                        f"{analysis['roe']:.1f}",
+                                        f"{analysis['dividend_yield']:.1f}",
+                                        analysis['target_price_date']
+                                    ]
+                                }
+                                st.dataframe(pd.DataFrame(detail_data), use_container_width=True)
+                                
+                                # 価格比較チャート
+                                st.markdown("#### 📊 価格比較チャート")
+                                fig_price = go.Figure()
+                                
+                                fig_price.add_trace(go.Bar(
+                                    name='現在価格',
+                                    x=['現在価格'],
+                                    y=[analysis['current_price']],
+                                    marker_color='blue',
+                                    text=f"¥{analysis['current_price']:,.0f}",
+                                    textposition='auto'
+                                ))
+                                
+                                fig_price.add_trace(go.Bar(
+                                    name='ターゲットプライス',
+                                    x=['ターゲットプライス'],
+                                    y=[analysis['target_price']],
+                                    marker_color='green',
+                                    text=f"¥{analysis['target_price']:,.0f}",
+                                    textposition='auto'
+                                ))
+                                
+                                fig_price.update_layout(
+                                    title=f"{analysis['company_name']} 価格比較",
+                                    xaxis_title="価格タイプ",
+                                    yaxis_title="価格（円）",
+                                    height=400
+                                )
+                                st.plotly_chart(fig_price, use_container_width=True)
+                        
+                        except Exception as e:
+                            st.error(f"❌ エラーが発生しました: {e}")
+            
+            with sub_tab2:
+                st.markdown("#### 🔍 ターゲットプライス機会発見")
+                st.info("📈 上昇率の高い投資機会を発見します")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    min_upside = st.slider("最小上昇率(%)", 0, 50, 10, key="min_upside")
+                with col2:
+                    max_upside = st.slider("最大上昇率(%)", 10, 200, 100, key="max_upside")
+                
+                if st.button("🔍 機会を発見", type="primary"):
+                    with st.spinner("投資機会を分析中..."):
+                        try:
+                            opportunities = fundamental_analyzer.find_target_price_opportunities(min_upside, max_upside)
+                            
+                            if opportunities:
+                                st.markdown(f"#### 📈 発見された投資機会（{len(opportunities)}社）")
+                                
+                                # 機会リスト
+                                opportunities_data = []
+                                for opp in opportunities:
+                                    opportunities_data.append({
+                                        '銘柄コード': opp['ticker'],
+                                        '企業名': opp['company_name'],
+                                        '業界': opp['sector'],
+                                        '現在価格': f"¥{opp['current_price']:,.0f}",
+                                        'ターゲットプライス': f"¥{opp['target_price']:,.0f}",
+                                        '上昇率(%)': f"{opp['upside']:.1f}",
+                                        'NTM PER': f"{opp['pe_ratio_ntm']:.1f}",
+                                        'ROE(%)': f"{opp['roe']:.1f}",
+                                        '配当利回り(%)': f"{opp['dividend_yield']:.1f}"
+                                    })
+                                
+                                st.dataframe(pd.DataFrame(opportunities_data), use_container_width=True)
+                                
+                                # 上昇率チャート
+                                st.markdown("#### 📊 上昇率比較")
+                                fig_upside = go.Figure()
+                                
+                                company_names = [opp['company_name'] for opp in opportunities]
+                                upsides = [opp['upside'] for opp in opportunities]
+                                
+                                fig_upside.add_trace(go.Bar(
+                                    name='上昇率',
+                                    x=company_names,
+                                    y=upsides,
+                                    marker_color='lightgreen',
+                                    text=[f"{u:.1f}%" for u in upsides],
+                                    textposition='auto'
+                                ))
+                                
+                                fig_upside.update_layout(
+                                    title="ターゲットプライス上昇率比較",
+                                    xaxis_title="企業",
+                                    yaxis_title="上昇率(%)",
+                                    height=500
+                                )
+                                st.plotly_chart(fig_upside, use_container_width=True)
+                            
+                            else:
+                                st.info("指定された条件に合致する投資機会は見つかりませんでした")
+                        
+                        except Exception as e:
+                            st.error(f"❌ エラーが発生しました: {e}")
+            
+            with sub_tab3:
+                st.markdown("#### 🏭 業界別ターゲットプライス分析")
+                st.info("📊 業界別のターゲットプライス分析と統計情報を表示します")
+                
+                # 業界選択
+                sectors = ["全業界", "自動車", "電気機器", "情報・通信", "商社", "銀行業", "医薬品", "小売業", "空運業"]
+                selected_sector = st.selectbox("業界を選択", sectors, key="target_price_sector")
+                
+                if st.button("🏭 業界分析を実行", type="primary"):
+                    sector = None if selected_sector == "全業界" else selected_sector
+                    
+                    with st.spinner("業界別分析を実行中..."):
+                        try:
+                            sector_analysis = fundamental_analyzer.get_sector_target_price_analysis(sector)
+                            
+                            if sector_analysis:
+                                # 業界別統計表
+                                st.markdown("#### 📊 業界別統計")
+                                stats_data = []
+                                for sector_name, stats in sector_analysis.items():
+                                    stats_data.append({
+                                        '業界': sector_name,
+                                        '企業数': stats['company_count'],
+                                        '平均上昇率(%)': f"{stats['avg_upside']:.1f}",
+                                        '最大上昇率(%)': f"{stats['max_upside']:.1f}",
+                                        '最小上昇率(%)': f"{stats['min_upside']:.1f}"
+                                    })
+                                
+                                stats_df = pd.DataFrame(stats_data)
+                                st.dataframe(stats_df, use_container_width=True)
+                                
+                                # 業界別上昇率分布チャート
+                                st.markdown("#### 📈 業界別上昇率分布")
+                                fig_sector_upside = go.Figure()
+                                
+                                for sector_name, stats in sector_analysis.items():
+                                    companies = stats['companies']
+                                    company_names = [c['company_name'] for c in companies]
+                                    upsides = [c['upside'] for c in companies]
+                                    
+                                    fig_sector_upside.add_trace(go.Bar(
+                                        name=sector_name,
+                                        x=company_names,
+                                        y=upsides,
+                                        text=[f"{u:.1f}%" for u in upsides],
+                                        textposition='auto'
+                                    ))
+                                
+                                fig_sector_upside.update_layout(
+                                    title="業界別ターゲットプライス上昇率分布",
+                                    xaxis_title="企業",
+                                    yaxis_title="上昇率(%)",
+                                    height=500,
+                                    barmode='group'
+                                )
+                                st.plotly_chart(fig_sector_upside, use_container_width=True)
+                                
+                                # 詳細企業リスト
+                                st.markdown("#### 📋 企業詳細リスト")
+                                all_companies = []
+                                for sector_name, stats in sector_analysis.items():
+                                    for company in stats['companies']:
+                                        all_companies.append({
+                                            '銘柄コード': company['ticker'],
+                                            '企業名': company['company_name'],
+                                            '業界': sector_name,
+                                            '現在価格': f"¥{company['current_price']:,.0f}",
+                                            'ターゲットプライス': f"¥{company['target_price']:,.0f}",
+                                            '上昇率(%)': f"{company['upside']:.1f}"
+                                        })
+                                
+                                companies_df = pd.DataFrame(all_companies)
+                                companies_df = companies_df.sort_values('上昇率(%)', ascending=False)
+                                st.dataframe(companies_df, use_container_width=True)
+                            
+                            else:
+                                st.info("分析可能なデータが見つかりませんでした")
+                        
+                        except Exception as e:
+                            st.error(f"❌ エラーが発生しました: {e}")
     
     # 複数銘柄分析ページ
     elif page == "📦 複数銘柄分析":
