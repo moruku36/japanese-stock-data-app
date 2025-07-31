@@ -23,6 +23,7 @@ from company_search import CompanySearch
 from fundamental_analyzer import FundamentalAnalyzer
 from advanced_data_sources import AdvancedDataManager
 from async_data_sources import run_async_data_fetch_sync
+from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
 from config import config
 from utils import (
     format_currency, format_number, PerformanceMonitor, 
@@ -58,13 +59,16 @@ def initialize_system():
         fundamental_analyzer = FundamentalAnalyzer(fetcher)
         advanced_data_manager = AdvancedDataManager()
         
+        # リアルタイムデータ管理を初期化
+        real_time_manager = RealTimeDataManager()
+        
         # パフォーマンス監視終了
         monitor.end("System Initialization")
         
-        return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager
+        return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager
     except Exception as e:
         st.error(f"システムの初期化に失敗しました: {e}")
-        return None, None, None, None, None
+        return None, None, None, None, None, None
 
 @st.cache_data(ttl=3600)  # 1時間キャッシュ
 def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, _company_searcher=None, _advanced_data_manager=None, **kwargs):
@@ -294,9 +298,9 @@ def main():
     
     # システム初期化
     with st.spinner('システムを初期化中...'):
-        fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager = initialize_system()
+        fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager = initialize_system()
     
-    if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager]):
+    if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager]):
         st.error("システムの初期化に失敗しました。")
         return
     
@@ -316,6 +320,7 @@ def main():
         [
             "🏠 ホーム",
             "📈 最新株価",
+            "⚡ リアルタイム監視",
             "📊 株価チャート",
             "🏢 ファンダメンタル分析",
             "⚖️ 財務指標比較",
@@ -340,6 +345,34 @@ def main():
         
         with col3:
             st.metric("🌐 データソース", 6)
+        
+        # リアルタイム機能の紹介
+        st.markdown("---")
+        st.markdown("## ⚡ 新機能: リアルタイム監視システム")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            **🚀 リアルタイム機能:**
+            - **即座のデータ更新**: WebSocket通信
+            - **プッシュ通知**: 重要な価格変動
+            - **自動監視**: 30秒ごとの更新
+            - **アラート機能**: カスタマイズ可能な閾値
+            """)
+        
+        with col2:
+            st.markdown("""
+            **📊 監視対象銘柄:**
+            - **9984**: ソフトバンクG
+            - **9433**: KDDI
+            - **7203**: トヨタ自動車
+            - **6758**: ソニーG
+            - **6861**: キーエンス
+            """)
+        
+        if st.button("⚡ リアルタイム監視を試す", type="primary"):
+            st.switch_page("⚡ リアルタイム監視")
         
         st.markdown("---")
         
@@ -455,6 +488,187 @@ def main():
                     
                     except Exception as e:
                         st.error(f"❌ エラーが発生しました: {e}")
+    
+    # リアルタイム監視ページ
+    elif page == "⚡ リアルタイム監視":
+        st.markdown("## ⚡ リアルタイム株価監視")
+        st.markdown("### 🚀 リアルタイムデータ更新システム")
+        
+        # リアルタイム機能の説明
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            **🔴 リアルタイム機能:**
+            - **WebSocket通信**: 即座のデータ更新
+            - **プッシュ通知**: 重要な価格変動の通知
+            - **自動更新**: 30秒ごとのデータ更新
+            - **主要銘柄監視**: 9984, 9433, 7203, 6758, 6861
+            """)
+        
+        with col2:
+            st.markdown("""
+            **📊 監視機能:**
+            - **価格変動**: リアルタイム価格追跡
+            - **ボラティリティ**: 価格変動率の監視
+            - **出来高**: 取引量の変化
+            - **市場状況**: 取引時間の表示
+            """)
+        
+        st.markdown("---")
+        
+        # リアルタイム監視の開始/停止
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🚀 リアルタイム監視開始", type="primary"):
+                try:
+                    # リアルタイムサービスを開始
+                    start_real_time_services()
+                    st.success("✅ リアルタイム監視を開始しました！")
+                    st.session_state.real_time_active = True
+                except Exception as e:
+                    st.error(f"❌ リアルタイム監視の開始に失敗しました: {e}")
+        
+        with col2:
+            if st.button("⏹️ リアルタイム監視停止"):
+                try:
+                    # リアルタイムサービスを停止
+                    stop_real_time_services()
+                    st.success("✅ リアルタイム監視を停止しました！")
+                    st.session_state.real_time_active = False
+                except Exception as e:
+                    st.error(f"❌ リアルタイム監視の停止に失敗しました: {e}")
+        
+        # リアルタイムデータ表示エリア
+        if st.session_state.get('real_time_active', False):
+            st.markdown("### 📊 リアルタイム株価データ")
+            
+            # 主要銘柄のリアルタイムデータを表示
+            major_tickers = ["9984", "9433", "7203", "6758", "6861"]
+            
+            # リアルタイムデータを取得
+            real_time_data = {}
+            for ticker in major_tickers:
+                try:
+                    # リアルタイムデータを取得（実際のAPIから）
+                    update_data = real_time_manager._get_real_time_data(ticker)
+                    if update_data:
+                        real_time_data[ticker] = update_data.data
+                except Exception as e:
+                    st.warning(f"銘柄 {ticker} のリアルタイムデータ取得エラー: {e}")
+            
+            # リアルタイムデータを表示
+            if real_time_data:
+                # メトリクス表示
+                cols = st.columns(len(major_tickers))
+                for i, ticker in enumerate(major_tickers):
+                    if ticker in real_time_data:
+                        data = real_time_data[ticker]
+                        with cols[i]:
+                            st.metric(
+                                f"{ticker}",
+                                f"¥{data['current_price']:,.0f}",
+                                f"{data['price_change']:+.0f} ({data['price_change_percent']:+.1f}%)"
+                            )
+                            st.write(f"**出来高:** {format_number(data['volume'])}")
+                            st.write(f"**市場:** {'🟢 取引中' if data['market_status'] == 'open' else '🔴 終了'}")
+                
+                # リアルタイムチャート
+                st.markdown("### 📈 リアルタイム価格推移")
+                
+                # チャートデータを準備
+                chart_data = []
+                for ticker in major_tickers:
+                    if ticker in real_time_data:
+                        data = real_time_data[ticker]
+                        chart_data.append({
+                            'ticker': ticker,
+                            'price': data['current_price'],
+                            'change': data['price_change_percent'],
+                            'volume': data['volume']
+                        })
+                
+                if chart_data:
+                    df_chart = pd.DataFrame(chart_data)
+                    
+                    # 価格チャート
+                    fig_price = px.bar(
+                        df_chart, 
+                        x='ticker', 
+                        y='price',
+                        title="リアルタイム株価",
+                        color='change',
+                        color_continuous_scale='RdYlGn'
+                    )
+                    fig_price.update_layout(height=400)
+                    st.plotly_chart(fig_price, use_container_width=True)
+                    
+                    # 変動率チャート
+                    fig_change = px.bar(
+                        df_chart, 
+                        x='ticker', 
+                        y='change',
+                        title="価格変動率 (%)",
+                        color='change',
+                        color_continuous_scale='RdYlGn'
+                    )
+                    fig_change.update_layout(height=400)
+                    st.plotly_chart(fig_change, use_container_width=True)
+                
+                # 自動更新
+                st.markdown("### 🔄 自動更新")
+                st.info("データは30秒ごとに自動更新されます。")
+                
+                # 手動更新ボタン
+                if st.button("🔄 手動更新"):
+                    st.rerun()
+                
+                # リアルタイムアラート設定
+                st.markdown("### 🔔 リアルタイムアラート設定")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    alert_threshold = st.slider(
+                        "価格変動アラート閾値 (%)",
+                        min_value=1.0,
+                        max_value=10.0,
+                        value=5.0,
+                        step=0.5
+                    )
+                    
+                    if st.button("🔔 アラート設定を保存"):
+                        st.session_state.alert_threshold = alert_threshold
+                        st.success(f"✅ アラート閾値を {alert_threshold}% に設定しました！")
+                
+                with col2:
+                    # アラート履歴
+                    st.markdown("**📋 アラート履歴:**")
+                    if 'alert_history' not in st.session_state:
+                        st.session_state.alert_history = []
+                    
+                    for alert in st.session_state.alert_history[-5:]:  # 最新5件
+                        st.write(f"🔄 {alert['time']}: {alert['message']}")
+                
+                # アラートチェック
+                if 'alert_threshold' in st.session_state:
+                    for ticker in major_tickers:
+                        if ticker in real_time_data:
+                            data = real_time_data[ticker]
+                            if abs(data['price_change_percent']) >= st.session_state.alert_threshold:
+                                alert_message = f"{ticker}: {data['price_change_percent']:+.1f}% の価格変動"
+                                alert_time = datetime.now().strftime("%H:%M:%S")
+                                
+                                # 新しいアラートかチェック
+                                new_alert = {'time': alert_time, 'message': alert_message}
+                                if new_alert not in st.session_state.alert_history:
+                                    st.session_state.alert_history.append(new_alert)
+                                    st.warning(f"🚨 アラート: {alert_message}")
+            else:
+                st.warning("リアルタイムデータが取得できませんでした。")
+        else:
+            st.info("🚀 リアルタイム監視を開始してください。")
     
     # 株価チャートページ
     elif page == "📊 株価チャート":
