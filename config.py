@@ -43,6 +43,45 @@ class Config:
                 }
             },
             
+            # 高度なデータソースAPI設定
+            "advanced_apis": {
+                "newsapi": {
+                    "enabled": True,
+                    "api_key": "",
+                    "base_url": "https://newsapi.org/v2",
+                    "timeout": 30,
+                    "rate_limit": 100  # 1日あたりのリクエスト制限
+                },
+                "alphavantage": {
+                    "enabled": True,
+                    "api_key": "",
+                    "base_url": "https://www.alphavantage.co/query",
+                    "timeout": 30,
+                    "rate_limit": 500  # 1日あたりのリクエスト制限
+                },
+                "reuters": {
+                    "enabled": True,
+                    "api_key": "",
+                    "base_url": "https://api.reuters.com/v2",
+                    "timeout": 30,
+                    "rate_limit": 1000
+                },
+                "nikkei": {
+                    "enabled": True,
+                    "api_key": "",
+                    "base_url": "https://api.nikkei.com/v2",
+                    "timeout": 30,
+                    "rate_limit": 500
+                },
+                "sec": {
+                    "enabled": True,
+                    "api_key": "",
+                    "base_url": "https://data.sec.gov",
+                    "timeout": 30,
+                    "rate_limit": 1000
+                }
+            },
+            
             # データ保存設定
             "data": {
                 "directory": "stock_data",
@@ -132,7 +171,12 @@ class Config:
             "LOG_LEVEL": ("logging", "level"),
             "CHART_DPI": ("charts", "dpi"),
             "SEARCH_MAX_RESULTS": ("search", "max_results"),
-            "DEFAULT_PERIOD": ("analysis", "default_period_days")
+            "DEFAULT_PERIOD": ("analysis", "default_period_days"),
+            "NEWSAPI_KEY": ("advanced_apis", "newsapi", "api_key"),
+            "ALPHAVANTAGE_KEY": ("advanced_apis", "alphavantage", "api_key"),
+            "REUTERS_KEY": ("advanced_apis", "reuters", "api_key"),
+            "NIKKEI_KEY": ("advanced_apis", "nikkei", "api_key"),
+            "SEC_KEY": ("advanced_apis", "sec", "api_key")
         }
         
         for env_var, config_path in env_mappings.items():

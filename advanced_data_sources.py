@@ -198,58 +198,57 @@ class ReutersDataSource(BaseDataSource):
         try:
             logger.info(f"Reutersからニュースを取得中: {ticker}")
             
-            # より多様で現実的なニュースデータ
-            news_templates = [
-                {
-                    'title': f"{ticker}、第{random.randint(1,4)}四半期決算発表 - 予想を上回る業績",
-                    'content': f"{ticker}は本日、第{random.randint(1,4)}四半期決算を発表し、市場予想を上回る業績を記録しました。売上高は前年同期比{random.randint(5,25)}%増、営業利益は{random.randint(10,40)}%増となり、株価は上昇基調を維持しています。",
-                    'sentiment': 0.3 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "決算", "業績", "株価上昇"]
-                },
-                {
-                    'title': f"{ticker}、新製品発表で市場シェア拡大を目指す",
-                    'content': f"{ticker}は新製品ラインの発表を行い、競合他社との差別化を図ります。新製品は{random.randint(10,50)}%の性能向上を実現し、市場での競争力強化が期待されています。",
-                    'sentiment': 0.2 + random.uniform(0, 0.3),
-                    'keywords': [ticker, "新製品", "市場シェア", "競争力"]
-                },
-                {
-                    'title': f"{ticker}、海外展開を加速 - {random.choice(['アジア', '欧州', '北米'])}市場に注力",
-                    'content': f"{ticker}は海外市場での事業拡大を加速させています。特に{random.choice(['アジア', '欧州', '北米'])}市場での成長戦略を強化し、現地パートナーとの協力関係を構築しています。",
-                    'sentiment': 0.1 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "海外展開", "成長戦略", "パートナーシップ"]
-                },
-                {
-                    'title': f"{ticker}、ESG投資家からの評価向上 - サステナビリティ報告書を発表",
-                    'content': f"{ticker}は最新のサステナビリティ報告書を発表し、環境・社会・ガバナンス（ESG）への取り組みを強化しています。投資家からの評価が向上し、ESG投資ファンドからの資金流入が増加しています。",
-                    'sentiment': 0.2 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "ESG", "サステナビリティ", "投資評価"]
-                },
-                {
-                    'title': f"{ticker}、技術革新で業界リーダーシップを強化",
-                    'content': f"{ticker}は最新の技術革新により、業界でのリーダーシップを強化しています。AI技術の活用やデジタル変革により、業務効率の向上とコスト削減を実現しています。",
-                    'sentiment': 0.3 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "技術革新", "AI", "デジタル変革"]
-                }
+            # 実際のニュースAPIエンドポイント（サンプル）
+            # 実際の実装では、Reuters API、NewsAPI、Alpha Vantage News APIなどを使用
+            api_endpoints = [
+                f"https://newsapi.org/v2/everything?q={ticker}&language=en&sortBy=publishedAt&apiKey=YOUR_API_KEY",
+                f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey=YOUR_API_KEY",
+                f"https://api.reuters.com/v2/news?q={ticker}&sortBy=publishedAt&apiKey=YOUR_API_KEY"
             ]
             
             news_items = []
-            for i in range(5):
-                template = news_templates[i % len(news_templates)]
-                # より現実的な日付生成（過去30日以内）
-                days_ago = random.randint(0, min(days, 30))
-                hours_ago = random.randint(0, 23)
-                minutes_ago = random.randint(0, 59)
-                
-                news_item = NewsItem(
-                    title=template['title'],
-                    content=template['content'],
-                    source="Reuters",
-                    published_date=datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
-                    url=f"https://www.reuters.com/news/{ticker}_{i}_{random.randint(1000,9999)}",
-                    sentiment_score=template['sentiment'],
-                    keywords=template['keywords']
-                )
-                news_items.append(news_item)
+            
+            # APIからデータを取得（実際のAPIキーが必要）
+            for endpoint in api_endpoints:
+                try:
+                    # 実際のAPI呼び出し（現在はサンプルデータ）
+                    # response = self.session.get(endpoint, timeout=10)
+                    # if response.status_code == 200:
+                    #     data = response.json()
+                    #     # APIレスポンスをパースしてNewsItemに変換
+                    
+                    # 現在はサンプルデータを生成（APIキーがない場合のフォールバック）
+                    if "newsapi.org" in endpoint:
+                        # NewsAPI形式のサンプルデータ
+                        for i in range(3):
+                            news_item = NewsItem(
+                                title=f"{ticker} - Latest Financial News {i+1}",
+                                content=f"Latest news about {ticker} from international sources. This is sample data representing real API response.",
+                                source="Reuters",
+                                published_date=datetime.now() - timedelta(hours=i*2),
+                                url=f"https://www.reuters.com/news/{ticker}_{i}",
+                                sentiment_score=random.uniform(-0.2, 0.4),
+                                keywords=[ticker, "financial", "news", "market"]
+                            )
+                            news_items.append(news_item)
+                    
+                    elif "alphavantage.co" in endpoint:
+                        # Alpha Vantage形式のサンプルデータ
+                        for i in range(2):
+                            news_item = NewsItem(
+                                title=f"{ticker} - Market Analysis Report {i+1}",
+                                content=f"Detailed market analysis for {ticker} including sentiment analysis and market trends.",
+                                source="Alpha Vantage",
+                                published_date=datetime.now() - timedelta(hours=i*3),
+                                url=f"https://www.alphavantage.co/news/{ticker}_{i}",
+                                sentiment_score=random.uniform(-0.1, 0.3),
+                                keywords=[ticker, "analysis", "market", "sentiment"]
+                            )
+                            news_items.append(news_item)
+                    
+                except Exception as api_error:
+                    logger.warning(f"API呼び出しエラー: {api_error}")
+                    continue
             
             # 日付順にソート（最新順）
             news_items.sort(key=lambda x: x.published_date, reverse=True)
@@ -350,58 +349,57 @@ class NikkeiDataSource(BaseDataSource):
         try:
             logger.info(f"日経からニュースを取得中: {ticker}")
             
-            # より多様で現実的な日本市場ニュースデータ
-            japanese_news_templates = [
-                {
-                    'title': f"{ticker}、東証での取引活発化 - 機関投資家の買い注文増加",
-                    'content': f"{ticker}の東証での取引が活発化しています。機関投資家からの買い注文が増加し、株価は{random.randint(2,8)}%上昇しました。国内投資家の関心が高まっており、今後も上昇基調が続く見込みです。",
-                    'sentiment': 0.4 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "東証", "機関投資家", "株価上昇", "日本市場"]
-                },
-                {
-                    'title': f"{ticker}、国内シェア拡大で業績好調 - 競合他社との差別化成功",
-                    'content': f"{ticker}は国内市場でのシェア拡大により、業績が好調を維持しています。競合他社との差別化戦略が成功し、売上高は前年同期比{random.randint(8,20)}%増を記録しました。",
-                    'sentiment': 0.3 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "国内シェア", "業績好調", "差別化", "売上高"]
-                },
-                {
-                    'title': f"{ticker}、日本企業としてのESG評価向上 - 環境配慮型経営で注目",
-                    'content': f"{ticker}は日本企業としてのESG評価が向上しています。環境配慮型経営への取り組みが国内外の投資家から注目され、ESG投資ファンドからの資金流入が増加しています。",
-                    'sentiment': 0.2 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "ESG", "環境配慮", "日本企業", "投資評価"]
-                },
-                {
-                    'title': f"{ticker}、国内技術開発で競争力強化 - 研究開発投資を拡大",
-                    'content': f"{ticker}は国内での技術開発を強化し、競争力の向上を図っています。研究開発投資を{random.randint(10,30)}%拡大し、新技術の開発に注力しています。",
-                    'sentiment': 0.3 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "技術開発", "研究開発", "競争力", "新技術"]
-                },
-                {
-                    'title': f"{ticker}、国内パートナーシップ拡大 - 地域経済への貢献強化",
-                    'content': f"{ticker}は国内企業とのパートナーシップを拡大し、地域経済への貢献を強化しています。地元企業との協力関係を構築し、地域雇用の創出にも貢献しています。",
-                    'sentiment': 0.2 + random.uniform(0, 0.2),
-                    'keywords': [ticker, "パートナーシップ", "地域経済", "地元企業", "雇用創出"]
-                }
+            # 実際の日本ニュースAPIエンドポイント（サンプル）
+            # 実際の実装では、日経API、Yahoo!ニュースAPI、Google News APIなどを使用
+            japanese_api_endpoints = [
+                f"https://newsapi.org/v2/everything?q={ticker}&language=ja&sortBy=publishedAt&apiKey=YOUR_API_KEY",
+                f"https://api.nikkei.com/v2/news?q={ticker}&sortBy=publishedAt&apiKey=YOUR_API_KEY",
+                f"https://news.google.com/rss/search?q={ticker}&hl=ja&gl=JP&ceid=JP:ja"
             ]
             
             news_items = []
-            for i in range(5):
-                template = japanese_news_templates[i % len(japanese_news_templates)]
-                # より現実的な日付生成（過去30日以内）
-                days_ago = random.randint(0, min(days, 30))
-                hours_ago = random.randint(0, 23)
-                minutes_ago = random.randint(0, 59)
-                
-                news_item = NewsItem(
-                    title=template['title'],
-                    content=template['content'],
-                    source="日本経済新聞",
-                    published_date=datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
-                    url=f"https://www.nikkei.com/news/{ticker}_{i}_{random.randint(1000,9999)}",
-                    sentiment_score=template['sentiment'],
-                    keywords=template['keywords']
-                )
-                news_items.append(news_item)
+            
+            # APIからデータを取得（実際のAPIキーが必要）
+            for endpoint in japanese_api_endpoints:
+                try:
+                    # 実際のAPI呼び出し（現在はサンプルデータ）
+                    # response = self.session.get(endpoint, timeout=10)
+                    # if response.status_code == 200:
+                    #     data = response.json()
+                    #     # APIレスポンスをパースしてNewsItemに変換
+                    
+                    # 現在はサンプルデータを生成（APIキーがない場合のフォールバック）
+                    if "newsapi.org" in endpoint:
+                        # NewsAPI形式のサンプルデータ（日本語）
+                        for i in range(3):
+                            news_item = NewsItem(
+                                title=f"{ticker} - 最新の日本市場ニュース {i+1}",
+                                content=f"{ticker}に関する最新の日本市場ニュースです。国内投資家の関心が高まっており、東証での取引が活発化しています。",
+                                source="日本経済新聞",
+                                published_date=datetime.now() - timedelta(hours=i*2),
+                                url=f"https://www.nikkei.com/news/{ticker}_{i}",
+                                sentiment_score=random.uniform(-0.1, 0.4),
+                                keywords=[ticker, "日本市場", "東証", "国内投資家", "株価"]
+                            )
+                            news_items.append(news_item)
+                    
+                    elif "api.nikkei.com" in endpoint:
+                        # 日経API形式のサンプルデータ
+                        for i in range(2):
+                            news_item = NewsItem(
+                                title=f"{ticker} - 日経による詳細分析 {i+1}",
+                                content=f"日経による{ticker}の詳細な市場分析レポートです。業績予想や投資判断に役立つ情報を提供しています。",
+                                source="日経",
+                                published_date=datetime.now() - timedelta(hours=i*3),
+                                url=f"https://www.nikkei.com/analysis/{ticker}_{i}",
+                                sentiment_score=random.uniform(0.0, 0.3),
+                                keywords=[ticker, "日経", "分析", "市場", "投資"]
+                            )
+                            news_items.append(news_item)
+                    
+                except Exception as api_error:
+                    logger.warning(f"API呼び出しエラー: {api_error}")
+                    continue
             
             # 日付順にソート（最新順）
             news_items.sort(key=lambda x: x.published_date, reverse=True)
@@ -601,6 +599,36 @@ class SECDataSource(BaseDataSource):
             logger.error(f"SECインサイダー取引情報取得エラー: {e}")
             return []
 
+class DataUpdateScheduler:
+    """定期的なデータ更新スケジューラー"""
+    
+    def __init__(self):
+        self.last_update = {}
+        self.update_interval = 3600  # 1時間ごとに更新
+        self.cache = {}
+        logger.info("データ更新スケジューラーを初期化しました")
+    
+    def should_update(self, ticker: str, data_type: str) -> bool:
+        """データを更新すべきかチェック"""
+        key = f"{ticker}_{data_type}"
+        if key not in self.last_update:
+            return True
+        
+        time_since_update = datetime.now() - self.last_update[key]
+        return time_since_update.total_seconds() > self.update_interval
+    
+    def update_cache(self, ticker: str, data_type: str, data: Any):
+        """キャッシュを更新"""
+        key = f"{ticker}_{data_type}"
+        self.cache[key] = data
+        self.last_update[key] = datetime.now()
+        logger.info(f"キャッシュを更新しました: {key}")
+    
+    def get_cached_data(self, ticker: str, data_type: str) -> Any:
+        """キャッシュされたデータを取得"""
+        key = f"{ticker}_{data_type}"
+        return self.cache.get(key)
+
 class AdvancedDataManager:
     """高度なデータソース統合管理クラス"""
     
@@ -609,6 +637,7 @@ class AdvancedDataManager:
         self.reuters = ReutersDataSource(reuters_key)
         self.nikkei = NikkeiDataSource()
         self.sec = SECDataSource()
+        self.scheduler = DataUpdateScheduler()
         
         logger.info("高度なデータソース管理クラスを初期化しました")
     
@@ -616,6 +645,14 @@ class AdvancedDataManager:
         """複数ソースから包括的な株価データを取得"""
         try:
             logger.info(f"包括的な株価データを取得中: {ticker}")
+            
+            # キャッシュチェック
+            cache_key = f"comprehensive_{ticker}"
+            if not self.scheduler.should_update(ticker, "comprehensive"):
+                cached_data = self.scheduler.get_cached_data(ticker, "comprehensive")
+                if cached_data:
+                    logger.info(f"キャッシュから包括的データを取得: {ticker}")
+                    return cached_data
             
             # Bloombergからデータ取得
             bloomberg_data = self.bloomberg.get_stock_data(ticker, start_date, end_date)
@@ -639,6 +676,9 @@ class AdvancedDataManager:
                 },
                 'last_updated': datetime.now()
             }
+            
+            # キャッシュに保存
+            self.scheduler.update_cache(ticker, "comprehensive", comprehensive_data)
             
             logger.info(f"包括的データ取得成功: {ticker}")
             return comprehensive_data
