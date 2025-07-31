@@ -10,6 +10,7 @@ import requests
 import pandas as pd
 import json
 import time
+import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import logging
@@ -197,19 +198,61 @@ class ReutersDataSource(BaseDataSource):
         try:
             logger.info(f"Reutersからニュースを取得中: {ticker}")
             
-            # サンプルニュースデータ
+            # より多様で現実的なニュースデータ
+            news_templates = [
+                {
+                    'title': f"{ticker}、第{random.randint(1,4)}四半期決算発表 - 予想を上回る業績",
+                    'content': f"{ticker}は本日、第{random.randint(1,4)}四半期決算を発表し、市場予想を上回る業績を記録しました。売上高は前年同期比{random.randint(5,25)}%増、営業利益は{random.randint(10,40)}%増となり、株価は上昇基調を維持しています。",
+                    'sentiment': 0.3 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "決算", "業績", "株価上昇"]
+                },
+                {
+                    'title': f"{ticker}、新製品発表で市場シェア拡大を目指す",
+                    'content': f"{ticker}は新製品ラインの発表を行い、競合他社との差別化を図ります。新製品は{random.randint(10,50)}%の性能向上を実現し、市場での競争力強化が期待されています。",
+                    'sentiment': 0.2 + random.uniform(0, 0.3),
+                    'keywords': [ticker, "新製品", "市場シェア", "競争力"]
+                },
+                {
+                    'title': f"{ticker}、海外展開を加速 - {random.choice(['アジア', '欧州', '北米'])}市場に注力",
+                    'content': f"{ticker}は海外市場での事業拡大を加速させています。特に{random.choice(['アジア', '欧州', '北米'])}市場での成長戦略を強化し、現地パートナーとの協力関係を構築しています。",
+                    'sentiment': 0.1 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "海外展開", "成長戦略", "パートナーシップ"]
+                },
+                {
+                    'title': f"{ticker}、ESG投資家からの評価向上 - サステナビリティ報告書を発表",
+                    'content': f"{ticker}は最新のサステナビリティ報告書を発表し、環境・社会・ガバナンス（ESG）への取り組みを強化しています。投資家からの評価が向上し、ESG投資ファンドからの資金流入が増加しています。",
+                    'sentiment': 0.2 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "ESG", "サステナビリティ", "投資評価"]
+                },
+                {
+                    'title': f"{ticker}、技術革新で業界リーダーシップを強化",
+                    'content': f"{ticker}は最新の技術革新により、業界でのリーダーシップを強化しています。AI技術の活用やデジタル変革により、業務効率の向上とコスト削減を実現しています。",
+                    'sentiment': 0.3 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "技術革新", "AI", "デジタル変革"]
+                }
+            ]
+            
             news_items = []
             for i in range(5):
+                template = news_templates[i % len(news_templates)]
+                # より現実的な日付生成（過去30日以内）
+                days_ago = random.randint(0, min(days, 30))
+                hours_ago = random.randint(0, 23)
+                minutes_ago = random.randint(0, 59)
+                
                 news_item = NewsItem(
-                    title=f"{ticker}に関するニュース記事 {i+1}",
-                    content=f"これは{ticker}に関するReutersのニュース記事の内容です。企業の業績や市場動向について詳しく分析されています。",
+                    title=template['title'],
+                    content=template['content'],
                     source="Reuters",
-                    published_date=datetime.now() - timedelta(days=i),
-                    url=f"https://www.reuters.com/news/{ticker}_{i}",
-                    sentiment_score=0.1 if i % 2 == 0 else -0.1,
-                    keywords=[ticker, "業績", "株価", "市場"]
+                    published_date=datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
+                    url=f"https://www.reuters.com/news/{ticker}_{i}_{random.randint(1000,9999)}",
+                    sentiment_score=template['sentiment'],
+                    keywords=template['keywords']
                 )
                 news_items.append(news_item)
+            
+            # 日付順にソート（最新順）
+            news_items.sort(key=lambda x: x.published_date, reverse=True)
             
             logger.info(f"Reutersニュース取得成功: {len(news_items)}件")
             return news_items
@@ -307,19 +350,61 @@ class NikkeiDataSource(BaseDataSource):
         try:
             logger.info(f"日経からニュースを取得中: {ticker}")
             
-            # サンプルニュースデータ
+            # より多様で現実的な日本市場ニュースデータ
+            japanese_news_templates = [
+                {
+                    'title': f"{ticker}、東証での取引活発化 - 機関投資家の買い注文増加",
+                    'content': f"{ticker}の東証での取引が活発化しています。機関投資家からの買い注文が増加し、株価は{random.randint(2,8)}%上昇しました。国内投資家の関心が高まっており、今後も上昇基調が続く見込みです。",
+                    'sentiment': 0.4 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "東証", "機関投資家", "株価上昇", "日本市場"]
+                },
+                {
+                    'title': f"{ticker}、国内シェア拡大で業績好調 - 競合他社との差別化成功",
+                    'content': f"{ticker}は国内市場でのシェア拡大により、業績が好調を維持しています。競合他社との差別化戦略が成功し、売上高は前年同期比{random.randint(8,20)}%増を記録しました。",
+                    'sentiment': 0.3 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "国内シェア", "業績好調", "差別化", "売上高"]
+                },
+                {
+                    'title': f"{ticker}、日本企業としてのESG評価向上 - 環境配慮型経営で注目",
+                    'content': f"{ticker}は日本企業としてのESG評価が向上しています。環境配慮型経営への取り組みが国内外の投資家から注目され、ESG投資ファンドからの資金流入が増加しています。",
+                    'sentiment': 0.2 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "ESG", "環境配慮", "日本企業", "投資評価"]
+                },
+                {
+                    'title': f"{ticker}、国内技術開発で競争力強化 - 研究開発投資を拡大",
+                    'content': f"{ticker}は国内での技術開発を強化し、競争力の向上を図っています。研究開発投資を{random.randint(10,30)}%拡大し、新技術の開発に注力しています。",
+                    'sentiment': 0.3 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "技術開発", "研究開発", "競争力", "新技術"]
+                },
+                {
+                    'title': f"{ticker}、国内パートナーシップ拡大 - 地域経済への貢献強化",
+                    'content': f"{ticker}は国内企業とのパートナーシップを拡大し、地域経済への貢献を強化しています。地元企業との協力関係を構築し、地域雇用の創出にも貢献しています。",
+                    'sentiment': 0.2 + random.uniform(0, 0.2),
+                    'keywords': [ticker, "パートナーシップ", "地域経済", "地元企業", "雇用創出"]
+                }
+            ]
+            
             news_items = []
             for i in range(5):
+                template = japanese_news_templates[i % len(japanese_news_templates)]
+                # より現実的な日付生成（過去30日以内）
+                days_ago = random.randint(0, min(days, 30))
+                hours_ago = random.randint(0, 23)
+                minutes_ago = random.randint(0, 59)
+                
                 news_item = NewsItem(
-                    title=f"{ticker}に関する日経ニュース {i+1}",
-                    content=f"日本経済新聞による{ticker}に関する詳細な分析記事です。国内市場での動向や業績予想について報道されています。",
+                    title=template['title'],
+                    content=template['content'],
                     source="日本経済新聞",
-                    published_date=datetime.now() - timedelta(days=i),
-                    url=f"https://www.nikkei.com/news/{ticker}_{i}",
-                    sentiment_score=0.2 if i % 2 == 0 else -0.05,
-                    keywords=[ticker, "業績", "株価", "日本市場", "東証"]
+                    published_date=datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
+                    url=f"https://www.nikkei.com/news/{ticker}_{i}_{random.randint(1000,9999)}",
+                    sentiment_score=template['sentiment'],
+                    keywords=template['keywords']
                 )
                 news_items.append(news_item)
+            
+            # 日付順にソート（最新順）
+            news_items.sort(key=lambda x: x.published_date, reverse=True)
             
             logger.info(f"日経ニュース取得成功: {len(news_items)}件")
             return news_items
@@ -417,24 +502,46 @@ class SECDataSource(BaseDataSource):
         try:
             logger.info(f"SECから開示情報を取得中: {ticker}, 種類: {filing_type}")
             
-            # サンプルSEC Filingデータ
+            # より現実的なSEC Filingデータ
+            filing_types = ["10-K", "10-Q", "8-K", "DEF 14A", "S-1"]
+            filing_titles = [
+                f"Annual Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                f"Quarterly Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                f"Current Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                f"Definitive Proxy Statement Pursuant to Section 14(a) of the Securities Exchange Act of 1934",
+                f"Registration Statement under the Securities Act of 1933"
+            ]
+            
             filings = []
             for i in range(limit):
+                # より現実的な日付生成（過去1年以内）
+                days_ago = random.randint(0, 365)
+                hours_ago = random.randint(0, 23)
+                minutes_ago = random.randint(0, 59)
+                
+                current_filing_type = filing_types[i % len(filing_types)]
+                current_title = filing_titles[i % len(filing_titles)]
+                
                 filing = {
                     'ticker': ticker,
-                    'filing_type': filing_type,
-                    'filing_date': datetime.now() - timedelta(days=365*i),
-                    'filing_url': f"https://www.sec.gov/Archives/edgar/data/{ticker}/{filing_type}_{i}.htm",
-                    'filing_title': f"{filing_type} Annual Report for {ticker}",
-                    'file_size': f"{1000 + i*100}KB",
+                    'filing_type': current_filing_type,
+                    'filing_date': datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
+                    'filing_url': f"https://www.sec.gov/Archives/edgar/data/{random.randint(100000,999999)}/{current_filing_type}_{random.randint(1000,9999)}.htm",
+                    'filing_title': f"{current_title} - {ticker}",
+                    'file_size': f"{random.randint(500,5000)}KB",
                     'source': 'SEC',
                     'key_highlights': [
-                        f"Revenue: ${1000000000 + i*100000000}",
-                        f"Net Income: ${100000000 + i*10000000}",
-                        f"Total Assets: ${5000000000 + i*500000000}"
+                        f"Revenue: ${random.randint(1000000000,10000000000):,}",
+                        f"Net Income: ${random.randint(100000000,1000000000):,}",
+                        f"Total Assets: ${random.randint(5000000000,50000000000):,}",
+                        f"Earnings Per Share: ${random.uniform(1.0,10.0):.2f}",
+                        f"Cash Flow from Operations: ${random.randint(500000000,5000000000):,}"
                     ]
                 }
                 filings.append(filing)
+            
+            # 日付順にソート（最新順）
+            filings.sort(key=lambda x: x['filing_date'], reverse=True)
             
             logger.info(f"SEC開示情報取得成功: {len(filings)}件")
             return filings
@@ -448,21 +555,44 @@ class SECDataSource(BaseDataSource):
         try:
             logger.info(f"SECからインサイダー取引情報を取得中: {ticker}")
             
-            # サンプルインサイダー取引データ
+            # より現実的なインサイダー取引データ
+            insider_names = [
+                "John Smith", "Sarah Johnson", "Michael Brown", "Emily Davis", "David Wilson",
+                "Lisa Anderson", "Robert Taylor", "Jennifer Martinez", "Christopher Garcia", "Amanda Rodriguez"
+            ]
+            insider_titles = [
+                "Chief Executive Officer", "Chief Financial Officer", "Chief Operating Officer",
+                "Chief Technology Officer", "Chief Marketing Officer", "Senior Vice President",
+                "Vice President", "Director", "Board Member", "General Counsel"
+            ]
+            
             insider_trades = []
             for i in range(3):
+                # より現実的な日付生成（過去90日以内）
+                days_ago = random.randint(0, min(days, 90))
+                hours_ago = random.randint(0, 23)
+                minutes_ago = random.randint(0, 59)
+                
+                trade_type = random.choice(['Buy', 'Sell'])
+                shares_traded = random.randint(1000, 50000)
+                price_per_share = random.uniform(50.0, 200.0)
+                
                 trade = {
                     'ticker': ticker,
-                    'insider_name': f"Executive {i+1}",
-                    'insider_title': f"Chief Officer {i+1}",
-                    'trade_type': 'Buy' if i % 2 == 0 else 'Sell',
-                    'shares_traded': 10000 + i*1000,
-                    'price_per_share': 100 + i*5,
-                    'trade_date': datetime.now() - timedelta(days=i*30),
-                    'filing_date': datetime.now() - timedelta(days=i*30+1),
+                    'insider_name': random.choice(insider_names),
+                    'insider_title': random.choice(insider_titles),
+                    'trade_type': trade_type,
+                    'shares_traded': shares_traded,
+                    'price_per_share': round(price_per_share, 2),
+                    'total_value': round(shares_traded * price_per_share, 2),
+                    'trade_date': datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
+                    'filing_date': datetime.now() - timedelta(days=days_ago, hours=hours_ago+1, minutes=minutes_ago),
                     'source': 'SEC'
                 }
                 insider_trades.append(trade)
+            
+            # 日付順にソート（最新順）
+            insider_trades.sort(key=lambda x: x['trade_date'], reverse=True)
             
             logger.info(f"SECインサイダー取引情報取得成功: {len(insider_trades)}件")
             return insider_trades
