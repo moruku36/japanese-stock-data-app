@@ -2,6 +2,12 @@
 
 [GMOアドパートナーズの技術ブログ](https://techblog.gmo-ap.jp/2022/06/07/pythonstockdata/)を参考に作成した、日本の株価データを取得・分析するPythonシステムです。
 
+## 🌐 Webアプリケーション
+
+**📱 オンライン版**: [https://japanese-stock-data-app.streamlit.app/](https://japanese-stock-data-app.streamlit.app/)
+
+ブラウザから直接アクセスして、株価データの取得・分析が可能です。インストール不要で、すぐに利用できます。
+
 ## 📋 機能一覧
 
 - **最新株価取得**: stooqとYahoo Financeから最新の株価データを取得
@@ -19,17 +25,42 @@
 
 ## 🚀 セットアップ
 
-### 1. 必要なパッケージのインストール
+### 🌐 Webアプリケーション（推奨）
+
+**インストール不要で、すぐに利用できます！**
+
+📱 **オンライン版**: [https://japanese-stock-data-app.streamlit.app/](https://japanese-stock-data-app.streamlit.app/)
+
+ブラウザから直接アクセスして、以下の機能を利用できます：
+- 📊 最新株価取得
+- 📈 株価チャート表示
+- 🏢 ファンダメンタル分析
+- ⚖️ 財務指標比較
+- 🔍 会社名検索
+- 📦 複数銘柄分析
+- 💾 データエクスポート
+
+### 💻 ローカル環境での実行
+
+#### 1. 必要なパッケージのインストール
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. システムの実行
+#### 2. システムの実行
 
 ```bash
 python main.py
 ```
+
+#### 3. Webアプリケーションのローカル実行
+
+```bash
+streamlit run web_app.py
+```
+
+ローカルでWebアプリケーションを実行する場合は、ブラウザで `http://localhost:8501` にアクセスしてください。
 
 ## 📊 利用可能なデータソース
 
