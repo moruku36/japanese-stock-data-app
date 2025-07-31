@@ -655,6 +655,578 @@ class FundamentalAnalyzer:
                 "pe_ratio_ntm": 9.5,  # NTM PER
                 "target_price": 1200,  # アナリストターゲットプライス（円）
                 "target_price_date": "2024-12-01"  # ターゲットプライス設定日
+            },
+            "4901": {  # 富士フイルムホールディングス
+                "company_name": "富士フイルムホールディングス",
+                "sector": "化学",
+                "market_cap": 3500000000000,   # 3.5兆円
+                "revenue": 2500000000000,      # 2.5兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2500000000000, # 2.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 17.5,
+                "pb_ratio": 1.4,
+                "roe": 8.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.32,
+                "current_ratio": 1.8,
+                "dividend_yield": 1.8,
+                "beta": 0.8,
+                "pe_ratio_ntm": 16.8,
+                "target_price": 8500,
+                "target_price_date": "2024-12-01"
+            },
+            "3382": {  # セブン＆アイ・ホールディングス
+                "company_name": "セブン＆アイ・ホールディングス",
+                "sector": "小売業",
+                "market_cap": 4500000000000,   # 4.5兆円
+                "revenue": 10000000000000,     # 10兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 8000000000000, # 8兆円
+                "total_equity": 3000000000000, # 3兆円
+                "debt": 2000000000000,         # 2兆円
+                "cash": 1500000000000,         # 1.5兆円
+                "pe_ratio": 15.0,
+                "pb_ratio": 1.5,
+                "roe": 10.0,
+                "roa": 3.8,
+                "debt_to_equity": 0.67,
+                "current_ratio": 1.2,
+                "dividend_yield": 2.2,
+                "beta": 0.6,
+                "pe_ratio_ntm": 14.5,
+                "target_price": 4200,
+                "target_price_date": "2024-12-01"
+            },
+            "8267": {  # イオン
+                "company_name": "イオン",
+                "sector": "小売業",
+                "market_cap": 3000000000000,   # 3兆円
+                "revenue": 8000000000000,      # 8兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 6000000000000, # 6兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1500000000000,         # 1.5兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 15.0,
+                "pb_ratio": 1.5,
+                "roe": 10.0,
+                "roa": 3.3,
+                "debt_to_equity": 0.75,
+                "current_ratio": 1.3,
+                "dividend_yield": 2.5,
+                "beta": 0.7,
+                "pe_ratio_ntm": 14.2,
+                "target_price": 3800,
+                "target_price_date": "2024-12-01"
+            },
+            "9020": {  # 東日本旅客鉄道
+                "company_name": "東日本旅客鉄道",
+                "sector": "陸運業",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 3000000000000,      # 3兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 8000000000000, # 8兆円
+                "total_equity": 4000000000000, # 4兆円
+                "debt": 2000000000000,         # 2兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.0,
+                "roe": 7.5,
+                "roa": 3.8,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.8,
+                "beta": 0.5,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 8500,
+                "target_price_date": "2024-12-01"
+            },
+            "9021": {  # 西日本旅客鉄道
+                "company_name": "西日本旅客鉄道",
+                "sector": "陸運業",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 1500000000000,      # 1.5兆円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.0,
+                "roe": 7.5,
+                "roa": 3.8,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.8,
+                "beta": 0.5,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 4200,
+                "target_price_date": "2024-12-01"
+            },
+            "9022": {  # 東海旅客鉄道
+                "company_name": "東海旅客鉄道",
+                "sector": "陸運業",
+                "market_cap": 3500000000000,   # 3.5兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 250000000000,    # 2500億円
+                "total_assets": 6000000000000, # 6兆円
+                "total_equity": 3500000000000, # 3.5兆円
+                "debt": 1500000000000,         # 1.5兆円
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 14.0,
+                "pb_ratio": 1.0,
+                "roe": 7.1,
+                "roa": 4.2,
+                "debt_to_equity": 0.43,
+                "current_ratio": 1.6,
+                "dividend_yield": 2.5,
+                "beta": 0.4,
+                "pe_ratio_ntm": 13.5,
+                "target_price": 7500,
+                "target_price_date": "2024-12-01"
+            },
+            "9501": {  # 東京電力ホールディングス
+                "company_name": "東京電力ホールディングス",
+                "sector": "電気・ガス業",
+                "market_cap": 2500000000000,   # 2.5兆円
+                "revenue": 7000000000000,      # 7兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 15000000000000, # 15兆円
+                "total_equity": 3000000000000, # 3兆円
+                "debt": 8000000000000,         # 8兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 12.5,
+                "pb_ratio": 0.83,
+                "roe": 6.7,
+                "roa": 1.3,
+                "debt_to_equity": 2.67,
+                "current_ratio": 1.1,
+                "dividend_yield": 3.2,
+                "beta": 0.3,
+                "pe_ratio_ntm": 12.0,
+                "target_price": 1200,
+                "target_price_date": "2024-12-01"
+            },
+            "9502": {  # 中部電力
+                "company_name": "中部電力",
+                "sector": "電気・ガス業",
+                "market_cap": 1500000000000,   # 1.5兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 8000000000000, # 8兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 4000000000000,         # 4兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.75,
+                "roe": 7.5,
+                "roa": 1.9,
+                "debt_to_equity": 2.0,
+                "current_ratio": 1.2,
+                "dividend_yield": 3.5,
+                "beta": 0.3,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 1800,
+                "target_price_date": "2024-12-01"
+            },
+            "9503": {  # 関西電力
+                "company_name": "関西電力",
+                "sector": "電気・ガス業",
+                "market_cap": 1200000000000,   # 1.2兆円
+                "revenue": 3500000000000,      # 3.5兆円
+                "net_income": 120000000000,    # 1200億円
+                "total_assets": 7000000000000, # 7兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 3500000000000,         # 3.5兆円
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 0.8,
+                "roe": 8.0,
+                "roa": 1.7,
+                "debt_to_equity": 2.33,
+                "current_ratio": 1.1,
+                "dividend_yield": 3.8,
+                "beta": 0.3,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 1500,
+                "target_price_date": "2024-12-01"
+            },
+            "8031": {  # 三井物産
+                "company_name": "三井物産",
+                "sector": "商社",
+                "market_cap": 6000000000000,   # 6兆円
+                "revenue": 15000000000000,     # 15兆円
+                "net_income": 800000000000,    # 8000億円
+                "total_assets": 20000000000000, # 20兆円
+                "total_equity": 8000000000000, # 8兆円
+                "debt": 8000000000000,         # 8兆円
+                "cash": 3000000000000,         # 3兆円
+                "pe_ratio": 7.5,
+                "pb_ratio": 0.75,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 1.0,
+                "current_ratio": 1.3,
+                "dividend_yield": 4.2,
+                "beta": 0.8,
+                "pe_ratio_ntm": 7.2,
+                "target_price": 6500,
+                "target_price_date": "2024-12-01"
+            },
+            "8002": {  # 丸紅
+                "company_name": "丸紅",
+                "sector": "商社",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 12000000000000,     # 12兆円
+                "net_income": 600000000000,    # 6000億円
+                "total_assets": 15000000000000, # 15兆円
+                "total_equity": 6000000000000, # 6兆円
+                "debt": 6000000000000,         # 6兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 6.7,
+                "pb_ratio": 0.67,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 1.0,
+                "current_ratio": 1.3,
+                "dividend_yield": 4.5,
+                "beta": 0.8,
+                "pe_ratio_ntm": 6.5,
+                "target_price": 4800,
+                "target_price_date": "2024-12-01"
+            },
+            "2768": {  # 双日
+                "company_name": "双日",
+                "sector": "商社",
+                "market_cap": 1500000000000,   # 1.5兆円
+                "revenue": 5000000000000,      # 5兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 6000000000000, # 6兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 2000000000000,         # 2兆円
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 7.5,
+                "pb_ratio": 0.75,
+                "roe": 10.0,
+                "roa": 3.3,
+                "debt_to_equity": 1.0,
+                "current_ratio": 1.4,
+                "dividend_yield": 4.8,
+                "beta": 0.9,
+                "pe_ratio_ntm": 7.2,
+                "target_price": 1800,
+                "target_price_date": "2024-12-01"
+            },
+            "7270": {  # SUBARU
+                "company_name": "SUBARU",
+                "sector": "自動車",
+                "market_cap": 3000000000000,   # 3兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 5000000000000, # 5兆円
+                "total_equity": 2500000000000, # 2.5兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 800000000000,          # 8000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.2,
+                "roe": 12.0,
+                "roa": 6.0,
+                "debt_to_equity": 0.4,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.5,
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 4200,
+                "target_price_date": "2024-12-01"
+            },
+            "4568": {  # 第一三共
+                "company_name": "第一三共",
+                "sector": "医薬品",
+                "market_cap": 8000000000000,   # 8兆円
+                "revenue": 3000000000000,      # 3兆円
+                "net_income": 600000000000,    # 6000億円
+                "total_assets": 8000000000000, # 8兆円
+                "total_equity": 5000000000000, # 5兆円
+                "debt": 1500000000000,         # 1.5兆円
+                "cash": 2000000000000,         # 2兆円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.6,
+                "roe": 12.0,
+                "roa": 7.5,
+                "debt_to_equity": 0.3,
+                "current_ratio": 2.0,
+                "dividend_yield": 1.8,
+                "beta": 0.6,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 4800,
+                "target_price_date": "2024-12-01"
+            },
+            "4151": {  # 協和キリン
+                "company_name": "協和キリン",
+                "sector": "医薬品",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2500000000000, # 2.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.6,
+                "roe": 12.0,
+                "roa": 7.5,
+                "debt_to_equity": 0.32,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.2,
+                "beta": 0.7,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 2400,
+                "target_price_date": "2024-12-01"
+            },
+            "6952": {  # カシオ計算機
+                "company_name": "カシオ計算機",
+                "sector": "電気機器",
+                "market_cap": 800000000000,    # 8000億円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 100000000000,    # 1000億円
+                "total_assets": 1500000000000, # 1.5兆円
+                "total_equity": 1000000000000, # 1兆円
+                "debt": 200000000000,          # 2000億円
+                "cash": 300000000000,          # 3000億円
+                "pe_ratio": 8.0,
+                "pb_ratio": 0.8,
+                "roe": 10.0,
+                "roa": 6.7,
+                "debt_to_equity": 0.2,
+                "current_ratio": 2.0,
+                "dividend_yield": 3.2,
+                "beta": 0.8,
+                "pe_ratio_ntm": 7.8,
+                "target_price": 1200,
+                "target_price_date": "2024-12-01"
+            },
+            "6503": {  # 三菱電機
+                "company_name": "三菱電機",
+                "sector": "電気機器",
+                "market_cap": 4000000000000,   # 4兆円
+                "revenue": 5000000000000,      # 5兆円
+                "net_income": 300000000000,    # 3000億円
+                "total_assets": 6000000000000, # 6兆円
+                "total_equity": 3000000000000, # 3兆円
+                "debt": 1500000000000,         # 1.5兆円
+                "cash": 1000000000000,         # 1兆円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.33,
+                "roe": 10.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.5,
+                "beta": 0.9,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 1800,
+                "target_price_date": "2024-12-01"
+            },
+            "6753": {  # シャープ
+                "company_name": "シャープ",
+                "sector": "電気機器",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 3000000000000,      # 3兆円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.33,
+                "roe": 10.0,
+                "roa": 3.8,
+                "debt_to_equity": 0.67,
+                "current_ratio": 1.3,
+                "dividend_yield": 2.8,
+                "beta": 1.1,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 1200,
+                "target_price_date": "2024-12-01"
+            },
+            "6762": {  # TDK
+                "company_name": "TDK",
+                "sector": "電気機器",
+                "market_cap": 3000000000000,   # 3兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 15.0,
+                "pb_ratio": 2.0,
+                "roe": 13.3,
+                "roa": 6.7,
+                "debt_to_equity": 0.53,
+                "current_ratio": 1.6,
+                "dividend_yield": 2.2,
+                "beta": 1.0,
+                "pe_ratio_ntm": 14.5,
+                "target_price": 8500,
+                "target_price_date": "2024-12-01"
+            },
+            "6988": {  # 日東電工
+                "company_name": "日東電工",
+                "sector": "電気機器",
+                "market_cap": 1500000000000,   # 1.5兆円
+                "revenue": 1000000000000,      # 1兆円
+                "net_income": 100000000000,    # 1000億円
+                "total_assets": 1500000000000, # 1.5兆円
+                "total_equity": 800000000000,  # 8000億円
+                "debt": 400000000000,          # 4000億円
+                "cash": 200000000000,          # 2000億円
+                "pe_ratio": 15.0,
+                "pb_ratio": 1.88,
+                "roe": 12.5,
+                "roa": 6.7,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.8,
+                "dividend_yield": 2.5,
+                "beta": 0.9,
+                "pe_ratio_ntm": 14.5,
+                "target_price": 12000,
+                "target_price_date": "2024-12-01"
+            },
+            "7013": {  # IHI
+                "company_name": "IHI",
+                "sector": "機械",
+                "market_cap": 800000000000,    # 8000億円
+                "revenue": 1500000000000,      # 1.5兆円
+                "net_income": 80000000000,     # 800億円
+                "total_assets": 2000000000000, # 2兆円
+                "total_equity": 800000000000,  # 8000億円
+                "debt": 600000000000,          # 6000億円
+                "cash": 200000000000,          # 2000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.75,
+                "current_ratio": 1.2,
+                "dividend_yield": 3.2,
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 4800,
+                "target_price_date": "2024-12-01"
+            },
+            "7012": {  # 川崎重工業
+                "company_name": "川崎重工業",
+                "sector": "機械",
+                "market_cap": 1200000000000,   # 1.2兆円
+                "revenue": 2000000000000,      # 2兆円
+                "net_income": 120000000000,    # 1200億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 1200000000000, # 1.2兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 300000000000,          # 3000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.67,
+                "current_ratio": 1.3,
+                "dividend_yield": 3.0,
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 3800,
+                "target_price_date": "2024-12-01"
+            },
+            "7004": {  # 日立造船
+                "company_name": "日立造船",
+                "sector": "機械",
+                "market_cap": 600000000000,    # 6000億円
+                "revenue": 1000000000000,      # 1兆円
+                "net_income": 60000000000,     # 600億円
+                "total_assets": 1500000000000, # 1.5兆円
+                "total_equity": 600000000000,  # 6000億円
+                "debt": 400000000000,          # 4000億円
+                "cash": 150000000000,          # 1500億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.67,
+                "current_ratio": 1.3,
+                "dividend_yield": 3.5,
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 2800,
+                "target_price_date": "2024-12-01"
+            },
+            "7011": {  # 三菱重工業
+                "company_name": "三菱重工業",
+                "sector": "機械",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 4000000000000,      # 4兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 5000000000000, # 5兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1500000000000,         # 1.5兆円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 10.0,
+                "pb_ratio": 1.0,
+                "roe": 10.0,
+                "roa": 4.0,
+                "debt_to_equity": 0.75,
+                "current_ratio": 1.2,
+                "dividend_yield": 3.2,
+                "beta": 1.0,
+                "pe_ratio_ntm": 9.5,
+                "target_price": 6500,
+                "target_price_date": "2024-12-01"
+            },
+            "3407": {  # 旭化成
+                "company_name": "旭化成",
+                "sector": "化学",
+                "market_cap": 2000000000000,   # 2兆円
+                "revenue": 2500000000000,      # 2.5兆円
+                "net_income": 150000000000,    # 1500億円
+                "total_assets": 3000000000000, # 3兆円
+                "total_equity": 1500000000000, # 1.5兆円
+                "debt": 800000000000,          # 8000億円
+                "cash": 500000000000,          # 5000億円
+                "pe_ratio": 13.3,
+                "pb_ratio": 1.33,
+                "roe": 10.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.53,
+                "current_ratio": 1.5,
+                "dividend_yield": 2.8,
+                "beta": 0.8,
+                "pe_ratio_ntm": 12.8,
+                "target_price": 3800,
+                "target_price_date": "2024-12-01"
+            },
+            "3402": {  # 東レ
+                "company_name": "東レ",
+                "sector": "化学",
+                "market_cap": 2500000000000,   # 2.5兆円
+                "revenue": 3000000000000,      # 3兆円
+                "net_income": 200000000000,    # 2000億円
+                "total_assets": 4000000000000, # 4兆円
+                "total_equity": 2000000000000, # 2兆円
+                "debt": 1000000000000,         # 1兆円
+                "cash": 600000000000,          # 6000億円
+                "pe_ratio": 12.5,
+                "pb_ratio": 1.25,
+                "roe": 10.0,
+                "roa": 5.0,
+                "debt_to_equity": 0.5,
+                "current_ratio": 1.6,
+                "dividend_yield": 2.5,
+                "beta": 0.8,
+                "pe_ratio_ntm": 12.0,
+                "target_price": 4200,
+                "target_price_date": "2024-12-01"
             }
         }
         return sample_data
