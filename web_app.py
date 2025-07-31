@@ -64,54 +64,54 @@ def initialize_system():
         return None, None, None, None
 
 @st.cache_data(ttl=3600)  # 1時間キャッシュ
-def get_cached_data(key: str, *args, **kwargs):
+def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, _company_searcher=None, **kwargs):
     """データをキャッシュ付きで取得"""
     # キーに基づいて適切な関数を呼び出す
     if "latest_price" in key:
         if "stooq" in key:
             ticker = args[0] if args else kwargs.get('ticker_symbol')
-            return kwargs.get('fetcher').get_latest_price(ticker, "stooq")
+            return _fetcher.get_latest_price(ticker, "stooq")
         elif "yahoo" in key:
             ticker = args[0] if args else kwargs.get('ticker_symbol')
-            return kwargs.get('fetcher').get_latest_price(ticker, "yahoo")
+            return _fetcher.get_latest_price(ticker, "yahoo")
     elif "stock_data" in key:
         if "stooq" in key:
             ticker = args[0] if args else kwargs.get('ticker_symbol')
             start_date = args[1] if len(args) > 1 else kwargs.get('start_date')
             end_date = args[2] if len(args) > 2 else kwargs.get('end_date')
-            return kwargs.get('fetcher').fetch_stock_data_stooq(ticker, start_date, end_date)
+            return _fetcher.fetch_stock_data_stooq(ticker, start_date, end_date)
         elif "yahoo" in key:
             ticker = args[0] if args else kwargs.get('ticker_symbol')
             start_date = args[1] if len(args) > 1 else kwargs.get('start_date')
             end_date = args[2] if len(args) > 2 else kwargs.get('end_date')
-            return kwargs.get('fetcher').fetch_stock_data_yahoo(ticker, start_date, end_date)
+            return _fetcher.fetch_stock_data_yahoo(ticker, start_date, end_date)
     elif "fundamental_data" in key:
         ticker = args[0] if args else kwargs.get('ticker_symbol')
-        return kwargs.get('fundamental_analyzer').get_financial_data(ticker)
+        return _fundamental_analyzer.get_financial_data(ticker)
     elif "popular_companies" in key:
         limit = args[0] if args else kwargs.get('limit', 10)
-        return kwargs.get('company_searcher').get_popular_companies(limit)
+        return _company_searcher.get_popular_companies(limit)
     elif "industry_per_stats" in key:
         sector = args[0] if args else kwargs.get('sector')
-        return kwargs.get('fundamental_analyzer').get_industry_per_comparison(sector)
+        return _fundamental_analyzer.get_industry_per_comparison(sector)
     elif "undervalued_companies" in key:
         sector = args[0] if args else kwargs.get('sector')
         threshold = args[1] if len(args) > 1 else kwargs.get('threshold')
-        return kwargs.get('fundamental_analyzer').find_undervalued_companies(sector, threshold)
+        return _fundamental_analyzer.find_undervalued_companies(sector, threshold)
     elif "overvalued_companies" in key:
         sector = args[0] if args else kwargs.get('sector')
         threshold = args[1] if len(args) > 1 else kwargs.get('threshold')
-        return kwargs.get('fundamental_analyzer').find_overvalued_companies(sector, threshold)
+        return _fundamental_analyzer.find_overvalued_companies(sector, threshold)
     elif "target_price_analysis" in key:
         ticker = args[0] if args else kwargs.get('ticker_symbol')
-        return kwargs.get('fundamental_analyzer').analyze_target_price(ticker)
+        return _fundamental_analyzer.analyze_target_price(ticker)
     elif "target_price_opportunities" in key:
         min_upside = args[0] if args else kwargs.get('min_upside')
         max_upside = args[1] if len(args) > 1 else kwargs.get('max_upside')
-        return kwargs.get('fundamental_analyzer').find_target_price_opportunities(min_upside, max_upside)
+        return _fundamental_analyzer.find_target_price_opportunities(min_upside, max_upside)
     elif "sector_target_price_analysis" in key:
         sector = args[0] if args else kwargs.get('sector')
-        return kwargs.get('fundamental_analyzer').get_sector_target_price_analysis(sector)
+        return _fundamental_analyzer.get_sector_target_price_analysis(sector)
     
     return None
 
@@ -232,7 +232,7 @@ def main():
         popular_companies = get_cached_data(
             "popular_companies", 
             10,
-            company_searcher=company_searcher
+            _company_searcher=company_searcher
         )
         
         cols = st.columns(2)
@@ -248,7 +248,7 @@ def main():
                         price_data = get_cached_data(
                             f"latest_price_stooq_{company['code']}", 
                             company['code'],
-                            fetcher=fetcher
+                            _fetcher=fetcher
                         )
                         if "error" not in price_data:
                             st.write(f"**現在値:** {format_currency_web(price_data['close'])}")
@@ -281,12 +281,12 @@ def main():
                             stooq_data = get_cached_data(
                                 f"latest_price_stooq_{ticker}", 
                                 ticker,
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                             yahoo_data = get_cached_data(
                                 f"latest_price_yahoo_{ticker}", 
                                 ticker,
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                             
                             col1, col2 = st.columns(2)
@@ -312,7 +312,7 @@ def main():
                             data = get_cached_data(
                                 f"latest_price_{source}_{ticker}", 
                                 ticker,
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                             
                             if "error" not in data:
@@ -368,7 +368,7 @@ def main():
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d'),
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                         else:
                             df = get_cached_data(
@@ -376,7 +376,7 @@ def main():
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d'),
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                         
                         if not df.empty:
@@ -406,7 +406,7 @@ def main():
                         financial_data = get_cached_data(
                             f"fundamental_data_{ticker}", 
                             ticker,
-                            fundamental_analyzer=fundamental_analyzer
+                            _fundamental_analyzer=fundamental_analyzer
                         )
                         
                         if financial_data:
@@ -450,7 +450,7 @@ def main():
                                 latest_price = get_cached_data(
                                     f"latest_price_stooq_{ticker}", 
                                     ticker,
-                                    fetcher=fetcher
+                                    _fetcher=fetcher
                                 )
                                 if "error" not in latest_price:
                                     current_price = latest_price['close']
@@ -570,7 +570,7 @@ def main():
                                 financial_data = get_cached_data(
                                     f"fundamental_data_{ticker}", 
                                     ticker,
-                                    fundamental_analyzer=fundamental_analyzer
+                                    _fundamental_analyzer=fundamental_analyzer
                                 )
                                 if financial_data:
                                     comparison_data[ticker] = financial_data
@@ -660,7 +660,7 @@ def main():
                 sector_stats = get_cached_data(
                     f"industry_per_stats_{sector}", 
                     sector,
-                    fundamental_analyzer=fundamental_analyzer
+                    _fundamental_analyzer=fundamental_analyzer
                 )
                 
                 if sector_stats:
@@ -749,14 +749,14 @@ def main():
                     f"undervalued_companies_{sector}_{undervalued_threshold}", 
                     sector, 
                     undervalued_threshold,
-                    fundamental_analyzer=fundamental_analyzer
+                    _fundamental_analyzer=fundamental_analyzer
                 )
                 # 割高企業
                 overvalued = get_cached_data(
                     f"overvalued_companies_{sector}_{overvalued_threshold}", 
                     sector, 
                     overvalued_threshold,
-                    fundamental_analyzer=fundamental_analyzer
+                    _fundamental_analyzer=fundamental_analyzer
                 )
                 
                 col1, col2 = st.columns(2)
@@ -869,7 +869,7 @@ def main():
                             analysis = get_cached_data(
                                 f"target_price_analysis_{selected_ticker}", 
                                 selected_ticker,
-                                fundamental_analyzer=fundamental_analyzer
+                                _fundamental_analyzer=fundamental_analyzer
                             )
                             
                             if "error" in analysis:
@@ -968,7 +968,7 @@ def main():
                                 f"target_price_opportunities_{min_upside}_{max_upside}", 
                                 min_upside, 
                                 max_upside,
-                                fundamental_analyzer=fundamental_analyzer
+                                _fundamental_analyzer=fundamental_analyzer
                             )
                             
                             if opportunities:
@@ -1037,7 +1037,7 @@ def main():
                             sector_analysis = get_cached_data(
                                 f"sector_target_price_analysis_{sector}", 
                                 sector,
-                                fundamental_analyzer=fundamental_analyzer
+                                _fundamental_analyzer=fundamental_analyzer
                             )
                             
                             if sector_analysis:
@@ -1128,7 +1128,7 @@ def main():
                                 data = get_cached_data(
                                     f"latest_price_{source}_{ticker}", 
                                     ticker,
-                                    fetcher=fetcher
+                                    _fetcher=fetcher
                                 )
                                 if "error" not in data:
                                     results.append({
@@ -1188,7 +1188,7 @@ def main():
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d'),
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                         else:
                             df = get_cached_data(
@@ -1196,7 +1196,7 @@ def main():
                                 ticker,
                                 start_date.strftime('%Y-%m-%d'),
                                 end_date.strftime('%Y-%m-%d'),
-                                fetcher=fetcher
+                                _fetcher=fetcher
                             )
                         
                         if not df.empty:
