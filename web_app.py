@@ -118,15 +118,117 @@ def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, 
         ticker = args[0] if args else kwargs.get('ticker')
         start_date = args[1] if len(args) > 1 else kwargs.get('start_date')
         end_date = args[2] if len(args) > 2 else kwargs.get('end_date')
-        return _advanced_data_manager.get_comprehensive_stock_data(ticker, start_date, end_date)
+        data = _advanced_data_manager.get_comprehensive_stock_data(ticker, start_date, end_date)
+        return serialize_advanced_data(data)
     elif "sentiment_analysis" in key:
         ticker = args[0] if args else kwargs.get('ticker')
-        return _advanced_data_manager.get_sentiment_analysis(ticker)
+        data = _advanced_data_manager.get_sentiment_analysis(ticker)
+        return serialize_sentiment_data(data)
     elif "market_intelligence" in key:
         ticker = args[0] if args else kwargs.get('ticker')
-        return _advanced_data_manager.get_market_intelligence(ticker)
+        data = _advanced_data_manager.get_market_intelligence(ticker)
+        return serialize_intelligence_data(data)
     
     return None
+
+def serialize_advanced_data(data):
+    """高度なデータをシリアライズ可能な形式に変換"""
+    if not data:
+        return {}
+    
+    serialized = {}
+    for key, value in data.items():
+        if key == 'bloomberg_data':
+            # DataFrameはそのまま保持
+            serialized[key] = value
+        elif key == 'financial_data':
+            # 財務データのdatetimeを文字列に変換
+            if value:
+                financial_copy = value.copy()
+                if 'last_updated' in financial_copy:
+                    last_updated = financial_copy['last_updated']
+                    if hasattr(last_updated, 'isoformat'):
+                        financial_copy['last_updated'] = last_updated.isoformat()
+                serialized[key] = financial_copy
+        elif key == 'news_data':
+            # ニュースデータのdatetimeを文字列に変換
+            serialized[key] = {}
+            for source, news_list in value.items():
+                serialized[key][source] = []
+                for news in news_list:
+                    news_copy = {
+                        'title': news.title,
+                        'content': news.content,
+                        'source': news.source,
+                        'published_date': news.published_date.isoformat() if hasattr(news.published_date, 'isoformat') else str(news.published_date),
+                        'url': news.url,
+                        'sentiment_score': news.sentiment_score,
+                        'keywords': news.keywords
+                    }
+                    serialized[key][source].append(news_copy)
+        elif key == 'market_analysis':
+            # 市場分析データのdatetimeを文字列に変換
+            serialized[key] = {}
+            for source, analysis in value.items():
+                if analysis:
+                    analysis_copy = analysis.copy()
+                    if 'last_updated' in analysis_copy:
+                        last_updated = analysis_copy['last_updated']
+                        if hasattr(last_updated, 'isoformat'):
+                            analysis_copy['last_updated'] = last_updated.isoformat()
+                    serialized[key][source] = analysis_copy
+        elif key == 'sec_data':
+            # SECデータのdatetimeを文字列に変換
+            serialized[key] = {}
+            for sec_type, sec_list in value.items():
+                serialized[key][sec_type] = []
+                for item in sec_list:
+                    item_copy = item.copy()
+                    if 'filing_date' in item_copy:
+                        filing_date = item_copy['filing_date']
+                        if hasattr(filing_date, 'isoformat'):
+                            item_copy['filing_date'] = filing_date.isoformat()
+                    if 'trade_date' in item_copy:
+                        trade_date = item_copy['trade_date']
+                        if hasattr(trade_date, 'isoformat'):
+                            item_copy['trade_date'] = trade_date.isoformat()
+                    serialized[key][sec_type].append(item_copy)
+        elif key == 'last_updated':
+            # datetimeを文字列に変換
+            if hasattr(value, 'isoformat'):
+                serialized[key] = value.isoformat()
+            else:
+                serialized[key] = str(value)
+        else:
+            serialized[key] = value
+    
+    return serialized
+
+def serialize_sentiment_data(data):
+    """感情分析データをシリアライズ可能な形式に変換"""
+    if not data:
+        return {}
+    
+    serialized = data.copy()
+    if 'last_updated' in serialized:
+        last_updated = serialized['last_updated']
+        if hasattr(last_updated, 'isoformat'):
+            serialized['last_updated'] = last_updated.isoformat()
+    
+    return serialized
+
+def serialize_intelligence_data(data):
+    """市場インテリジェンスデータをシリアライズ可能な形式に変換"""
+    if not data:
+        return {}
+    
+    serialized = data.copy()
+    if 'generated_date' in serialized:
+        generated_date = serialized['generated_date']
+        if hasattr(generated_date, 'isoformat'):
+            serialized['generated_date'] = generated_date.isoformat()
+    
+    return serialized
 
 def format_currency_web(value):
     """通貨フォーマット（Web用）"""
@@ -1318,20 +1420,20 @@ def main():
                                     with tab1:
                                         reuters_news = news_data.get('reuters', [])
                                         for i, news in enumerate(reuters_news[:3]):
-                                            with st.expander(f"📰 {news.title}"):
-                                                st.write(f"**日付:** {news.published_date.strftime('%Y-%m-%d')}")
-                                                st.write(f"**感情スコア:** {news.sentiment_score:.2f}")
-                                                st.write(f"**内容:** {news.content[:200]}...")
-                                                st.write(f"**URL:** {news.url}")
+                                            with st.expander(f"📰 {news['title']}"):
+                                                st.write(f"**日付:** {news['published_date'][:10]}")
+                                                st.write(f"**感情スコア:** {news['sentiment_score']:.2f}")
+                                                st.write(f"**内容:** {news['content'][:200]}...")
+                                                st.write(f"**URL:** {news['url']}")
                                     
                                     with tab2:
                                         nikkei_news = news_data.get('nikkei', [])
                                         for i, news in enumerate(nikkei_news[:3]):
-                                            with st.expander(f"📰 {news.title}"):
-                                                st.write(f"**日付:** {news.published_date.strftime('%Y-%m-%d')}")
-                                                st.write(f"**感情スコア:** {news.sentiment_score:.2f}")
-                                                st.write(f"**内容:** {news.content[:200]}...")
-                                                st.write(f"**URL:** {news.url}")
+                                            with st.expander(f"📰 {news['title']}"):
+                                                st.write(f"**日付:** {news['published_date'][:10]}")
+                                                st.write(f"**感情スコア:** {news['sentiment_score']:.2f}")
+                                                st.write(f"**内容:** {news['content'][:200]}...")
+                                                st.write(f"**URL:** {news['url']}")
                                 
                                 # SECデータ
                                 if comprehensive_data.get('sec_data'):
@@ -1345,7 +1447,7 @@ def main():
                                         for filing in filings[:3]:
                                             with st.expander(f"📄 {filing['filing_title']}"):
                                                 st.write(f"**種類:** {filing['filing_type']}")
-                                                st.write(f"**日付:** {filing['filing_date'].strftime('%Y-%m-%d')}")
+                                                st.write(f"**日付:** {filing['filing_date'][:10]}")
                                                 st.write(f"**ファイルサイズ:** {filing['file_size']}")
                                                 st.write(f"**URL:** {filing['filing_url']}")
                                     
