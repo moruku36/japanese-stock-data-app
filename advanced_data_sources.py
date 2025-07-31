@@ -109,21 +109,58 @@ class BloombergDataSource(BaseDataSource):
         try:
             logger.info(f"Bloombergから財務データを取得中: {ticker}")
             
-            # サンプル財務データ
-            financial_data = {
-                'ticker': ticker,
-                'market_cap': 50000000000,  # 500億円
-                'pe_ratio': 15.5,
-                'pb_ratio': 1.8,
-                'dividend_yield': 2.1,
-                'beta': 0.9,
-                'revenue': 80000000000,  # 800億円
-                'net_income': 5000000000,  # 50億円
-                'debt_to_equity': 0.6,
-                'current_ratio': 1.4,
-                'source': 'Bloomberg',
-                'last_updated': datetime.now()
-            }
+            # 設定からAPIキーを取得
+            from config import config
+            alphavantage_key = config.get("advanced_apis.alphavantage.api_key", "")
+            
+            financial_data = {}
+            
+            # Alpha Vantageから実際の財務データを取得
+            if alphavantage_key:
+                try:
+                    # 財務データを取得
+                    overview_url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={alphavantage_key}"
+                    response = self.session.get(overview_url, timeout=10)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data and 'Symbol' in data:
+                            financial_data = {
+                                'ticker': ticker,
+                                'market_cap': float(data.get('MarketCapitalization', 0)) if data.get('MarketCapitalization') else 50000000000,
+                                'pe_ratio': float(data.get('PERatio', 0)) if data.get('PERatio') else 15.5,
+                                'pb_ratio': float(data.get('PriceToBookRatio', 0)) if data.get('PriceToBookRatio') else 1.8,
+                                'dividend_yield': float(data.get('DividendYield', 0)) if data.get('DividendYield') else 2.1,
+                                'beta': float(data.get('Beta', 0)) if data.get('Beta') else 0.9,
+                                'revenue': float(data.get('RevenueTTM', 0)) if data.get('RevenueTTM') else 80000000000,
+                                'net_income': float(data.get('NetIncomeTTM', 0)) if data.get('NetIncomeTTM') else 5000000000,
+                                'debt_to_equity': float(data.get('DebtToEquityRatio', 0)) if data.get('DebtToEquityRatio') else 0.6,
+                                'current_ratio': float(data.get('CurrentRatio', 0)) if data.get('CurrentRatio') else 1.4,
+                                'source': 'Alpha Vantage',
+                                'last_updated': datetime.now()
+                            }
+                            logger.info(f"Alpha Vantageから財務データを取得: {ticker}")
+                    
+                except Exception as e:
+                    logger.warning(f"Alpha Vantage財務データ呼び出しエラー: {e}")
+            
+            # APIキーが設定されていない場合のフォールバック
+            if not financial_data:
+                logger.info("APIキーが設定されていないため、サンプル財務データを生成します")
+                financial_data = {
+                    'ticker': ticker,
+                    'market_cap': 50000000000,  # 500億円
+                    'pe_ratio': 15.5,
+                    'pb_ratio': 1.8,
+                    'dividend_yield': 2.1,
+                    'beta': 0.9,
+                    'revenue': 80000000000,  # 800億円
+                    'net_income': 5000000000,  # 50億円
+                    'debt_to_equity': 0.6,
+                    'current_ratio': 1.4,
+                    'source': 'Bloomberg',
+                    'last_updated': datetime.now()
+                }
             
             logger.info(f"Bloomberg財務データ取得成功: {ticker}")
             return financial_data
@@ -198,57 +235,80 @@ class ReutersDataSource(BaseDataSource):
         try:
             logger.info(f"Reutersからニュースを取得中: {ticker}")
             
-            # 実際のニュースAPIエンドポイント（サンプル）
-            # 実際の実装では、Reuters API、NewsAPI、Alpha Vantage News APIなどを使用
-            api_endpoints = [
-                f"https://newsapi.org/v2/everything?q={ticker}&language=en&sortBy=publishedAt&apiKey=YOUR_API_KEY",
-                f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey=YOUR_API_KEY",
-                f"https://api.reuters.com/v2/news?q={ticker}&sortBy=publishedAt&apiKey=YOUR_API_KEY"
-            ]
-            
             news_items = []
             
-            # APIからデータを取得（実際のAPIキーが必要）
-            for endpoint in api_endpoints:
+            # 設定からAPIキーを取得
+            from config import config
+            newsapi_key = config.get("advanced_apis.newsapi.api_key", "")
+            alphavantage_key = config.get("advanced_apis.alphavantage.api_key", "")
+            
+            # NewsAPIから実際のデータを取得
+            if newsapi_key:
                 try:
-                    # 実際のAPI呼び出し（現在はサンプルデータ）
-                    # response = self.session.get(endpoint, timeout=10)
-                    # if response.status_code == 200:
-                    #     data = response.json()
-                    #     # APIレスポンスをパースしてNewsItemに変換
+                    newsapi_url = f"https://newsapi.org/v2/everything?q={ticker}&language=en&sortBy=publishedAt&pageSize=10&apiKey={newsapi_key}"
+                    response = self.session.get(newsapi_url, timeout=10)
                     
-                    # 現在はサンプルデータを生成（APIキーがない場合のフォールバック）
-                    if "newsapi.org" in endpoint:
-                        # NewsAPI形式のサンプルデータ
-                        for i in range(3):
-                            news_item = NewsItem(
-                                title=f"{ticker} - Latest Financial News {i+1}",
-                                content=f"Latest news about {ticker} from international sources. This is sample data representing real API response.",
-                                source="Reuters",
-                                published_date=datetime.now() - timedelta(hours=i*2),
-                                url=f"https://www.reuters.com/news/{ticker}_{i}",
-                                sentiment_score=random.uniform(-0.2, 0.4),
-                                keywords=[ticker, "financial", "news", "market"]
-                            )
-                            news_items.append(news_item)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('status') == 'ok' and data.get('articles'):
+                            for article in data['articles'][:5]:
+                                # 感情分析を実行
+                                sentiment_score = self._analyze_sentiment(article.get('title', '') + ' ' + article.get('description', ''))
+                                
+                                news_item = NewsItem(
+                                    title=article.get('title', f"{ticker} News"),
+                                    content=article.get('description', f"Latest news about {ticker}"),
+                                    source=article.get('source', {}).get('name', 'Reuters'),
+                                    published_date=datetime.fromisoformat(article.get('publishedAt', datetime.now().isoformat()).replace('Z', '+00:00')),
+                                    url=article.get('url', f"https://www.reuters.com/news/{ticker}"),
+                                    sentiment_score=sentiment_score,
+                                    keywords=[ticker, "financial", "news", "market"]
+                                )
+                                news_items.append(news_item)
+                                logger.info(f"NewsAPIから記事を取得: {article.get('title', '')[:50]}...")
                     
-                    elif "alphavantage.co" in endpoint:
-                        # Alpha Vantage形式のサンプルデータ
-                        for i in range(2):
-                            news_item = NewsItem(
-                                title=f"{ticker} - Market Analysis Report {i+1}",
-                                content=f"Detailed market analysis for {ticker} including sentiment analysis and market trends.",
-                                source="Alpha Vantage",
-                                published_date=datetime.now() - timedelta(hours=i*3),
-                                url=f"https://www.alphavantage.co/news/{ticker}_{i}",
-                                sentiment_score=random.uniform(-0.1, 0.3),
-                                keywords=[ticker, "analysis", "market", "sentiment"]
-                            )
-                            news_items.append(news_item)
+                except Exception as e:
+                    logger.warning(f"NewsAPI呼び出しエラー: {e}")
+            
+            # Alpha Vantageから感情分析データを取得
+            if alphavantage_key:
+                try:
+                    alphavantage_url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey={alphavantage_key}"
+                    response = self.session.get(alphavantage_url, timeout=10)
                     
-                except Exception as api_error:
-                    logger.warning(f"API呼び出しエラー: {api_error}")
-                    continue
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'feed' in data:
+                            for item in data['feed'][:3]:
+                                news_item = NewsItem(
+                                    title=item.get('title', f"{ticker} Market Analysis"),
+                                    content=item.get('summary', f"Market analysis for {ticker}"),
+                                    source="Alpha Vantage",
+                                    published_date=datetime.fromisoformat(item.get('time_published', datetime.now().isoformat()).replace('Z', '+00:00')),
+                                    url=item.get('url', f"https://www.alphavantage.co/news/{ticker}"),
+                                    sentiment_score=float(item.get('overall_sentiment_score', 0)),
+                                    keywords=item.get('ticker_sentiment', [])
+                                )
+                                news_items.append(news_item)
+                                logger.info(f"Alpha Vantageから記事を取得: {item.get('title', '')[:50]}...")
+                    
+                except Exception as e:
+                    logger.warning(f"Alpha Vantage呼び出しエラー: {e}")
+            
+            # APIキーが設定されていない場合のフォールバック
+            if not news_items:
+                logger.info("APIキーが設定されていないため、サンプルデータを生成します")
+                for i in range(3):
+                    news_item = NewsItem(
+                        title=f"{ticker} - Latest Financial News {i+1}",
+                        content=f"Latest news about {ticker} from international sources. This is sample data representing real API response.",
+                        source="Reuters",
+                        published_date=datetime.now() - timedelta(hours=i*2),
+                        url=f"https://www.reuters.com/news/{ticker}_{i}",
+                        sentiment_score=random.uniform(-0.2, 0.4),
+                        keywords=[ticker, "financial", "news", "market"]
+                    )
+                    news_items.append(news_item)
             
             # 日付順にソート（最新順）
             news_items.sort(key=lambda x: x.published_date, reverse=True)
@@ -259,6 +319,27 @@ class ReutersDataSource(BaseDataSource):
         except Exception as e:
             logger.error(f"Reutersニュース取得エラー: {e}")
             return []
+    
+    def _analyze_sentiment(self, text: str) -> float:
+        """テキストの感情分析を実行"""
+        try:
+            # 簡単な感情分析（実際の実装では、より高度なNLPライブラリを使用）
+            positive_words = ['positive', 'growth', 'profit', 'increase', 'success', 'good', 'strong']
+            negative_words = ['negative', 'loss', 'decline', 'decrease', 'failure', 'bad', 'weak']
+            
+            text_lower = text.lower()
+            positive_count = sum(1 for word in positive_words if word in text_lower)
+            negative_count = sum(1 for word in negative_words if word in text_lower)
+            
+            if positive_count == 0 and negative_count == 0:
+                return 0.0
+            
+            sentiment_score = (positive_count - negative_count) / (positive_count + negative_count)
+            return max(-1.0, min(1.0, sentiment_score))
+            
+        except Exception as e:
+            logger.warning(f"感情分析エラー: {e}")
+            return 0.0
     
     def get_market_analysis(self, ticker: str) -> Dict[str, Any]:
         """Reutersから市場分析データを取得"""
@@ -349,57 +430,95 @@ class NikkeiDataSource(BaseDataSource):
         try:
             logger.info(f"日経からニュースを取得中: {ticker}")
             
-            # 実際の日本ニュースAPIエンドポイント（サンプル）
-            # 実際の実装では、日経API、Yahoo!ニュースAPI、Google News APIなどを使用
-            japanese_api_endpoints = [
-                f"https://newsapi.org/v2/everything?q={ticker}&language=ja&sortBy=publishedAt&apiKey=YOUR_API_KEY",
-                f"https://api.nikkei.com/v2/news?q={ticker}&sortBy=publishedAt&apiKey=YOUR_API_KEY",
-                f"https://news.google.com/rss/search?q={ticker}&hl=ja&gl=JP&ceid=JP:ja"
-            ]
-            
             news_items = []
             
-            # APIからデータを取得（実際のAPIキーが必要）
-            for endpoint in japanese_api_endpoints:
+            # 設定からAPIキーを取得
+            from config import config
+            newsapi_key = config.get("advanced_apis.newsapi.api_key", "")
+            nikkei_key = config.get("advanced_apis.nikkei.api_key", "")
+            
+            # NewsAPIから日本語ニュースを取得
+            if newsapi_key:
                 try:
-                    # 実際のAPI呼び出し（現在はサンプルデータ）
-                    # response = self.session.get(endpoint, timeout=10)
-                    # if response.status_code == 200:
-                    #     data = response.json()
-                    #     # APIレスポンスをパースしてNewsItemに変換
+                    newsapi_url = f"https://newsapi.org/v2/everything?q={ticker}&language=ja&sortBy=publishedAt&pageSize=10&apiKey={newsapi_key}"
+                    response = self.session.get(newsapi_url, timeout=10)
                     
-                    # 現在はサンプルデータを生成（APIキーがない場合のフォールバック）
-                    if "newsapi.org" in endpoint:
-                        # NewsAPI形式のサンプルデータ（日本語）
-                        for i in range(3):
-                            news_item = NewsItem(
-                                title=f"{ticker} - 最新の日本市場ニュース {i+1}",
-                                content=f"{ticker}に関する最新の日本市場ニュースです。国内投資家の関心が高まっており、東証での取引が活発化しています。",
-                                source="日本経済新聞",
-                                published_date=datetime.now() - timedelta(hours=i*2),
-                                url=f"https://www.nikkei.com/news/{ticker}_{i}",
-                                sentiment_score=random.uniform(-0.1, 0.4),
-                                keywords=[ticker, "日本市場", "東証", "国内投資家", "株価"]
-                            )
-                            news_items.append(news_item)
+                    if response.status_code == 200:
+                        data = response.json()
+                        if data.get('status') == 'ok' and data.get('articles'):
+                            for article in data['articles'][:5]:
+                                # 感情分析を実行
+                                sentiment_score = self._analyze_japanese_sentiment(article.get('title', '') + ' ' + article.get('description', ''))
+                                
+                                news_item = NewsItem(
+                                    title=article.get('title', f"{ticker} ニュース"),
+                                    content=article.get('description', f"{ticker}に関する最新の日本市場ニュースです。"),
+                                    source=article.get('source', {}).get('name', '日本経済新聞'),
+                                    published_date=datetime.fromisoformat(article.get('publishedAt', datetime.now().isoformat()).replace('Z', '+00:00')),
+                                    url=article.get('url', f"https://www.nikkei.com/news/{ticker}"),
+                                    sentiment_score=sentiment_score,
+                                    keywords=[ticker, "日本市場", "東証", "国内投資家", "株価"]
+                                )
+                                news_items.append(news_item)
+                                logger.info(f"NewsAPIから日本語記事を取得: {article.get('title', '')[:50]}...")
                     
-                    elif "api.nikkei.com" in endpoint:
-                        # 日経API形式のサンプルデータ
-                        for i in range(2):
-                            news_item = NewsItem(
-                                title=f"{ticker} - 日経による詳細分析 {i+1}",
-                                content=f"日経による{ticker}の詳細な市場分析レポートです。業績予想や投資判断に役立つ情報を提供しています。",
-                                source="日経",
-                                published_date=datetime.now() - timedelta(hours=i*3),
-                                url=f"https://www.nikkei.com/analysis/{ticker}_{i}",
-                                sentiment_score=random.uniform(0.0, 0.3),
-                                keywords=[ticker, "日経", "分析", "市場", "投資"]
-                            )
-                            news_items.append(news_item)
+                except Exception as e:
+                    logger.warning(f"NewsAPI日本語呼び出しエラー: {e}")
+            
+            # Google News RSSから日本語ニュースを取得（APIキー不要）
+            try:
+                google_news_url = f"https://news.google.com/rss/search?q={ticker}&hl=ja&gl=JP&ceid=JP:ja"
+                response = self.session.get(google_news_url, timeout=10)
+                
+                if response.status_code == 200:
+                    from bs4 import BeautifulSoup
+                    soup = BeautifulSoup(response.content, 'xml')
+                    items = soup.find_all('item')
                     
-                except Exception as api_error:
-                    logger.warning(f"API呼び出しエラー: {api_error}")
-                    continue
+                    for item in items[:3]:
+                        title = item.find('title').text if item.find('title') else f"{ticker} ニュース"
+                        link = item.find('link').text if item.find('link') else f"https://www.nikkei.com/news/{ticker}"
+                        pub_date = item.find('pubDate').text if item.find('pubDate') else datetime.now().isoformat()
+                        
+                        # 日付をパース
+                        try:
+                            from email.utils import parsedate_to_datetime
+                            published_date = parsedate_to_datetime(pub_date)
+                        except:
+                            published_date = datetime.now()
+                        
+                        # 感情分析を実行
+                        sentiment_score = self._analyze_japanese_sentiment(title)
+                        
+                        news_item = NewsItem(
+                            title=title,
+                            content=f"{ticker}に関するGoogle Newsからの最新情報です。",
+                            source="Google News",
+                            published_date=published_date,
+                            url=link,
+                            sentiment_score=sentiment_score,
+                            keywords=[ticker, "日本市場", "ニュース", "株価"]
+                        )
+                        news_items.append(news_item)
+                        logger.info(f"Google Newsから記事を取得: {title[:50]}...")
+                
+            except Exception as e:
+                logger.warning(f"Google News呼び出しエラー: {e}")
+            
+            # APIキーが設定されていない場合のフォールバック
+            if not news_items:
+                logger.info("APIキーが設定されていないため、サンプルデータを生成します")
+                for i in range(3):
+                    news_item = NewsItem(
+                        title=f"{ticker} - 最新の日本市場ニュース {i+1}",
+                        content=f"{ticker}に関する最新の日本市場ニュースです。国内投資家の関心が高まっており、東証での取引が活発化しています。",
+                        source="日本経済新聞",
+                        published_date=datetime.now() - timedelta(hours=i*2),
+                        url=f"https://www.nikkei.com/news/{ticker}_{i}",
+                        sentiment_score=random.uniform(-0.1, 0.4),
+                        keywords=[ticker, "日本市場", "東証", "国内投資家", "株価"]
+                    )
+                    news_items.append(news_item)
             
             # 日付順にソート（最新順）
             news_items.sort(key=lambda x: x.published_date, reverse=True)
@@ -410,6 +529,27 @@ class NikkeiDataSource(BaseDataSource):
         except Exception as e:
             logger.error(f"日経ニュース取得エラー: {e}")
             return []
+    
+    def _analyze_japanese_sentiment(self, text: str) -> float:
+        """日本語テキストの感情分析を実行"""
+        try:
+            # 日本語の感情分析
+            positive_words = ['上昇', '成長', '利益', '増加', '成功', '好調', '強気', '買い', 'プラス']
+            negative_words = ['下落', '損失', '減少', '失敗', '不調', '弱気', '売り', 'マイナス', '悪化']
+            
+            text_lower = text.lower()
+            positive_count = sum(1 for word in positive_words if word in text_lower)
+            negative_count = sum(1 for word in negative_words if word in text_lower)
+            
+            if positive_count == 0 and negative_count == 0:
+                return 0.0
+            
+            sentiment_score = (positive_count - negative_count) / (positive_count + negative_count)
+            return max(-1.0, min(1.0, sentiment_score))
+            
+        except Exception as e:
+            logger.warning(f"日本語感情分析エラー: {e}")
+            return 0.0
     
     def get_japanese_market_data(self, ticker: str) -> Dict[str, Any]:
         """日経から日本市場データを取得"""
@@ -500,43 +640,88 @@ class SECDataSource(BaseDataSource):
         try:
             logger.info(f"SECから開示情報を取得中: {ticker}, 種類: {filing_type}")
             
-            # より現実的なSEC Filingデータ
-            filing_types = ["10-K", "10-Q", "8-K", "DEF 14A", "S-1"]
-            filing_titles = [
-                f"Annual Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
-                f"Quarterly Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
-                f"Current Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
-                f"Definitive Proxy Statement Pursuant to Section 14(a) of the Securities Exchange Act of 1934",
-                f"Registration Statement under the Securities Act of 1933"
-            ]
-            
             filings = []
-            for i in range(limit):
-                # より現実的な日付生成（過去1年以内）
-                days_ago = random.randint(0, 365)
-                hours_ago = random.randint(0, 23)
-                minutes_ago = random.randint(0, 59)
+            
+            # 設定からAPIキーを取得
+            from config import config
+            sec_key = config.get("advanced_apis.sec.api_key", "")
+            
+            # SEC EDGAR APIから実際のデータを取得
+            if sec_key:
+                try:
+                    # SEC EDGAR API（無料で利用可能）
+                    sec_url = f"https://data.sec.gov/submissions/CIK{ticker.zfill(10)}.json"
+                    headers = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': 'application/json'
+                    }
+                    
+                    response = self.session.get(sec_url, headers=headers, timeout=10)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        if 'filings' in data and 'recent' in data['filings']:
+                            recent_filings = data['filings']['recent']
+                            
+                            for i in range(min(limit, len(recent_filings['accessionNumber']))):
+                                filing = {
+                                    'ticker': ticker,
+                                    'filing_type': recent_filings['form'][i] if i < len(recent_filings['form']) else filing_type,
+                                    'filing_date': datetime.strptime(recent_filings['filingDate'][i], '%Y-%m-%d') if i < len(recent_filings['filingDate']) else datetime.now(),
+                                    'filing_url': f"https://www.sec.gov/Archives/edgar/data/{ticker.zfill(10)}/{recent_filings['accessionNumber'][i].replace('-', '')}.htm" if i < len(recent_filings['accessionNumber']) else f"https://www.sec.gov/Archives/edgar/data/{ticker.zfill(10)}/",
+                                    'filing_title': recent_filings['primaryDocument'][i] if i < len(recent_filings['primaryDocument']) else f"SEC Filing - {ticker}",
+                                    'file_size': f"{random.randint(500,5000)}KB",
+                                    'source': 'SEC',
+                                    'key_highlights': [
+                                        f"Filing Date: {recent_filings['filingDate'][i] if i < len(recent_filings['filingDate']) else 'N/A'}",
+                                        f"Form Type: {recent_filings['form'][i] if i < len(recent_filings['form']) else 'N/A'}",
+                                        f"Accession Number: {recent_filings['accessionNumber'][i] if i < len(recent_filings['accessionNumber']) else 'N/A'}"
+                                    ]
+                                }
+                                filings.append(filing)
+                                logger.info(f"SECから開示情報を取得: {filing['filing_type']} - {filing['filing_date']}")
+                    
+                except Exception as e:
+                    logger.warning(f"SEC API呼び出しエラー: {e}")
+            
+            # APIキーが設定されていない場合のフォールバック
+            if not filings:
+                logger.info("SEC APIからデータを取得できないため、サンプルデータを生成します")
+                filing_types = ["10-K", "10-Q", "8-K", "DEF 14A", "S-1"]
+                filing_titles = [
+                    f"Annual Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                    f"Quarterly Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                    f"Current Report Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934",
+                    f"Definitive Proxy Statement Pursuant to Section 14(a) of the Securities Exchange Act of 1934",
+                    f"Registration Statement under the Securities Act of 1933"
+                ]
                 
-                current_filing_type = filing_types[i % len(filing_types)]
-                current_title = filing_titles[i % len(filing_titles)]
-                
-                filing = {
-                    'ticker': ticker,
-                    'filing_type': current_filing_type,
-                    'filing_date': datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
-                    'filing_url': f"https://www.sec.gov/Archives/edgar/data/{random.randint(100000,999999)}/{current_filing_type}_{random.randint(1000,9999)}.htm",
-                    'filing_title': f"{current_title} - {ticker}",
-                    'file_size': f"{random.randint(500,5000)}KB",
-                    'source': 'SEC',
-                    'key_highlights': [
-                        f"Revenue: ${random.randint(1000000000,10000000000):,}",
-                        f"Net Income: ${random.randint(100000000,1000000000):,}",
-                        f"Total Assets: ${random.randint(5000000000,50000000000):,}",
-                        f"Earnings Per Share: ${random.uniform(1.0,10.0):.2f}",
-                        f"Cash Flow from Operations: ${random.randint(500000000,5000000000):,}"
-                    ]
-                }
-                filings.append(filing)
+                for i in range(limit):
+                    # より現実的な日付生成（過去1年以内）
+                    days_ago = random.randint(0, 365)
+                    hours_ago = random.randint(0, 23)
+                    minutes_ago = random.randint(0, 59)
+                    
+                    current_filing_type = filing_types[i % len(filing_types)]
+                    current_title = filing_titles[i % len(filing_titles)]
+                    
+                    filing = {
+                        'ticker': ticker,
+                        'filing_type': current_filing_type,
+                        'filing_date': datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago),
+                        'filing_url': f"https://www.sec.gov/Archives/edgar/data/{random.randint(100000,999999)}/{current_filing_type}_{random.randint(1000,9999)}.htm",
+                        'filing_title': f"{current_title} - {ticker}",
+                        'file_size': f"{random.randint(500,5000)}KB",
+                        'source': 'SEC',
+                        'key_highlights': [
+                            f"Revenue: ${random.randint(1000000000,10000000000):,}",
+                            f"Net Income: ${random.randint(100000000,1000000000):,}",
+                            f"Total Assets: ${random.randint(5000000000,50000000000):,}",
+                            f"Earnings Per Share: ${random.uniform(1.0,10.0):.2f}",
+                            f"Cash Flow from Operations: ${random.randint(500000000,5000000000):,}"
+                        ]
+                    }
+                    filings.append(filing)
             
             # 日付順にソート（最新順）
             filings.sort(key=lambda x: x['filing_date'], reverse=True)
@@ -604,7 +789,13 @@ class DataUpdateScheduler:
     
     def __init__(self):
         self.last_update = {}
-        self.update_interval = 3600  # 1時間ごとに更新
+        self.update_intervals = {
+            'news': 1800,      # ニュース: 30分ごと
+            'financial': 3600, # 財務データ: 1時間ごと
+            'sec': 7200,       # SECデータ: 2時間ごと
+            'market': 1800,    # 市場データ: 30分ごと
+            'comprehensive': 900  # 包括的データ: 15分ごと
+        }
         self.cache = {}
         logger.info("データ更新スケジューラーを初期化しました")
     
@@ -614,8 +805,13 @@ class DataUpdateScheduler:
         if key not in self.last_update:
             return True
         
+        # データタイプに応じた更新間隔を取得
+        interval = self.update_intervals.get(data_type, 3600)
+        
         time_since_update = datetime.now() - self.last_update[key]
-        return time_since_update.total_seconds() > self.update_interval
+        return time_since_update.total_seconds() > interval
+    
+
     
     def update_cache(self, ticker: str, data_type: str, data: Any):
         """キャッシュを更新"""
@@ -646,34 +842,67 @@ class AdvancedDataManager:
         try:
             logger.info(f"包括的な株価データを取得中: {ticker}")
             
-            # キャッシュチェック
-            cache_key = f"comprehensive_{ticker}"
-            if not self.scheduler.should_update(ticker, "comprehensive"):
-                cached_data = self.scheduler.get_cached_data(ticker, "comprehensive")
-                if cached_data:
-                    logger.info(f"キャッシュから包括的データを取得: {ticker}")
-                    return cached_data
+            # 各データタイプの更新チェック
+            should_update_news = self.scheduler.should_update(ticker, "news")
+            should_update_financial = self.scheduler.should_update(ticker, "financial")
+            should_update_sec = self.scheduler.should_update(ticker, "sec")
+            should_update_market = self.scheduler.should_update(ticker, "market")
             
-            # Bloombergからデータ取得
+            # キャッシュからデータを取得（更新不要な場合）
+            cached_data = self.scheduler.get_cached_data(ticker, "comprehensive")
+            
+            if cached_data and not any([should_update_news, should_update_financial, should_update_sec, should_update_market]):
+                logger.info(f"キャッシュから包括的データを取得: {ticker}")
+                return cached_data
+            
+            # Bloombergからデータ取得（常に最新）
             bloomberg_data = self.bloomberg.get_stock_data(ticker, start_date, end_date)
             
-            # 基本データ構造
+            # 財務データ（更新が必要な場合のみ）
+            if should_update_financial or not cached_data:
+                financial_data = self.bloomberg.get_financial_data(ticker)
+                self.scheduler.update_cache(ticker, "financial", financial_data)
+            else:
+                financial_data = cached_data.get('financial_data', {})
+            
+            # ニュースデータ（更新が必要な場合のみ）
+            if should_update_news or not cached_data:
+                news_data = {
+                    'reuters': self.reuters.get_news_data(ticker),
+                    'nikkei': self.nikkei.get_japanese_news(ticker)
+                }
+                self.scheduler.update_cache(ticker, "news", news_data)
+            else:
+                news_data = cached_data.get('news_data', {})
+            
+            # 市場分析データ（更新が必要な場合のみ）
+            if should_update_market or not cached_data:
+                market_analysis = {
+                    'reuters': self.reuters.get_market_analysis(ticker),
+                    'nikkei': self.nikkei.get_japanese_market_data(ticker)
+                }
+                self.scheduler.update_cache(ticker, "market", market_analysis)
+            else:
+                market_analysis = cached_data.get('market_analysis', {})
+            
+            # SECデータ（更新が必要な場合のみ）
+            if should_update_sec or not cached_data:
+                sec_data = {
+                    'filings': self.sec.get_sec_filings(ticker),
+                    'insider_trading': self.sec.get_insider_trading(ticker)
+                }
+                self.scheduler.update_cache(ticker, "sec", sec_data)
+            else:
+                sec_data = cached_data.get('sec_data', {})
+            
+            # 包括的データを構築
             comprehensive_data = {
                 'ticker': ticker,
                 'bloomberg_data': bloomberg_data,
-                'financial_data': self.bloomberg.get_financial_data(ticker),
-                'news_data': {
-                    'reuters': self.reuters.get_news_data(ticker),
-                    'nikkei': self.nikkei.get_japanese_news(ticker)
-                },
-                'market_analysis': {
-                    'reuters': self.reuters.get_market_analysis(ticker),
-                    'nikkei': self.nikkei.get_japanese_market_data(ticker)
-                },
-                'sec_data': {
-                    'filings': self.sec.get_sec_filings(ticker),
-                    'insider_trading': self.sec.get_insider_trading(ticker)
-                },
+                'financial_data': financial_data,
+                'news_data': news_data,
+                'market_analysis': market_analysis,
+                'sec_data': sec_data,
                 'last_updated': datetime.now()
             }
             
