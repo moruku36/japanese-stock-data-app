@@ -372,7 +372,8 @@ def main():
             """)
         
         if st.button("⚡ リアルタイム監視を試す", type="primary"):
-            st.switch_page("⚡ リアルタイム監視")
+            st.session_state.page = "⚡ リアルタイム監視"
+            st.rerun()
         
         st.markdown("---")
         
