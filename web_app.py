@@ -21,6 +21,7 @@ from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
 from company_search import CompanySearch
 from fundamental_analyzer import FundamentalAnalyzer
+from advanced_data_sources import AdvancedDataManager
 from config import config
 from utils import (
     format_currency, format_number, PerformanceMonitor, 
@@ -54,17 +55,18 @@ def initialize_system():
         analyzer = StockAnalyzer(fetcher)
         company_searcher = CompanySearch()
         fundamental_analyzer = FundamentalAnalyzer(fetcher)
+        advanced_data_manager = AdvancedDataManager()
         
         # パフォーマンス監視終了
         monitor.end("System Initialization")
         
-        return fetcher, analyzer, company_searcher, fundamental_analyzer
+        return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager
     except Exception as e:
         st.error(f"システムの初期化に失敗しました: {e}")
-        return None, None, None, None
+        return None, None, None, None, None
 
 @st.cache_data(ttl=3600)  # 1時間キャッシュ
-def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, _company_searcher=None, **kwargs):
+def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, _company_searcher=None, _advanced_data_manager=None, **kwargs):
     """データをキャッシュ付きで取得"""
     # キーに基づいて適切な関数を呼び出す
     if "latest_price" in key:
@@ -112,6 +114,17 @@ def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, 
     elif "sector_target_price_analysis" in key:
         sector = args[0] if args else kwargs.get('sector')
         return _fundamental_analyzer.get_sector_target_price_analysis(sector)
+    elif "comprehensive_data" in key:
+        ticker = args[0] if args else kwargs.get('ticker')
+        start_date = args[1] if len(args) > 1 else kwargs.get('start_date')
+        end_date = args[2] if len(args) > 2 else kwargs.get('end_date')
+        return _advanced_data_manager.get_comprehensive_stock_data(ticker, start_date, end_date)
+    elif "sentiment_analysis" in key:
+        ticker = args[0] if args else kwargs.get('ticker')
+        return _advanced_data_manager.get_sentiment_analysis(ticker)
+    elif "market_intelligence" in key:
+        ticker = args[0] if args else kwargs.get('ticker')
+        return _advanced_data_manager.get_market_intelligence(ticker)
     
     return None
 
@@ -178,9 +191,9 @@ def main():
     
     # システム初期化
     with st.spinner('システムを初期化中...'):
-        fetcher, analyzer, company_searcher, fundamental_analyzer = initialize_system()
+        fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager = initialize_system()
     
-    if not all([fetcher, analyzer, company_searcher, fundamental_analyzer]):
+    if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager]):
         st.error("システムの初期化に失敗しました。")
         return
     
@@ -204,6 +217,7 @@ def main():
             "🏢 ファンダメンタル分析",
             "⚖️ 財務指標比較",
             "📦 複数銘柄分析",
+            "🔍 高度なデータ分析",
             "💾 データエクスポート"
         ]
     )
@@ -221,7 +235,7 @@ def main():
             st.metric("🏢 ファンダメンタル分析対応", len(fundamental_analyzer.financial_data))
         
         with col3:
-            st.metric("🌐 データソース", 2)
+            st.metric("🌐 データソース", 6)
         
         st.markdown("---")
         
@@ -1211,6 +1225,219 @@ def main():
                     
                     except Exception as e:
                         st.error(f"❌ エラーが発生しました: {e}")
+    
+    # 高度なデータ分析ページ
+    elif page == "🔍 高度なデータ分析":
+        st.markdown("## 🔍 高度なデータ分析")
+        st.markdown("### 📊 4つの新しいデータソースを統合した包括的分析")
+        
+        # データソース説明
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("""
+            **🌐 追加データソース:**
+            - **Bloomberg**: 詳細な金融データ・財務指標
+            - **Reuters**: 国際ニュース・市場分析
+            - **日本経済新聞**: 国内ニュース・日本市場分析
+            - **SEC Filings**: 米国企業開示情報・インサイダー取引
+            """)
+        
+        with col2:
+            st.markdown("""
+            **🔍 分析機能:**
+            - **包括的データ分析**: 複数ソースからの統合データ
+            - **感情分析**: ニュース記事の感情スコア分析
+            - **市場インテリジェンス**: AI生成の投資レポート
+            - **リスク・機会分析**: 自動リスク要因・機会特定
+            """)
+        
+        st.markdown("---")
+        
+        # 銘柄入力
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            ticker_input = st.text_input("銘柄コードを入力してください", placeholder="例: 7203 (トヨタ自動車)")
+        
+        with col2:
+            analysis_type = st.selectbox("分析タイプ", [
+                "包括的データ分析",
+                "感情分析",
+                "市場インテリジェンス"
+            ])
+        
+        if st.button("🔍 高度分析を実行", type="primary"):
+            if ticker_input:
+                ticker = ticker_input.strip()
+                
+                with st.spinner(f"{ticker}の高度分析を実行中..."):
+                    try:
+                        if analysis_type == "包括的データ分析":
+                            # 包括的データ分析
+                            comprehensive_data = get_cached_data(
+                                f"comprehensive_data_{ticker}",
+                                ticker,
+                                (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'),
+                                datetime.now().strftime('%Y-%m-%d'),
+                                _advanced_data_manager=advanced_data_manager
+                            )
+                            
+                            if comprehensive_data:
+                                st.success("✅ 包括的データ分析が完了しました")
+                                
+                                # Bloombergデータ
+                                if comprehensive_data.get('bloomberg_data') is not None:
+                                    st.markdown("### 📊 Bloombergデータ")
+                                    bloomberg_df = comprehensive_data['bloomberg_data']
+                                    if not bloomberg_df.empty:
+                                        st.dataframe(bloomberg_df.head(), use_container_width=True)
+                                
+                                # 財務データ
+                                if comprehensive_data.get('financial_data'):
+                                    st.markdown("### 💰 Bloomberg財務データ")
+                                    financial_data = comprehensive_data['financial_data']
+                                    col1, col2, col3, col4 = st.columns(4)
+                                    with col1:
+                                        st.metric("時価総額", f"{financial_data.get('market_cap', 0):,.0f}円")
+                                    with col2:
+                                        st.metric("PER", f"{financial_data.get('pe_ratio', 0):.1f}")
+                                    with col3:
+                                        st.metric("PBR", f"{financial_data.get('pb_ratio', 0):.1f}")
+                                    with col4:
+                                        st.metric("配当利回り", f"{financial_data.get('dividend_yield', 0):.1f}%")
+                                
+                                # ニュースデータ
+                                if comprehensive_data.get('news_data'):
+                                    st.markdown("### 📰 最新ニュース")
+                                    news_data = comprehensive_data['news_data']
+                                    
+                                    tab1, tab2 = st.tabs(["Reuters", "日本経済新聞"])
+                                    
+                                    with tab1:
+                                        reuters_news = news_data.get('reuters', [])
+                                        for i, news in enumerate(reuters_news[:3]):
+                                            with st.expander(f"📰 {news.title}"):
+                                                st.write(f"**日付:** {news.published_date.strftime('%Y-%m-%d')}")
+                                                st.write(f"**感情スコア:** {news.sentiment_score:.2f}")
+                                                st.write(f"**内容:** {news.content[:200]}...")
+                                                st.write(f"**URL:** {news.url}")
+                                    
+                                    with tab2:
+                                        nikkei_news = news_data.get('nikkei', [])
+                                        for i, news in enumerate(nikkei_news[:3]):
+                                            with st.expander(f"📰 {news.title}"):
+                                                st.write(f"**日付:** {news.published_date.strftime('%Y-%m-%d')}")
+                                                st.write(f"**感情スコア:** {news.sentiment_score:.2f}")
+                                                st.write(f"**内容:** {news.content[:200]}...")
+                                                st.write(f"**URL:** {news.url}")
+                                
+                                # SECデータ
+                                if comprehensive_data.get('sec_data'):
+                                    st.markdown("### 📋 SEC開示情報")
+                                    sec_data = comprehensive_data['sec_data']
+                                    
+                                    tab1, tab2 = st.tabs(["企業開示", "インサイダー取引"])
+                                    
+                                    with tab1:
+                                        filings = sec_data.get('filings', [])
+                                        for filing in filings[:3]:
+                                            with st.expander(f"📄 {filing['filing_title']}"):
+                                                st.write(f"**種類:** {filing['filing_type']}")
+                                                st.write(f"**日付:** {filing['filing_date'].strftime('%Y-%m-%d')}")
+                                                st.write(f"**ファイルサイズ:** {filing['file_size']}")
+                                                st.write(f"**URL:** {filing['filing_url']}")
+                                    
+                                    with tab2:
+                                        insider_trades = sec_data.get('insider_trading', [])
+                                        if insider_trades:
+                                            insider_df = pd.DataFrame(insider_trades)
+                                            st.dataframe(insider_df, use_container_width=True)
+                        
+                        elif analysis_type == "感情分析":
+                            # 感情分析
+                            sentiment_data = get_cached_data(
+                                f"sentiment_analysis_{ticker}",
+                                ticker,
+                                _advanced_data_manager=advanced_data_manager
+                            )
+                            
+                            if sentiment_data:
+                                st.success("✅ 感情分析が完了しました")
+                                
+                                col1, col2, col3, col4 = st.columns(4)
+                                with col1:
+                                    st.metric("全体的感情", sentiment_data.get('sentiment_label', 'N/A'))
+                                with col2:
+                                    st.metric("Reuters感情", f"{sentiment_data.get('reuters_sentiment', 0):.2f}")
+                                with col3:
+                                    st.metric("日経感情", f"{sentiment_data.get('nikkei_sentiment', 0):.2f}")
+                                with col4:
+                                    st.metric("ニュース件数", sentiment_data.get('news_count', 0))
+                                
+                                # 感情スコアの可視化
+                                sentiment_scores = {
+                                    'Reuters': sentiment_data.get('reuters_sentiment', 0),
+                                    '日経': sentiment_data.get('nikkei_sentiment', 0),
+                                    '全体': sentiment_data.get('overall_sentiment', 0)
+                                }
+                                
+                                fig = go.Figure(data=[
+                                    go.Bar(x=list(sentiment_scores.keys()), y=list(sentiment_scores.values()))
+                                ])
+                                fig.update_layout(
+                                    title="感情スコア比較",
+                                    xaxis_title="データソース",
+                                    yaxis_title="感情スコア",
+                                    height=400
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
+                        
+                        elif analysis_type == "市場インテリジェンス":
+                            # 市場インテリジェンス
+                            intelligence_data = get_cached_data(
+                                f"market_intelligence_{ticker}",
+                                ticker,
+                                _advanced_data_manager=advanced_data_manager
+                            )
+                            
+                            if intelligence_data:
+                                st.success("✅ 市場インテリジェンスレポートが生成されました")
+                                
+                                # エグゼクティブサマリー
+                                st.markdown("### 📋 エグゼクティブサマリー")
+                                st.info(intelligence_data.get('executive_summary', ''))
+                                
+                                # リスク要因
+                                risk_factors = intelligence_data.get('risk_factors', [])
+                                if risk_factors:
+                                    st.markdown("### ⚠️ リスク要因")
+                                    for risk in risk_factors:
+                                        st.write(f"• {risk}")
+                                
+                                # 機会要因
+                                opportunities = intelligence_data.get('opportunities', [])
+                                if opportunities:
+                                    st.markdown("### 🎯 機会要因")
+                                    for opportunity in opportunities:
+                                        st.write(f"• {opportunity}")
+                                
+                                # 推奨事項
+                                recommendations = intelligence_data.get('recommendations', [])
+                                if recommendations:
+                                    st.markdown("### 💡 推奨事項")
+                                    for rec in recommendations:
+                                        st.write(f"• {rec}")
+                                
+                                # 詳細データ
+                                with st.expander("📊 詳細データ"):
+                                    st.json(intelligence_data)
+                        
+                        else:
+                            st.error("分析タイプが選択されていません")
+                    
+                    except Exception as e:
+                        st.error(f"❌ 高度分析でエラーが発生しました: {e}")
 
 if __name__ == "__main__":
     main() 
