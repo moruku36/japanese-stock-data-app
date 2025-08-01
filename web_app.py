@@ -91,31 +91,53 @@ st.set_page_config(
 # カスタムCSS
 st.markdown("""
 <style>
+    /* テーマカラー定義 */
+    :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light: #3b82f6;
+        --secondary-color: #64748b;
+        --accent-color: #f59e0b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-light: #94a3b8;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-tertiary: #f1f5f9;
+        --border-color: #e2e8f0;
+        --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --shadow-heavy: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
     /* メインコンテナのスタイル */
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
+        background-color: var(--bg-primary);
     }
     
     /* ヘッダーのスタイル */
     .main h1 {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--primary-color);
         font-size: 2.5rem;
         font-weight: 700;
         text-align: center;
         margin-bottom: 2rem;
         padding: 1rem;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        box-shadow: var(--shadow-medium);
+        border: 2px solid var(--border-color);
     }
     
     /* サイドバーのスタイル */
     .css-1d391kg {
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-        border-right: 2px solid #dee2e6;
+        background: var(--bg-secondary);
+        border-right: 2px solid var(--border-color);
     }
     
     .css-1d391kg .sidebar-content {
@@ -124,57 +146,62 @@ st.markdown("""
     
     /* カードスタイル */
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: var(--bg-primary);
+        color: var(--text-primary);
         padding: 1.5rem;
         border-radius: 15px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--shadow-medium);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         margin-bottom: 1rem;
+        border: 2px solid var(--border-color);
     }
     
     .metric-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--shadow-heavy);
+        border-color: var(--primary-color);
     }
     
     /* ボタンスタイル */
     .stButton > button {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-color);
         color: white;
         border: none;
         border-radius: 25px;
         padding: 0.75rem 2rem;
         font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: var(--shadow-light);
     }
     
     .stButton > button:hover {
+        background: var(--primary-dark);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        box-shadow: var(--shadow-medium);
     }
     
     /* セクションスタイル */
     .section-header {
-        background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+        background: var(--bg-secondary);
         padding: 1rem 1.5rem;
         border-radius: 10px;
-        border-left: 5px solid #667eea;
+        border-left: 5px solid var(--primary-color);
         margin: 1.5rem 0;
         font-weight: 600;
-        color: #495057;
+        color: var(--text-primary);
+        box-shadow: var(--shadow-light);
     }
     
     /* テーブルスタイル */
     .dataframe {
         border-radius: 10px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-color);
     }
     
     .dataframe th {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-color);
         color: white;
         font-weight: 600;
         padding: 1rem;
@@ -182,28 +209,34 @@ st.markdown("""
     
     .dataframe td {
         padding: 0.75rem;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    .dataframe tr:nth-child(even) {
+        background-color: var(--bg-secondary);
     }
     
     /* アラートスタイル */
     .stAlert {
         border-radius: 10px;
         border: none;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-medium);
     }
     
     /* プログレスバースタイル */
     .stProgress > div > div > div {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: var(--primary-color);
     }
     
     /* チャートコンテナ */
     .chart-container {
-        background: white;
+        background: var(--bg-primary);
         border-radius: 15px;
         padding: 1.5rem;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-medium);
         margin: 1rem 0;
+        border: 1px solid var(--border-color);
     }
     
     /* レスポンシブデザイン */
@@ -233,16 +266,24 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         padding: 1rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: var(--bg-primary);
+        color: var(--text-primary);
         border-radius: 15px;
         margin: 0.5rem 0;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: var(--shadow-medium);
+        border: 2px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+    
+    .metric-container:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-heavy);
     }
     
     .metric-icon {
         font-size: 2rem;
         margin-right: 1rem;
+        color: var(--primary-color);
     }
     
     .metric-content {
@@ -253,12 +294,72 @@ st.markdown("""
         font-size: 1.5rem;
         font-weight: 700;
         margin: 0;
+        color: var(--text-primary);
     }
     
     .metric-label {
         font-size: 0.9rem;
-        opacity: 0.9;
+        color: var(--text-secondary);
         margin: 0;
+    }
+    
+    /* テキストカラーの改善 */
+    .main p, .main div {
+        color: var(--text-primary);
+    }
+    
+    .main h2, .main h3, .main h4 {
+        color: var(--text-primary);
+    }
+    
+    /* 入力フィールドの改善 */
+    .stTextInput > div > div > input {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+    }
+    
+    .stTextInput > div > div > input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    /* セレクトボックスの改善 */
+    .stSelectbox > div > div > div {
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+    }
+    
+    .stSelectbox > div > div > div:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    /* 成功・警告・エラーメッセージの改善 */
+    .stSuccess {
+        background-color: #ecfdf5;
+        border: 1px solid var(--success-color);
+        color: var(--text-primary);
+    }
+    
+    .stWarning {
+        background-color: #fffbeb;
+        border: 1px solid var(--warning-color);
+        color: var(--text-primary);
+    }
+    
+    .stError {
+        background-color: #fef2f2;
+        border: 1px solid var(--error-color);
+        color: var(--text-primary);
+    }
+    
+    /* 情報メッセージの改善 */
+    .stInfo {
+        background-color: #eff6ff;
+        border: 1px solid var(--primary-color);
+        color: var(--text-primary);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -539,7 +640,7 @@ def main():
         # ヘッダー
         st.markdown("""
         <div class="fade-in">
-            <h1>🇯🇵 日本の株価データ分析システム</h1>
+            <h1 style="color: #2563eb;">🇯🇵 日本の株価データ分析システム</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -576,8 +677,8 @@ def main():
     # サイドバー
     st.sidebar.markdown("""
     <div style="text-align: center; padding: 1rem 0;">
-        <h2 style="color: #667eea; font-weight: 700; margin-bottom: 1rem;">📊 機能選択</h2>
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 3px; border-radius: 2px; margin: 0 auto; width: 50%;"></div>
+        <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 1rem;">📊 機能選択</h2>
+        <div style="background: #2563eb; height: 3px; border-radius: 2px; margin: 0 auto; width: 50%;"></div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -604,7 +705,7 @@ def main():
     if page == "🏠 ホーム":
         st.markdown("""
         <div class="fade-in">
-            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">🏠 ホーム</h2>
+            <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 2rem;">🏠 ホーム</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -661,7 +762,7 @@ def main():
         
         with col1:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+            <div style="background: #2563eb; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);">
                 <h3 style="color: white; margin-bottom: 1rem;">🚀 リアルタイム機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">✅ <strong>即座のデータ更新</strong>: WebSocket通信</li>
@@ -674,7 +775,7 @@ def main():
         
         with col2:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+            <div style="background: #10b981; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);">
                 <h3 style="color: white; margin-bottom: 1rem;">📊 監視対象銘柄</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">📱 <strong>9984</strong>: ソフトバンクG</li>
@@ -746,16 +847,16 @@ def main():
                         <span style="background: {status_color}; color: white; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">{status_icon}</span>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #667eea;">銘柄コード:</strong> {company['code']}
+                        <strong style="color: #2563eb;">銘柄コード:</strong> {company['code']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #667eea;">業種:</strong> {company['sector']}
+                        <strong style="color: #2563eb;">業種:</strong> {company['sector']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #667eea;">市場:</strong> {company['market']}
+                        <strong style="color: #2563eb;">市場:</strong> {company['market']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #667eea;">現在値:</strong> {price_display}
+                        <strong style="color: #2563eb;">現在値:</strong> {price_display}
                     </div>
                     <div style="font-size: 0.9rem; color: #6c757d;">
                         <strong>更新日:</strong> {date_display}
@@ -767,7 +868,7 @@ def main():
     elif page == "📈 最新株価":
         st.markdown("""
         <div class="fade-in">
-            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">📈 最新株価取得</h2>
+            <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 2rem;">📈 最新株価取得</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -868,7 +969,7 @@ def main():
     elif page == "⚡ リアルタイム監視":
         st.markdown("""
         <div class="fade-in">
-            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">⚡ リアルタイム株価監視</h2>
+            <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 2rem;">⚡ リアルタイム株価監視</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -883,7 +984,7 @@ def main():
         
         with col1:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+            <div style="background: #2563eb; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);">
                 <h3 style="color: white; margin-bottom: 1rem;">🔴 リアルタイム機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">⚡ <strong>WebSocket通信</strong>: 即座のデータ更新</li>
@@ -896,7 +997,7 @@ def main():
         
         with col2:
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+            <div style="background: #64748b; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(100, 116, 139, 0.2);">
                 <h3 style="color: white; margin-bottom: 1rem;">📊 監視機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">📈 <strong>価格変動</strong>: リアルタイム価格追跡</li>
