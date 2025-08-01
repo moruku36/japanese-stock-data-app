@@ -74,8 +74,12 @@ class MLPredictor:
             y_train, y_test = y[:split], y[split:]
             
             # LSTMモデルを構築
-            from tensorflow.keras.models import Sequential
-            from tensorflow.keras.layers import LSTM, Dense, Dropout
+            try:
+                from tensorflow.keras.models import Sequential
+                from tensorflow.keras.layers import LSTM, Dense, Dropout
+            except ImportError:
+                logger.error("TensorFlowがインストールされていません。LSTMモデルの訓練をスキップします。")
+                return False
             
             model = Sequential([
                 LSTM(50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])),
@@ -148,7 +152,11 @@ class MLPredictor:
             y_train, y_test = y[:split], y[split:]
             
             # XGBoostモデルを訓練
-            import xgboost as xgb
+            try:
+                import xgboost as xgb
+            except ImportError:
+                logger.error("XGBoostがインストールされていません。XGBoostモデルの訓練をスキップします。")
+                return False
             
             model = xgb.XGBRegressor(
                 n_estimators=100,
@@ -190,6 +198,13 @@ class MLPredictor:
     def predict_lstm(self, ticker: str, df: pd.DataFrame, days: int = 30) -> List[float]:
         """LSTMで予測"""
         try:
+            # TensorFlowが利用可能かチェック
+            try:
+                import tensorflow as tf
+            except ImportError:
+                logger.error("TensorFlowがインストールされていません。LSTM予測をスキップします。")
+                return []
+            
             model_key = f"{ticker}_lstm"
             if model_key not in self.models:
                 logger.error(f"LSTMモデルが見つかりません: {ticker}")
@@ -236,6 +251,13 @@ class MLPredictor:
     def predict_xgboost(self, ticker: str, df: pd.DataFrame, days: int = 30) -> List[float]:
         """XGBoostで予測"""
         try:
+            # XGBoostが利用可能かチェック
+            try:
+                import xgboost as xgb
+            except ImportError:
+                logger.error("XGBoostがインストールされていません。XGBoost予測をスキップします。")
+                return []
+            
             model_key = f"{ticker}_xgboost"
             if model_key not in self.models:
                 logger.error(f"XGBoostモデルが見つかりません: {ticker}")
