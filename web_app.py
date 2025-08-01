@@ -27,6 +27,7 @@ try:
     from company_search import CompanySearch
     from fundamental_analyzer import FundamentalAnalyzer
     from advanced_data_sources import AdvancedDataManager
+    from technical_analysis import TechnicalAnalyzer, create_technical_chart
     try:
         from async_data_sources import run_async_data_fetch_sync
     except ImportError as e:
@@ -60,6 +61,8 @@ except ImportError as e:
     CompanySearch = None
     FundamentalAnalyzer = None
     AdvancedDataManager = None
+    TechnicalAnalyzer = None
+    create_technical_chart = None
     run_async_data_fetch_sync = None
     RealTimeDataManager = None
     start_real_time_services = None
@@ -97,7 +100,7 @@ def initialize_system():
         # モジュールが利用可能かチェック
         if JapaneseStockDataFetcher is None:
             st.warning("一部のモジュールが利用できません。基本的な機能のみ利用可能です。")
-            return None, None, None, None, None, None
+            return None, None, None, None, None, None, None
         
         # パフォーマンス監視開始
         if PerformanceMonitor:
@@ -110,6 +113,7 @@ def initialize_system():
         company_searcher = CompanySearch()
         fundamental_analyzer = FundamentalAnalyzer(fetcher)
         advanced_data_manager = AdvancedDataManager()
+        technical_analyzer = TechnicalAnalyzer()
         
         # リアルタイムデータ管理を初期化
         real_time_manager = RealTimeDataManager()
@@ -118,15 +122,15 @@ def initialize_system():
         if PerformanceMonitor:
             monitor.end("System Initialization")
         
-        return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager
+        return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager
     except ImportError as e:
         st.error(f"モジュールのインポートエラー: {e}")
         st.info("必要なモジュールがインストールされていません。")
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None
     except Exception as e:
         st.error(f"システムの初期化に失敗しました: {e}")
         st.info("システムの初期化中にエラーが発生しました。")
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None
 
 @st.cache_data(ttl=3600)  # 1時間キャッシュ
 def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, _company_searcher=None, _advanced_data_manager=None, **kwargs):
@@ -357,9 +361,9 @@ def main():
         
         # システム初期化
         with st.spinner('システムを初期化中...'):
-            fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager = initialize_system()
+            fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager = initialize_system()
         
-        if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager]):
+        if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager]):
             st.error("システムの初期化に失敗しました。")
             st.info("ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
             return
@@ -387,6 +391,7 @@ def main():
             "📈 最新株価",
             "⚡ リアルタイム監視",
             "📊 株価チャート",
+            "📈 技術分析チャート",
             "🏢 ファンダメンタル分析",
             "⚖️ 財務指標比較",
             "📦 複数銘柄分析",
@@ -788,6 +793,172 @@ def main():
                     
                     except Exception as e:
                         st.error(f"❌ エラーが発生しました: {e}")
+    
+    # 技術分析チャートページ
+    elif page == "📈 技術分析チャート":
+        st.markdown("## 📈 技術分析チャート")
+        st.markdown("移動平均線、ボリンジャーバンド、RSIなどの技術指標を表示します")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            ticker_input = st.text_input("銘柄コード", placeholder="例: 7203")
+        
+        with col2:
+            source = st.selectbox("データソース", ["stooq", "yahoo"])
+        
+        with col3:
+            period = st.selectbox("期間", [30, 90, 180, 365], format_func=lambda x: f"{x}日間")
+        
+        with col4:
+            chart_type = st.selectbox("チャートタイプ", ["ローソク足", "技術指標"])
+        
+        # 技術指標のオプション
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            show_ma = st.checkbox("移動平均線", value=True)
+        
+        with col2:
+            show_bb = st.checkbox("ボリンジャーバンド", value=False)
+        
+        with col3:
+            show_volume = st.checkbox("出来高", value=True)
+        
+        if st.button("📈 技術分析チャートを表示", type="primary"):
+            if ticker_input and technical_analyzer:
+                ticker = ticker_input.strip()
+                
+                with st.spinner(f"{ticker}の技術分析チャートを生成中..."):
+                    try:
+                        end_date = datetime.now()
+                        start_date = end_date - timedelta(days=period)
+                        
+                        if source == "stooq":
+                            df = get_cached_data(
+                                f"stock_data_stooq_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                ticker,
+                                start_date.strftime('%Y-%m-%d'),
+                                end_date.strftime('%Y-%m-%d'),
+                                _fetcher=fetcher
+                            )
+                        else:
+                            df = get_cached_data(
+                                f"stock_data_yahoo_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}",
+                                ticker,
+                                start_date.strftime('%Y-%m-%d'),
+                                end_date.strftime('%Y-%m-%d'),
+                                _fetcher=fetcher
+                            )
+                        
+                        if not df.empty:
+                            if chart_type == "ローソク足":
+                                chart = technical_analyzer.create_candlestick_chart(
+                                    df, ticker, show_ma=show_ma, show_bb=show_bb, show_volume=show_volume
+                                )
+                            else:
+                                # 技術指標チャート
+                                chart = technical_analyzer.create_technical_indicators_chart(df, ticker)
+                            
+                            if chart:
+                                st.plotly_chart(chart, use_container_width=True)
+                                
+                                # 技術分析シグナルを表示
+                                st.markdown("### 📊 技術分析シグナル")
+                                
+                                # 技術分析シグナルを取得
+                                signals = technical_analyzer.get_technical_signals(df)
+                                
+                                # RSI計算
+                                df_rsi = technical_analyzer.calculate_rsi(df)
+                                latest_rsi = df_rsi['RSI'].iloc[-1] if 'RSI' in df_rsi.columns else None
+                                
+                                # 移動平均計算
+                                df_ma = technical_analyzer.calculate_moving_averages(df)
+                                latest_ma5 = df_ma['MA_5'].iloc[-1] if 'MA_5' in df_ma.columns else None
+                                latest_ma20 = df_ma['MA_20'].iloc[-1] if 'MA_20' in df_ma.columns else None
+                                
+                                # MACD計算
+                                df_macd = technical_analyzer.calculate_macd(df)
+                                latest_macd = df_macd['MACD_Line'].iloc[-1] if 'MACD_Line' in df_macd.columns else None
+                                latest_signal = df_macd['MACD_Signal'].iloc[-1] if 'MACD_Signal' in df_macd.columns else None
+                                
+                                # ストキャスティクス計算
+                                df_stoch = technical_analyzer.calculate_stochastic(df)
+                                latest_stoch_k = df_stoch['Stoch_K'].iloc[-1] if 'Stoch_K' in df_stoch.columns else None
+                                latest_stoch_d = df_stoch['Stoch_D'].iloc[-1] if 'Stoch_D' in df_stoch.columns else None
+                                
+                                col1, col2, col3, col4 = st.columns(4)
+                                
+                                with col1:
+                                    if latest_rsi is not None and not pd.isna(latest_rsi):
+                                        if latest_rsi < 30:
+                                            st.metric("RSI", f"{latest_rsi:.1f}", delta="買いシグナル", delta_color="normal")
+                                        elif latest_rsi > 70:
+                                            st.metric("RSI", f"{latest_rsi:.1f}", delta="売りシグナル", delta_color="inverse")
+                                        else:
+                                            st.metric("RSI", f"{latest_rsi:.1f}")
+                                    else:
+                                        st.metric("RSI", "N/A")
+                                
+                                with col2:
+                                    if latest_ma5 is not None and latest_ma20 is not None:
+                                        if not pd.isna(latest_ma5) and not pd.isna(latest_ma20):
+                                            if latest_ma5 > latest_ma20:
+                                                st.metric("移動平均", "上昇トレンド", delta="5日>20日", delta_color="normal")
+                                            else:
+                                                st.metric("移動平均", "下降トレンド", delta="5日<20日", delta_color="inverse")
+                                        else:
+                                            st.metric("移動平均", "N/A")
+                                    else:
+                                        st.metric("移動平均", "N/A")
+                                
+                                with col3:
+                                    current_price = df['Close'].iloc[-1]
+                                    st.metric("現在価格", f"¥{current_price:,.0f}")
+                                
+                                with col4:
+                                    price_change = ((current_price - df['Close'].iloc[-2]) / df['Close'].iloc[-2]) * 100
+                                    st.metric("価格変化", f"{price_change:+.2f}%")
+                                
+                                # 詳細シグナル表示
+                                st.markdown("### 📈 詳細シグナル")
+                                
+                                col1, col2, col3, col4 = st.columns(4)
+                                
+                                with col1:
+                                    if 'ma_signal' in signals:
+                                        st.info(f"**移動平均:** {signals['ma_signal']}")
+                                    if 'rsi_signal' in signals:
+                                        st.info(f"**RSI:** {signals['rsi_signal']}")
+                                
+                                with col2:
+                                    if 'macd_signal' in signals:
+                                        st.info(f"**MACD:** {signals['macd_signal']}")
+                                    if 'stoch_signal' in signals:
+                                        st.info(f"**ストキャスティクス:** {signals['stoch_signal']}")
+                                
+                                with col3:
+                                    if latest_macd is not None and latest_signal is not None:
+                                        if not pd.isna(latest_macd) and not pd.isna(latest_signal):
+                                            st.metric("MACD", f"{latest_macd:.3f}")
+                                            st.metric("シグナル", f"{latest_signal:.3f}")
+                                
+                                with col4:
+                                    if latest_stoch_k is not None and latest_stoch_d is not None:
+                                        if not pd.isna(latest_stoch_k) and not pd.isna(latest_stoch_d):
+                                            st.metric("%K", f"{latest_stoch_k:.1f}")
+                                            st.metric("%D", f"{latest_stoch_d:.1f}")
+                                
+                            else:
+                                st.warning("チャートの生成に失敗しました")
+                        else:
+                            st.error("データが見つかりませんでした")
+                    
+                    except Exception as e:
+                        st.error(f"❌ エラーが発生しました: {e}")
+            elif not technical_analyzer:
+                st.error("技術分析機能が利用できません")
     
     # ファンダメンタル分析ページ
     elif page == "🏢 ファンダメンタル分析":
