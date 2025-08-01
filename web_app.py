@@ -27,7 +27,12 @@ try:
     from company_search import CompanySearch
     from fundamental_analyzer import FundamentalAnalyzer
     from advanced_data_sources import AdvancedDataManager
-    from technical_analysis import TechnicalAnalyzer, create_technical_chart
+    try:
+        from technical_analysis import TechnicalAnalyzer, create_technical_chart
+    except ImportError as e:
+        st.warning("technical_analysisモジュールが見つかりません。テクニカル分析機能を無効化します。")
+        TechnicalAnalyzer = None
+        create_technical_chart = None
     try:
         from async_data_sources import run_async_data_fetch_sync
     except ImportError as e:
@@ -113,7 +118,7 @@ def initialize_system():
         company_searcher = CompanySearch()
         fundamental_analyzer = FundamentalAnalyzer(fetcher)
         advanced_data_manager = AdvancedDataManager()
-        technical_analyzer = TechnicalAnalyzer()
+        technical_analyzer = TechnicalAnalyzer() if TechnicalAnalyzer else None
         
         # リアルタイムデータ管理を初期化
         real_time_manager = RealTimeDataManager()
