@@ -33,7 +33,24 @@ try:
 except ImportError as e:
     st.error(f"モジュールのインポートエラー: {e}")
     st.info("必要なモジュールがインストールされていない可能性があります。")
-    st.stop()
+    st.info("基本的な機能のみ利用可能です。")
+    # エラーが発生してもアプリを停止せず、基本的な機能のみ提供
+    JapaneseStockDataFetcher = None
+    StockAnalyzer = None
+    CompanySearch = None
+    FundamentalAnalyzer = None
+    AdvancedDataManager = None
+    run_async_data_fetch_sync = None
+    RealTimeDataManager = None
+    start_real_time_services = None
+    stop_real_time_services = None
+    config = {}
+    format_currency = lambda x: f"{x:,.0f}円"
+    format_number = lambda x: f"{x:,.0f}"
+    PerformanceMonitor = None
+    performance_monitor = lambda x: x
+    MemoryOptimizer = None
+    OptimizedCache = None
 
 # ページ設定
 st.set_page_config(
@@ -47,15 +64,25 @@ st.set_page_config(
 @st.cache_resource
 def get_global_cache():
     """グローバルキャッシュを取得"""
-    return OptimizedCache(max_size=500, ttl_hours=6)
+    if OptimizedCache:
+        return OptimizedCache(max_size=500, ttl_hours=6)
+    else:
+        # 簡易キャッシュ
+        return {"cache": {}, "max_size": 500, "ttl_hours": 6}
 
 @st.cache_resource
 def initialize_system():
     """システムの初期化（キャッシュ付き・最適化版）"""
     try:
+        # モジュールが利用可能かチェック
+        if JapaneseStockDataFetcher is None:
+            st.warning("一部のモジュールが利用できません。基本的な機能のみ利用可能です。")
+            return None, None, None, None, None, None
+        
         # パフォーマンス監視開始
-        monitor = PerformanceMonitor()
-        monitor.start()
+        if PerformanceMonitor:
+            monitor = PerformanceMonitor()
+            monitor.start()
         
         # システム初期化
         fetcher = JapaneseStockDataFetcher(max_workers=3)
@@ -68,7 +95,8 @@ def initialize_system():
         real_time_manager = RealTimeDataManager()
         
         # パフォーマンス監視終了
-        monitor.end("System Initialization")
+        if PerformanceMonitor:
+            monitor.end("System Initialization")
         
         return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager
     except ImportError as e:
@@ -257,14 +285,14 @@ def format_percentage(value):
         return "N/A"
     return f"{value:.1f}%"
 
-@performance_monitor
 def create_stock_price_chart(df, ticker_symbol):
     """株価チャートを作成（最適化版）"""
     if df.empty:
         return None
     
     # データフレームの最適化
-    df = MemoryOptimizer.optimize_dataframe(df)
+    if MemoryOptimizer:
+        df = MemoryOptimizer.optimize_dataframe(df)
     
     fig = go.Figure()
     
@@ -321,11 +349,12 @@ def main():
         return
     
     # パフォーマンス情報は内部で監視（UIには表示しない）
-    memory_usage = MemoryOptimizer.get_memory_usage()
-    # ログに記録（デバッグ用）
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.debug(f"メモリ使用量: {memory_usage['rss_mb']:.1f}MB, 使用率: {memory_usage['percent']:.1f}%")
+    if MemoryOptimizer:
+        memory_usage = MemoryOptimizer.get_memory_usage()
+        # ログに記録（デバッグ用）
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"メモリ使用量: {memory_usage['rss_mb']:.1f}MB, 使用率: {memory_usage['percent']:.1f}%")
     
     # サイドバー
     st.sidebar.title("📊 機能選択")
