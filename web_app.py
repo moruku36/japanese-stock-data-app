@@ -91,26 +91,36 @@ st.set_page_config(
 # カスタムCSS
 st.markdown("""
 <style>
-    /* テーマカラー定義 */
+    /* テーマカラー定義 - シンプルな3色構成 */
     :root {
-        --primary-color: #2563eb;
-        --primary-dark: #1d4ed8;
-        --primary-light: #3b82f6;
-        --secondary-color: #64748b;
-        --accent-color: #f59e0b;
-        --success-color: #10b981;
-        --warning-color: #f59e0b;
-        --error-color: #ef4444;
-        --text-primary: #0f172a;
-        --text-secondary: #475569;
-        --text-light: #64748b;
-        --bg-primary: #ffffff;
-        --bg-secondary: #f8fafc;
-        --bg-tertiary: #f1f5f9;
-        --border-color: #e2e8f0;
-        --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
-        --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
-        --shadow-heavy: 0 10px 15px rgba(0, 0, 0, 0.1);
+        /* メインカラー: 青 */
+        --primary-color: #3b82f6;
+        --primary-dark: #2563eb;
+        --primary-light: #60a5fa;
+        
+        /* アクセントカラー: オレンジ */
+        --accent-color: #f97316;
+        
+        /* 成功カラー: 緑 */
+        --success-color: #22c55e;
+        
+        /* テキストカラー: 白とグレー */
+        --text-primary: #ffffff;
+        --text-secondary: #e5e7eb;
+        --text-light: #9ca3af;
+        
+        /* 背景カラー: ダークテーマ */
+        --bg-primary: #1f2937;
+        --bg-secondary: #374151;
+        --bg-tertiary: #4b5563;
+        
+        /* ボーダーカラー */
+        --border-color: #4b5563;
+        
+        /* シャドウ */
+        --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.3);
+        --shadow-heavy: 0 10px 15px rgba(0, 0, 0, 0.3);
     }
     
     /* メインコンテナのスタイル */
@@ -122,16 +132,16 @@ st.markdown("""
     
     /* ヘッダーのスタイル */
     .main h1 {
-        color: var(--primary-color);
+        color: var(--text-primary);
         font-size: 2.5rem;
         font-weight: 700;
         text-align: center;
         margin-bottom: 2rem;
         padding: 1rem;
         border-radius: 10px;
-        background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+        background: var(--bg-secondary);
         box-shadow: var(--shadow-medium);
-        border: 2px solid var(--border-color);
+        border: 2px solid var(--primary-color);
     }
     
     /* サイドバーのスタイル */
@@ -146,7 +156,7 @@ st.markdown("""
     
     /* カードスタイル */
     .metric-card {
-        background: var(--bg-primary);
+        background: var(--bg-secondary);
         color: var(--text-primary);
         padding: 1.5rem;
         border-radius: 15px;
@@ -182,7 +192,7 @@ st.markdown("""
     
     /* セクションスタイル */
     .section-header {
-        background: var(--bg-secondary);
+        background: var(--bg-tertiary);
         padding: 1rem 1.5rem;
         border-radius: 10px;
         border-left: 5px solid var(--primary-color);
@@ -198,6 +208,7 @@ st.markdown("""
         overflow: hidden;
         box-shadow: var(--shadow-medium);
         border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
     }
     
     .dataframe th {
@@ -211,10 +222,11 @@ st.markdown("""
         padding: 0.75rem;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-primary);
+        background: var(--bg-secondary);
     }
     
     .dataframe tr:nth-child(even) {
-        background-color: var(--bg-secondary);
+        background-color: var(--bg-tertiary);
     }
     
     /* アラートスタイル */
@@ -231,7 +243,7 @@ st.markdown("""
     
     /* チャートコンテナ */
     .chart-container {
-        background: var(--bg-primary);
+        background: var(--bg-secondary);
         border-radius: 15px;
         padding: 1.5rem;
         box-shadow: var(--shadow-medium);
@@ -266,7 +278,7 @@ st.markdown("""
         align-items: center;
         justify-content: space-between;
         padding: 1rem;
-        background: var(--bg-primary);
+        background: var(--bg-secondary);
         color: var(--text-primary);
         border-radius: 15px;
         margin: 0.5rem 0;
@@ -338,26 +350,26 @@ st.markdown("""
     
     /* 成功・警告・エラーメッセージの改善 */
     .stSuccess {
-        background-color: #ecfdf5;
+        background-color: var(--bg-secondary);
         border: 1px solid var(--success-color);
         color: var(--text-primary);
     }
     
     .stWarning {
-        background-color: #fffbeb;
-        border: 1px solid var(--warning-color);
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--accent-color);
         color: var(--text-primary);
     }
     
     .stError {
-        background-color: #fef2f2;
-        border: 1px solid var(--error-color);
+        background-color: var(--bg-secondary);
+        border: 1px solid #ef4444;
         color: var(--text-primary);
     }
     
     /* 情報メッセージの改善 */
     .stInfo {
-        background-color: #eff6ff;
+        background-color: var(--bg-secondary);
         border: 1px solid var(--primary-color);
         color: var(--text-primary);
     }
@@ -827,7 +839,7 @@ def main():
         # ヘッダー
         st.markdown("""
         <div class="fade-in">
-            <h1 style="color: #2563eb;">🇯🇵 日本の株価データ分析システム</h1>
+            <h1 style="color: #3b82f6;">🇯🇵 日本の株価データ分析システム</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -864,8 +876,8 @@ def main():
     # サイドバー
     st.sidebar.markdown("""
     <div style="text-align: center; padding: 1rem 0;">
-        <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 1rem;">📊 機能選択</h2>
-        <div style="background: #2563eb; height: 3px; border-radius: 2px; margin: 0 auto; width: 50%;"></div>
+        <h2 style="color: #3b82f6; font-weight: 700; margin-bottom: 1rem;">📊 機能選択</h2>
+        <div style="background: #3b82f6; height: 3px; border-radius: 2px; margin: 0 auto; width: 50%;"></div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -949,7 +961,7 @@ def main():
         
         with col1:
             st.markdown("""
-            <div style="background: #2563eb; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);">
+            <div style="background: #3b82f6; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
                 <h3 style="color: white; margin-bottom: 1rem;">🚀 リアルタイム機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">✅ <strong>即座のデータ更新</strong>: WebSocket通信</li>
@@ -962,7 +974,7 @@ def main():
         
         with col2:
             st.markdown("""
-            <div style="background: #10b981; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);">
+            <div style="background: #22c55e; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);">
                 <h3 style="color: white; margin-bottom: 1rem;">📊 監視対象銘柄</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">📱 <strong>9984</strong>: ソフトバンクG</li>
@@ -1028,24 +1040,24 @@ def main():
                     status_icon = "❌"
                 
                 st.markdown(f"""
-                <div style="background: white; border-radius: 15px; padding: 1.5rem; margin: 0.5rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border-left: 5px solid {status_color};">
+                <div style="background: #374151; border-radius: 15px; padding: 1.5rem; margin: 0.5rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); border-left: 5px solid {status_color};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; color: #495057;">{company['name']}</h4>
+                        <h4 style="margin: 0; color: #ffffff;">{company['name']}</h4>
                         <span style="background: {status_color}; color: white; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">{status_icon}</span>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #2563eb;">銘柄コード:</strong> {company['code']}
+                        <strong style="color: #3b82f6;">銘柄コード:</strong> {company['code']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #2563eb;">業種:</strong> {company['sector']}
+                        <strong style="color: #3b82f6;">業種:</strong> {company['sector']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #2563eb;">市場:</strong> {company['market']}
+                        <strong style="color: #3b82f6;">市場:</strong> {company['market']}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong style="color: #2563eb;">現在値:</strong> {price_display}
+                        <strong style="color: #3b82f6;">現在値:</strong> {price_display}
                     </div>
-                    <div style="font-size: 0.9rem; color: #6c757d;">
+                    <div style="font-size: 0.9rem; color: #9ca3af;">
                         <strong>更新日:</strong> {date_display}
                     </div>
                 </div>
@@ -1171,7 +1183,7 @@ def main():
         
         with col1:
             st.markdown("""
-            <div style="background: #2563eb; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);">
+            <div style="background: #3b82f6; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
                 <h3 style="color: white; margin-bottom: 1rem;">🔴 リアルタイム機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">⚡ <strong>WebSocket通信</strong>: 即座のデータ更新</li>
@@ -1184,7 +1196,7 @@ def main():
         
         with col2:
             st.markdown("""
-            <div style="background: #64748b; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(100, 116, 139, 0.2);">
+            <div style="background: #f97316; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);">
                 <h3 style="color: white; margin-bottom: 1rem;">📊 監視機能</h3>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin: 0.5rem 0;">📈 <strong>価格変動</strong>: リアルタイム価格追跡</li>
