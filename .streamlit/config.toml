@@ -8,6 +8,6 @@ gatherUsageStats = false
 
 [theme]
 primaryColor = "#3b82f6"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f0f2f6"
-textColor = "#262730" 
+backgroundColor = "#1e1e1e"
+secondaryBackgroundColor = "#2d2d2d"
+textColor = "#ffffff" 

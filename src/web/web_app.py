@@ -138,11 +138,58 @@ st.markdown("""
         --shadow-heavy: 0 10px 15px rgba(0, 0, 0, 0.3);
     }
     
+    /* Streamlit Cloud対応: 強制的な背景色設定 */
+    html, body {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: すべてのメインコンテナ要素 */
+    div[data-testid="stAppViewContainer"] {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: メインコンテンツエリア */
+    div[data-testid="stAppViewContainer"] > div {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: 追加の背景色設定 */
+    .stApp > div {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: すべてのコンテナ要素 */
+    .block-container {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: メインエリア */
+    .main .block-container {
+        background-color: var(--bg-primary) !important;
+    }
+    
     /* メインコンテナのスタイル */
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
-        background-color: var(--bg-primary);
+        background-color: var(--bg-primary) !important;
+    }
+    
+
+    
+    /* Streamlit Cloud対応: メインページ全体の背景色 */
+    .main {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: ページ全体の背景色 */
+    .stApp {
+        background-color: var(--bg-primary) !important;
+    }
+    
+    /* Streamlit Cloud対応: コンテンツエリアの背景色 */
+    .main .block-container > div {
+        background-color: var(--bg-primary) !important;
     }
     
     /* ヘッダーのスタイル */
@@ -161,12 +208,22 @@ st.markdown("""
     
     /* サイドバーのスタイル */
     .css-1d391kg {
-        background: var(--bg-secondary);
+        background: var(--bg-secondary) !important;
         border-right: 2px solid var(--border-color);
     }
     
     .css-1d391kg .sidebar-content {
         padding: 1rem;
+    }
+    
+    /* Streamlit Cloud対応: サイドバー全体の背景色 */
+    section[data-testid="stSidebar"] {
+        background-color: var(--bg-secondary) !important;
+    }
+    
+    /* Streamlit Cloud対応: サイドバーコンテンツの背景色 */
+    section[data-testid="stSidebar"] > div {
+        background-color: var(--bg-secondary) !important;
     }
     
     /* カードスタイル */
@@ -576,6 +633,48 @@ st.markdown("""
         color: white !important;
     }
 </style>
+
+<script>
+// Streamlit Cloud対応: 動的背景色設定
+function setDarkTheme() {
+    // メインコンテナの背景色を強制設定
+    const mainContainer = document.querySelector('.main .block-container');
+    if (mainContainer) {
+        mainContainer.style.backgroundColor = '#1e1e1e';
+    }
+    
+    // サイドバーの背景色を強制設定
+    const sidebar = document.querySelector('section[data-testid="stSidebar"]');
+    if (sidebar) {
+        sidebar.style.backgroundColor = '#2d2d2d';
+    }
+    
+    // アプリ全体の背景色を設定
+    const appContainer = document.querySelector('div[data-testid="stAppViewContainer"]');
+    if (appContainer) {
+        appContainer.style.backgroundColor = '#1e1e1e';
+    }
+    
+    // 白い背景を検出して修正
+    const whiteElements = document.querySelectorAll('*');
+    whiteElements.forEach(element => {
+        const bgColor = window.getComputedStyle(element).backgroundColor;
+        if (bgColor === 'rgb(255, 255, 255)' || bgColor === '#ffffff') {
+            element.style.backgroundColor = '#1e1e1e';
+        }
+    });
+}
+
+// ページ読み込み時に実行
+document.addEventListener('DOMContentLoaded', setDarkTheme);
+
+// 定期的にチェック（Streamlit Cloud対応）
+setInterval(setDarkTheme, 2000);
+
+// Streamlitの状態変更を監視
+const observer = new MutationObserver(setDarkTheme);
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
 """, unsafe_allow_html=True)
 
 # グローバルキャッシュ
