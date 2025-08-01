@@ -9,8 +9,20 @@ import asyncio
 import aiohttp
 
 # 設定とユーティリティをインポート
-from config import config
-from utils import (
+import sys
+import os
+
+# プロジェクトルートとsrcディレクトリをパスに追加
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, '..')
+project_root = os.path.join(src_dir, '..')
+
+# パスを設定
+sys.path.insert(0, src_dir)
+sys.path.insert(0, project_root)
+
+from config.config import config
+from utils.utils import (
     RetryHandler, OptimizedCache, DataValidator, FileManager, 
     ProgressBar, PerformanceMonitor, performance_monitor, 
     MemoryOptimizer, BatchProcessor

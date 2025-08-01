@@ -110,7 +110,19 @@ class BloombergDataSource(BaseDataSource):
             logger.info(f"Bloombergから財務データを取得中: {ticker}")
             
             # 設定からAPIキーを取得
-            from config import config
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             alphavantage_key = config.get("advanced_apis.alphavantage.api_key", "")
             
             financial_data = {}
@@ -238,7 +250,19 @@ class ReutersDataSource(BaseDataSource):
             news_items = []
             
             # 設定からAPIキーを取得
-            from config import config
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             newsapi_key = config.get("advanced_apis.newsapi.api_key", "")
             alphavantage_key = config.get("advanced_apis.alphavantage.api_key", "")
             
@@ -433,7 +457,19 @@ class NikkeiDataSource(BaseDataSource):
             news_items = []
             
             # 設定からAPIキーを取得
-            from config import config
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             newsapi_key = config.get("advanced_apis.newsapi.api_key", "")
             nikkei_key = config.get("advanced_apis.nikkei.api_key", "")
             
@@ -643,7 +679,19 @@ class SECDataSource(BaseDataSource):
             filings = []
             
             # 設定からAPIキーを取得
-            from config import config
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             sec_key = config.get("advanced_apis.sec.api_key", "")
             
             # SEC EDGAR APIから実際のデータを取得

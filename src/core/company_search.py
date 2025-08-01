@@ -14,23 +14,31 @@ from difflib import SequenceMatcher
 class CompanySearch:
     """会社名検索クラス"""
     
-    def __init__(self, data_file: str = "company_data.json"):
+    def __init__(self, data_file: str = None):
         """
         初期化
         
         Args:
             data_file (str): 会社データファイルのパス
         """
-        self.data_file = data_file
+        if data_file is None:
+            # 現在のファイルのディレクトリを基準にパスを設定
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            self.data_file = os.path.join(current_dir, "company_data.json")
+        else:
+            self.data_file = data_file
         self.companies = self._load_company_data()
     
     def _load_company_data(self) -> List[Dict]:
         """会社データを読み込み"""
         try:
+            print(f"🔍 会社データファイルを読み込み中: {self.data_file}")
             if os.path.exists(self.data_file):
                 with open(self.data_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    return data.get('companies', [])
+                    companies = data.get('companies', [])
+                    print(f"✅ 会社データを読み込みました: {len(companies)}社")
+                    return companies
             else:
                 print(f"⚠️ 会社データファイルが見つかりません: {self.data_file}")
                 return []

@@ -21,20 +21,32 @@ from typing import Dict, Any, List
 logger = logging.getLogger(__name__)
 
 # プロジェクトのモジュールをインポート
+import sys
+import os
+
+# プロジェクトルートとsrcディレクトリをパスに追加
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, '..')
+project_root = os.path.join(src_dir, '..')
+
+# パスを設定
+sys.path.insert(0, src_dir)
+sys.path.insert(0, project_root)
+
 try:
-    from stock_data_fetcher import JapaneseStockDataFetcher
-    from stock_analyzer import StockAnalyzer
-    from company_search import CompanySearch
-    from fundamental_analyzer import FundamentalAnalyzer
-    from advanced_data_sources import AdvancedDataManager
+    from core.stock_data_fetcher import JapaneseStockDataFetcher
+    from core.stock_analyzer import StockAnalyzer
+    from core.company_search import CompanySearch
+    from analysis.fundamental_analyzer import FundamentalAnalyzer
+    from analysis.advanced_data_sources import AdvancedDataManager
     try:
-        from technical_analysis import TechnicalAnalyzer, create_technical_chart
+        from analysis.technical_analysis import TechnicalAnalyzer, create_technical_chart
     except ImportError as e:
         st.warning("technical_analysisモジュールが見つかりません。テクニカル分析機能を無効化します。")
         TechnicalAnalyzer = None
         create_technical_chart = None
     try:
-        from async_data_sources import run_async_data_fetch_sync
+        from data.async_data_sources import run_async_data_fetch_sync
     except ImportError as e:
         if "asyncio_throttle" in str(e):
             st.warning("asyncio_throttleモジュールが見つかりません。非同期機能を無効化します。")
@@ -42,7 +54,7 @@ try:
         else:
             raise e
     try:
-        from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
+        from data.real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
     except ImportError as e:
         if "websockets" in str(e):
             st.warning("websocketsモジュールが見つかりません。リアルタイム機能を無効化します。")
@@ -51,8 +63,11 @@ try:
             stop_real_time_services = None
         else:
             raise e
-    from config import config
-    from utils import (
+    
+    # configモジュールをインポート
+    from config.config import config
+    
+    from utils.utils import (
         format_currency, format_number, PerformanceMonitor, 
         performance_monitor, MemoryOptimizer, OptimizedCache
     )
@@ -918,15 +933,28 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown(f"""
-            <div class="metric-container">
-                <div class="metric-icon">🏢</div>
-                <div class="metric-content">
-                    <div class="metric-value">{len(company_searcher.companies):,}</div>
-                    <div class="metric-label">登録企業数</div>
+            # デバッグ情報を追加
+            if company_searcher and hasattr(company_searcher, 'companies'):
+                company_count = len(company_searcher.companies)
+                st.markdown(f"""
+                <div class="metric-container">
+                    <div class="metric-icon">🏢</div>
+                    <div class="metric-content">
+                        <div class="metric-value">{company_count:,}</div>
+                        <div class="metric-label">登録企業数</div>
+                    </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="metric-container">
+                    <div class="metric-icon">🏢</div>
+                    <div class="metric-content">
+                        <div class="metric-value">0</div>
+                        <div class="metric-label">登録企業数 (初期化中)</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
         
         with col2:
             st.markdown(f"""

@@ -202,7 +202,19 @@ class AsyncDataManager:
         """非同期で財務データを取得"""
         try:
             # 設定からAPIキーを取得
-            from config import config
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             alphavantage_key = config.get("advanced_apis.alphavantage.api_key", "")
             
             if alphavantage_key:
@@ -249,7 +261,20 @@ class AsyncDataManager:
     async def _get_news_data_async(self, ticker: str) -> List[AsyncNewsItem]:
         """非同期でニュースデータを取得"""
         try:
-            from config import config
+            # 設定からAPIキーを取得
+            import sys
+            import os
+            
+            # プロジェクトルートとsrcディレクトリをパスに追加
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.join(current_dir, '..')
+            project_root = os.path.join(src_dir, '..')
+            
+            # パスを設定
+            sys.path.insert(0, src_dir)
+            sys.path.insert(0, project_root)
+            
+            from config.config import config
             newsapi_key = config.get("advanced_apis.newsapi.api_key", "")
             
             news_items = []

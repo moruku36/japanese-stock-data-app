@@ -22,8 +22,20 @@ from stock_data_fetcher import JapaneseStockDataFetcher
 from stock_analyzer import StockAnalyzer
 from company_search import CompanySearch
 from fundamental_analyzer import FundamentalAnalyzer
-from config import config
-from utils import ProgressBar, format_currency, format_number
+import sys
+import os
+
+# プロジェクトルートとsrcディレクトリをパスに追加
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.join(current_dir, '..')
+project_root = os.path.join(src_dir, '..')
+
+# パスを設定
+sys.path.insert(0, src_dir)
+sys.path.insert(0, project_root)
+
+from config.config import config
+from utils.utils import ProgressBar, format_currency, format_number
 
 def print_banner():
     """バナーを表示"""
