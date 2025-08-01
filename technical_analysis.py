@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-技術分析チャート機能
-移動平均線、ボリンジャーバンド、MACD、RSI、ストキャスティクス等の技術指標
+テクニカル分析チャート機能
+移動平均線、ボリンジャーバンド、MACD、RSI、ストキャスティクス等のテクニカル指標
 """
 
 import pandas as pd
@@ -17,10 +17,10 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 class TechnicalAnalyzer:
-    """技術分析クラス"""
+    """テクニカル分析クラス"""
     
     def __init__(self):
-        logger.info("技術分析クラスを初期化しました")
+        logger.info("テクニカル分析クラスを初期化しました")
     
     def calculate_moving_averages(self, df: pd.DataFrame, periods: List[int] = [5, 20, 50, 200]) -> pd.DataFrame:
         """移動平均線を計算"""
@@ -266,7 +266,7 @@ class TechnicalAnalyzer:
             
             # レイアウト設定
             fig.update_layout(
-                title=f'{ticker} 技術分析チャート',
+                title=f'{ticker} テクニカル分析チャート',
                 xaxis_title='日付',
                 yaxis_title='株価 (円)',
                 height=600,
@@ -401,7 +401,7 @@ class TechnicalAnalyzer:
             
             # レイアウト設定
             fig.update_layout(
-                title=f'{ticker} 技術指標',
+                title=f'{ticker} テクニカル指標',
                 height=800,
                 showlegend=True,
                 template='plotly_white'
@@ -410,11 +410,11 @@ class TechnicalAnalyzer:
             return fig
             
         except Exception as e:
-            logger.error(f"技術指標チャート作成エラー: {e}")
+            logger.error(f"テクニカル指標チャート作成エラー: {e}")
             return None
     
     def get_technical_signals(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """技術分析シグナルを取得"""
+        """テクニカル分析シグナルを取得"""
         try:
             signals = {}
             
@@ -473,11 +473,11 @@ class TechnicalAnalyzer:
             return signals
             
         except Exception as e:
-            logger.error(f"技術分析シグナル取得エラー: {e}")
+            logger.error(f"テクニカル分析シグナル取得エラー: {e}")
             return {}
 
 def create_technical_chart(df: pd.DataFrame, ticker: str, chart_type: str = 'candlestick') -> go.Figure:
-    """技術分析チャートを作成（簡易関数）"""
+    """テクニカル分析チャートを作成（簡易関数）"""
     analyzer = TechnicalAnalyzer()
     
     if chart_type == 'candlestick':
@@ -488,6 +488,6 @@ def create_technical_chart(df: pd.DataFrame, ticker: str, chart_type: str = 'can
         return analyzer.create_candlestick_chart(df, ticker)
 
 def get_technical_signals(df: pd.DataFrame) -> Dict[str, Any]:
-    """技術分析シグナルを取得（簡易関数）"""
+    """テクニカル分析シグナルを取得（簡易関数）"""
     analyzer = TechnicalAnalyzer()
     return analyzer.get_technical_signals(df) 

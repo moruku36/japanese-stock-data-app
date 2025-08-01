@@ -391,7 +391,7 @@ def main():
             "📈 最新株価",
             "⚡ リアルタイム監視",
             "📊 株価チャート",
-            "📈 技術分析チャート",
+            "📈 テクニカル分析チャート",
             "🏢 ファンダメンタル分析",
             "⚖️ 財務指標比較",
             "📦 複数銘柄分析",
@@ -794,10 +794,10 @@ def main():
                     except Exception as e:
                         st.error(f"❌ エラーが発生しました: {e}")
     
-    # 技術分析チャートページ
-    elif page == "📈 技術分析チャート":
-        st.markdown("## 📈 技術分析チャート")
-        st.markdown("移動平均線、ボリンジャーバンド、RSIなどの技術指標を表示します")
+    # テクニカル分析チャートページ
+    elif page == "📈 テクニカル分析チャート":
+        st.markdown("## 📈 テクニカル分析チャート")
+        st.markdown("移動平均線、ボリンジャーバンド、RSIなどのテクニカル指標を表示します")
         
         col1, col2, col3, col4 = st.columns(4)
         
@@ -811,9 +811,9 @@ def main():
             period = st.selectbox("期間", [30, 90, 180, 365], format_func=lambda x: f"{x}日間")
         
         with col4:
-            chart_type = st.selectbox("チャートタイプ", ["ローソク足", "技術指標"])
+            chart_type = st.selectbox("チャートタイプ", ["ローソク足", "テクニカル指標"])
         
-        # 技術指標のオプション
+        # テクニカル指標のオプション
         col1, col2, col3 = st.columns(3)
         
         with col1:
@@ -825,11 +825,11 @@ def main():
         with col3:
             show_volume = st.checkbox("出来高", value=True)
         
-        if st.button("📈 技術分析チャートを表示", type="primary"):
+        if st.button("📈 テクニカル分析チャートを表示", type="primary"):
             if ticker_input and technical_analyzer:
                 ticker = ticker_input.strip()
                 
-                with st.spinner(f"{ticker}の技術分析チャートを生成中..."):
+                with st.spinner(f"{ticker}のテクニカル分析チャートを生成中..."):
                     try:
                         end_date = datetime.now()
                         start_date = end_date - timedelta(days=period)
@@ -856,17 +856,21 @@ def main():
                                 chart = technical_analyzer.create_candlestick_chart(
                                     df, ticker, show_ma=show_ma, show_bb=show_bb, show_volume=show_volume
                                 )
-                            else:
-                                # 技術指標チャート
+                            elif chart_type == "テクニカル指標":
+                                # テクニカル指標チャート
                                 chart = technical_analyzer.create_technical_indicators_chart(df, ticker)
+                            else:
+                                chart = technical_analyzer.create_candlestick_chart(
+                                    df, ticker, show_ma=show_ma, show_bb=show_bb, show_volume=show_volume
+                                )
                             
                             if chart:
                                 st.plotly_chart(chart, use_container_width=True)
                                 
-                                # 技術分析シグナルを表示
-                                st.markdown("### 📊 技術分析シグナル")
+                                # テクニカル分析シグナルを表示
+                                st.markdown("### 📊 テクニカル分析シグナル")
                                 
-                                # 技術分析シグナルを取得
+                                # テクニカル分析シグナルを取得
                                 signals = technical_analyzer.get_technical_signals(df)
                                 
                                 # RSI計算
@@ -958,7 +962,7 @@ def main():
                     except Exception as e:
                         st.error(f"❌ エラーが発生しました: {e}")
             elif not technical_analyzer:
-                st.error("技術分析機能が利用できません")
+                st.error("テクニカル分析機能が利用できません")
     
     # ファンダメンタル分析ページ
     elif page == "🏢 ファンダメンタル分析":
