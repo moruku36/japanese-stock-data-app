@@ -14,7 +14,11 @@ from datetime import datetime, timedelta
 import os
 import sys
 import time
+import logging
 from typing import Dict, Any, List
+
+# ログ設定
+logger = logging.getLogger(__name__)
 
 # プロジェクトのモジュールをインポート
 try:
@@ -23,8 +27,24 @@ try:
     from company_search import CompanySearch
     from fundamental_analyzer import FundamentalAnalyzer
     from advanced_data_sources import AdvancedDataManager
-    from async_data_sources import run_async_data_fetch_sync
-    from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
+    try:
+        from async_data_sources import run_async_data_fetch_sync
+    except ImportError as e:
+        if "asyncio_throttle" in str(e):
+            st.warning("asyncio_throttleモジュールが見つかりません。非同期機能を無効化します。")
+            run_async_data_fetch_sync = None
+        else:
+            raise e
+    try:
+        from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
+    except ImportError as e:
+        if "websockets" in str(e):
+            st.warning("websocketsモジュールが見つかりません。リアルタイム機能を無効化します。")
+            RealTimeDataManager = None
+            start_real_time_services = None
+            stop_real_time_services = None
+        else:
+            raise e
     from config import config
     from utils import (
         format_currency, format_number, PerformanceMonitor, 

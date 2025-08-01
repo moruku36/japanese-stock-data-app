@@ -14,11 +14,22 @@ from typing import Dict, Any, List, Callable
 import threading
 import time
 from dataclasses import dataclass
-import websockets
 from queue import Queue
-import redis
 
+# ログ設定
 logger = logging.getLogger(__name__)
+
+try:
+    import redis
+except ImportError:
+    logger.warning("redisがインストールされていません。Redis機能を無効化します。")
+    redis = None
+
+try:
+    import websockets
+except ImportError:
+    logger.warning("websocketsがインストールされていません。WebSocket機能を無効化します。")
+    websockets = None
 
 @dataclass
 class RealTimeUpdate:
@@ -38,6 +49,16 @@ class RealTimeDataManager:
         self.running = False
         self.redis_client = None
         self.update_interval = 30  # 30秒ごとに更新
+        
+        # Redisクライアントの初期化（利用可能な場合のみ）
+        if redis is not None:
+            try:
+                self.redis_client = redis.Redis(host='localhost', port=6379, db=0)
+                logger.info("Redisクライアントを初期化しました")
+            except Exception as e:
+                logger.warning(f"Redisクライアントの初期化に失敗しました: {e}")
+                self.redis_client = None
+        
         logger.info("リアルタイムデータ管理クラスを初期化しました")
     
     def start(self):
@@ -138,12 +159,20 @@ class WebSocketServer:
     
     async def start(self):
         """WebSocketサーバーを開始"""
+        if websockets is None:
+            logger.warning("websocketsが利用できません。WebSocketサーバーを開始できません。")
+            return
+        
         async with websockets.serve(self._handle_client, self.host, self.port):
             logger.info(f"WebSocketサーバーを開始しました: ws://{self.host}:{self.port}")
             await asyncio.Future()  # 無限ループ
     
     async def _handle_client(self, websocket, path):
         """クライアント接続を処理"""
+        if websockets is None:
+            logger.warning("websocketsが利用できません。クライアント接続を処理できません。")
+            return
+        
         self.clients.add(websocket)
         logger.info(f"クライアントが接続しました: {len(self.clients)} 接続")
         

@@ -9,7 +9,24 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-from asyncio_throttle import Throttler
+
+# ログ設定
+logger = logging.getLogger(__name__)
+try:
+    from asyncio_throttle import Throttler
+except ImportError:
+    logger.warning("asyncio_throttleがインストールされていません。スロットリング機能を無効化します。")
+    # 簡易的なThrottlerクラスを作成
+    class Throttler:
+        def __init__(self, rate_limit=10, period=1):
+            self.rate_limit = rate_limit
+            self.period = period
+        
+        async def acquire(self):
+            pass
+        
+        async def release(self):
+            pass
 import random
 import json
 
