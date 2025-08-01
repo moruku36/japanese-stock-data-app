@@ -17,18 +17,23 @@ import time
 from typing import Dict, Any, List
 
 # プロジェクトのモジュールをインポート
-from stock_data_fetcher import JapaneseStockDataFetcher
-from stock_analyzer import StockAnalyzer
-from company_search import CompanySearch
-from fundamental_analyzer import FundamentalAnalyzer
-from advanced_data_sources import AdvancedDataManager
-from async_data_sources import run_async_data_fetch_sync
-from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
-from config import config
-from utils import (
-    format_currency, format_number, PerformanceMonitor, 
-    performance_monitor, MemoryOptimizer, OptimizedCache
-)
+try:
+    from stock_data_fetcher import JapaneseStockDataFetcher
+    from stock_analyzer import StockAnalyzer
+    from company_search import CompanySearch
+    from fundamental_analyzer import FundamentalAnalyzer
+    from advanced_data_sources import AdvancedDataManager
+    from async_data_sources import run_async_data_fetch_sync
+    from real_time_updater import RealTimeDataManager, start_real_time_services, stop_real_time_services
+    from config import config
+    from utils import (
+        format_currency, format_number, PerformanceMonitor, 
+        performance_monitor, MemoryOptimizer, OptimizedCache
+    )
+except ImportError as e:
+    st.error(f"モジュールのインポートエラー: {e}")
+    st.info("必要なモジュールがインストールされていない可能性があります。")
+    st.stop()
 
 # ページ設定
 st.set_page_config(
@@ -66,8 +71,13 @@ def initialize_system():
         monitor.end("System Initialization")
         
         return fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager
+    except ImportError as e:
+        st.error(f"モジュールのインポートエラー: {e}")
+        st.info("必要なモジュールがインストールされていません。")
+        return None, None, None, None, None, None
     except Exception as e:
         st.error(f"システムの初期化に失敗しました: {e}")
+        st.info("システムの初期化中にエラーが発生しました。")
         return None, None, None, None, None, None
 
 @st.cache_data(ttl=3600)  # 1時間キャッシュ
@@ -293,15 +303,21 @@ def create_stock_price_chart(df, ticker_symbol):
 
 def main():
     """メイン関数（最適化版）"""
-    # ヘッダー
-    st.title("🇯🇵 日本の株価データ分析システム")
-    
-    # システム初期化
-    with st.spinner('システムを初期化中...'):
-        fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager = initialize_system()
-    
-    if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager]):
-        st.error("システムの初期化に失敗しました。")
+    try:
+        # ヘッダー
+        st.title("🇯🇵 日本の株価データ分析システム")
+        
+        # システム初期化
+        with st.spinner('システムを初期化中...'):
+            fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager = initialize_system()
+        
+        if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, real_time_manager]):
+            st.error("システムの初期化に失敗しました。")
+            st.info("ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
+            return
+    except Exception as e:
+        st.error(f"アプリケーションの起動に失敗しました: {e}")
+        st.info("エラーが解決しない場合は、管理者にお問い合わせください。")
         return
     
     # パフォーマンス情報は内部で監視（UIには表示しない）
