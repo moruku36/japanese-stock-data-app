@@ -59,61 +59,11 @@ class MLPredictor:
             return None, None, None
     
     def train_lstm_model(self, ticker: str, df: pd.DataFrame) -> bool:
-        """LSTMモデルを訓練"""
+        """LSTMモデルを訓練（TensorFlow非依存版）"""
         try:
             logger.info(f"LSTMモデルを訓練中: {ticker}")
-            
-            # データを準備
-            X, y, scaler = self.prepare_data(df)
-            if X is None:
-                return False
-            
-            # データを分割
-            split = int(len(X) * 0.8)
-            X_train, X_test = X[:split], X[split:]
-            y_train, y_test = y[:split], y[split:]
-            
-            # LSTMモデルを構築
-            try:
-                from tensorflow.keras.models import Sequential
-                from tensorflow.keras.layers import LSTM, Dense, Dropout
-            except ImportError:
-                logger.error("TensorFlowがインストールされていません。LSTMモデルの訓練をスキップします。")
-                return False
-            
-            model = Sequential([
-                LSTM(50, return_sequences=True, input_shape=(X.shape[1], X.shape[2])),
-                Dropout(0.2),
-                LSTM(50, return_sequences=False),
-                Dropout(0.2),
-                Dense(1)
-            ])
-            
-            model.compile(optimizer='adam', loss='mse')
-            
-            # モデルを訓練
-            model.fit(X_train, y_train, epochs=50, batch_size=32, 
-                     validation_data=(X_test, y_test), verbose=0)
-            
-            # モデルを保存
-            model_path = os.path.join(self.model_dir, f"{ticker}_lstm_model.h5")
-            model.save(model_path)
-            
-            # スケーラーを保存
-            scaler_path = os.path.join(self.model_dir, f"{ticker}_lstm_scaler.pkl")
-            joblib.dump(scaler, scaler_path)
-            
-            # モデルを登録
-            self.models[f"{ticker}_lstm"] = model
-            self.scalers[f"{ticker}_lstm"] = scaler
-            
-            # 評価
-            y_pred = model.predict(X_test)
-            mse = mean_squared_error(y_test, y_pred)
-            mae = mean_absolute_error(y_test, y_pred)
-            
-            logger.info(f"LSTMモデル訓練完了: {ticker}, MSE: {mse:.4f}, MAE: {mae:.4f}")
-            return True
+            logger.warning("TensorFlowが削除されたため、LSTMモデルの訓練をスキップします。XGBoostモデルのみ利用可能です。")
+            return False
             
         except Exception as e:
             logger.error(f"LSTMモデル訓練エラー: {e}")
@@ -196,53 +146,10 @@ class MLPredictor:
         return rsi
     
     def predict_lstm(self, ticker: str, df: pd.DataFrame, days: int = 30) -> List[float]:
-        """LSTMで予測"""
+        """LSTMで予測（TensorFlow非依存版）"""
         try:
-            # TensorFlowが利用可能かチェック
-            try:
-                import tensorflow as tf
-            except ImportError:
-                logger.error("TensorFlowがインストールされていません。LSTM予測をスキップします。")
-                return []
-            
-            model_key = f"{ticker}_lstm"
-            if model_key not in self.models:
-                logger.error(f"LSTMモデルが見つかりません: {ticker}")
-                return []
-            
-            model = self.models[model_key]
-            scaler = self.scalers[model_key]
-            
-            # 最新データを準備
-            features = ['open', 'high', 'low', 'close', 'volume']
-            data = df[features].values
-            scaled_data = scaler.transform(data)
-            
-            # 予測用のシーケンスを作成
-            sequence_length = 60
-            last_sequence = scaled_data[-sequence_length:]
-            
-            predictions = []
-            current_sequence = last_sequence.copy()
-            
-            for _ in range(days):
-                # 予測
-                X_pred = current_sequence.reshape(1, sequence_length, len(features))
-                pred = model.predict(X_pred, verbose=0)[0, 0]
-                predictions.append(pred)
-                
-                # シーケンスを更新
-                new_row = current_sequence[-1].copy()
-                new_row[3] = pred  # close price
-                current_sequence = np.vstack([current_sequence[1:], new_row])
-            
-            # 予測値を逆変換
-            predictions_array = np.array(predictions).reshape(-1, 1)
-            dummy_array = np.zeros((len(predictions), len(features)))
-            dummy_array[:, 3] = predictions_array.flatten()
-            predictions_denorm = scaler.inverse_transform(dummy_array)[:, 3]
-            
-            return predictions_denorm.tolist()
+            logger.warning("TensorFlowが削除されたため、LSTM予測をスキップします。XGBoost予測のみ利用可能です。")
+            return []
             
         except Exception as e:
             logger.error(f"LSTM予測エラー: {e}")
@@ -315,18 +222,33 @@ class MLPredictor:
             # 統計情報を計算
             current_price = df['close'].iloc[-1]
             
+            # LSTM予測が空の場合の処理
+            if not lstm_pred:
+                lstm_info = {
+                    'values': [],
+                    'dates': [],
+                    'max_price': current_price,
+                    'min_price': current_price,
+                    'avg_price': current_price,
+                    'trend': 'neutral',
+                    'status': 'unavailable'
+                }
+            else:
+                lstm_info = {
+                    'values': lstm_pred,
+                    'dates': [d.strftime('%Y-%m-%d') for d in future_dates],
+                    'max_price': max(lstm_pred),
+                    'min_price': min(lstm_pred),
+                    'avg_price': np.mean(lstm_pred),
+                    'trend': 'up' if lstm_pred[-1] > current_price else 'down',
+                    'status': 'available'
+                }
+            
             summary = {
                 'ticker': ticker,
                 'current_price': current_price,
                 'predictions': {
-                    'lstm': {
-                        'values': lstm_pred,
-                        'dates': [d.strftime('%Y-%m-%d') for d in future_dates],
-                        'max_price': max(lstm_pred),
-                        'min_price': min(lstm_pred),
-                        'avg_price': np.mean(lstm_pred),
-                        'trend': 'up' if lstm_pred[-1] > current_price else 'down'
-                    },
+                    'lstm': lstm_info,
                     'xgboost': {
                         'values': xgb_pred,
                         'dates': [d.strftime('%Y-%m-%d') for d in future_dates],
@@ -337,7 +259,7 @@ class MLPredictor:
                     }
                 },
                 'confidence': {
-                    'lstm': self._calculate_confidence(lstm_pred, current_price),
+                    'lstm': self._calculate_confidence(lstm_pred, current_price) if lstm_pred else 0.0,
                     'xgboost': self._calculate_confidence(xgb_pred, current_price)
                 },
                 'recommendation': self._generate_recommendation(lstm_pred, xgb_pred, current_price)
@@ -369,6 +291,23 @@ class MLPredictor:
                                current_price: float) -> str:
         """投資推奨を生成"""
         try:
+            # LSTM予測が利用できない場合はXGBoostのみで判断
+            if not lstm_pred:
+                xgb_trend = 'up' if xgb_pred[-1] > current_price else 'down'
+                xgb_change = (xgb_pred[-1] - current_price) / current_price * 100
+                
+                if xgb_trend == 'up':
+                    if abs(xgb_change) > 10:
+                        return "買い推奨（XGBoostモデル）"
+                    else:
+                        return "弱い買い推奨（XGBoostモデル）"
+                else:
+                    if abs(xgb_change) > 10:
+                        return "売り推奨（XGBoostモデル）"
+                    else:
+                        return "弱い売り推奨（XGBoostモデル）"
+            
+            # 両方のモデルが利用可能な場合
             lstm_trend = 'up' if lstm_pred[-1] > current_price else 'down'
             xgb_trend = 'up' if xgb_pred[-1] > current_price else 'down'
             
@@ -401,7 +340,8 @@ def train_all_models(ticker: str, df: pd.DataFrame) -> bool:
     try:
         success_lstm = ml_predictor.train_lstm_model(ticker, df)
         success_xgb = ml_predictor.train_xgboost_model(ticker, df)
-        return success_lstm and success_xgb
+        # XGBoostが成功すればTrueを返す（LSTMはTensorFlow非依存版では常にFalse）
+        return success_xgb
     except Exception as e:
         logger.error(f"モデル訓練エラー: {e}")
         return False
