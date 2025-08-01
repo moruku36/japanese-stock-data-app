@@ -101,9 +101,9 @@ st.markdown("""
         --success-color: #10b981;
         --warning-color: #f59e0b;
         --error-color: #ef4444;
-        --text-primary: #1e293b;
-        --text-secondary: #64748b;
-        --text-light: #94a3b8;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --text-light: #64748b;
         --bg-primary: #ffffff;
         --bg-secondary: #f8fafc;
         --bg-tertiary: #f1f5f9;
@@ -360,6 +360,193 @@ st.markdown("""
         background-color: #eff6ff;
         border: 1px solid var(--primary-color);
         color: var(--text-primary);
+    }
+    
+    /* タブの改善 */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: var(--bg-secondary);
+        border-radius: 8px 8px 0 0;
+        color: var(--text-secondary);
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border: 1px solid var(--border-color);
+        border-bottom: none;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        border-color: var(--primary-color);
+    }
+    
+    .stTabs [aria-selected="false"]:hover {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    
+    /* 全体的な文字色の改善 */
+    .main * {
+        color: var(--text-primary);
+    }
+    
+    /* 特定の要素の文字色を明示的に設定 */
+    .main p, .main div, .main span {
+        color: var(--text-primary) !important;
+    }
+    
+    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6 {
+        color: var(--text-primary) !important;
+    }
+    
+    /* サイドバーの文字色 */
+    .css-1d391kg * {
+        color: var(--text-primary);
+    }
+    
+    /* 入力フィールドのラベル */
+    .stTextInput label, .stSelectbox label, .stNumberInput label {
+        color: var(--text-primary) !important;
+        font-weight: 600;
+    }
+    
+    /* セレクトボックスのオプション */
+    .stSelectbox [data-baseweb="select"] {
+        color: var(--text-primary);
+    }
+    
+    /* データフレームの文字色 */
+    .dataframe * {
+        color: var(--text-primary);
+    }
+    
+    /* メトリックの文字色 */
+    .metric-container * {
+        color: var(--text-primary);
+    }
+    
+    /* アラートメッセージの文字色 */
+    .stAlert * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ボタンの文字色 */
+    .stButton button {
+        color: white !important;
+    }
+    
+    /* チェックボックスとラジオボタンのラベル */
+    .stCheckbox label, .stRadio label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* スライダーのラベル */
+    .stSlider label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* ファイルアップローダーのラベル */
+    .stFileUploader label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* 日付入力のラベル */
+    .stDateInput label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* 時間入力のラベル */
+    .stTimeInput label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* テキストエリアのラベル */
+    .stTextArea label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* 数値入力のラベル */
+    .stNumberInput label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* マルチセレクトのラベル */
+    .stMultiselect label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* カラーピッカーのラベル */
+    .stColorPicker label {
+        color: var(--text-primary) !important;
+    }
+    
+    /* セクションヘッダーの文字色 */
+    .section-header {
+        color: var(--text-primary) !important;
+    }
+    
+    /* カード内の文字色 */
+    .metric-card * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* チャートコンテナ内の文字色 */
+    .chart-container * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Streamlitの特定要素の文字色を強制設定 */
+    .stMarkdown, .stMarkdown * {
+        color: var(--text-primary) !important;
+    }
+    
+    .stDataFrame, .stDataFrame * {
+        color: var(--text-primary) !important;
+    }
+    
+    .stMetric, .stMetric * {
+        color: var(--text-primary) !important;
+    }
+    
+    .stExpander, .stExpander * {
+        color: var(--text-primary) !important;
+    }
+    
+    .stContainer, .stContainer * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* サイドバーのセレクトボックス */
+    .css-1d391kg .stSelectbox * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* メインエリアのセレクトボックス */
+    .main .stSelectbox * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* 全体的な文字色の強制設定 */
+    body, body * {
+        color: var(--text-primary) !important;
+    }
+    
+    /* 特定の例外（ボタンなど） */
+    .stButton button {
+        color: white !important;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        color: white !important;
+    }
+    
+    /* データフレームのヘッダー */
+    .dataframe th {
+        color: white !important;
     }
 </style>
 """, unsafe_allow_html=True)
