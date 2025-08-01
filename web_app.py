@@ -88,6 +88,181 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# カスタムCSS
+st.markdown("""
+<style>
+    /* メインコンテナのスタイル */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    /* ヘッダーのスタイル */
+    .main h1 {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* サイドバーのスタイル */
+    .css-1d391kg {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        border-right: 2px solid #dee2e6;
+    }
+    
+    .css-1d391kg .sidebar-content {
+        padding: 1rem;
+    }
+    
+    /* カードスタイル */
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* ボタンスタイル */
+    .stButton > button {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    /* セクションスタイル */
+    .section-header {
+        background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        border-left: 5px solid #667eea;
+        margin: 1.5rem 0;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    /* テーブルスタイル */
+    .dataframe {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dataframe th {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        padding: 1rem;
+    }
+    
+    .dataframe td {
+        padding: 0.75rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* アラートスタイル */
+    .stAlert {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* プログレスバースタイル */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* チャートコンテナ */
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        margin: 1rem 0;
+    }
+    
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+        .main h1 {
+            font-size: 2rem;
+        }
+        
+        .metric-card {
+            padding: 1rem;
+        }
+    }
+    
+    /* アニメーション */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* カスタムメトリック */
+    .metric-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        margin: 0.5rem 0;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .metric-icon {
+        font-size: 2rem;
+        margin-right: 1rem;
+    }
+    
+    .metric-content {
+        flex: 1;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # グローバルキャッシュ
 @st.cache_resource
 def get_global_cache():
@@ -362,19 +537,32 @@ def main():
     """メイン関数（最適化版）"""
     try:
         # ヘッダー
-        st.title("🇯🇵 日本の株価データ分析システム")
+        st.markdown("""
+        <div class="fade-in">
+            <h1>🇯🇵 日本の株価データ分析システム</h1>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # サブタイトル
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <p style="font-size: 1.2rem; color: #6c757d; font-weight: 500;">
+                📊 リアルタイム株価監視 | 📈 テクニカル分析 | 🏢 ファンダメンタル分析 | ⚡ 高度なデータ分析
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # システム初期化
-        with st.spinner('システムを初期化中...'):
+        with st.spinner('🚀 システムを初期化中...'):
             fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager = initialize_system()
         
         if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager]):
-            st.error("システムの初期化に失敗しました。")
-            st.info("ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
+            st.error("❌ システムの初期化に失敗しました。")
+            st.info("🔄 ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
             return
     except Exception as e:
-        st.error(f"アプリケーションの起動に失敗しました: {e}")
-        st.info("エラーが解決しない場合は、管理者にお問い合わせください。")
+        st.error(f"❌ アプリケーションの起動に失敗しました: {e}")
+        st.info("📞 エラーが解決しない場合は、管理者にお問い合わせください。")
         return
     
     # パフォーマンス情報は内部で監視（UIには表示しない）
@@ -386,11 +574,16 @@ def main():
         logger.debug(f"メモリ使用量: {memory_usage['rss_mb']:.1f}MB, 使用率: {memory_usage['percent']:.1f}%")
     
     # サイドバー
-    st.sidebar.title("📊 機能選択")
+    st.sidebar.markdown("""
+    <div style="text-align: center; padding: 1rem 0;">
+        <h2 style="color: #667eea; font-weight: 700; margin-bottom: 1rem;">📊 機能選択</h2>
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 3px; border-radius: 2px; margin: 0 auto; width: 50%;"></div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # 機能選択（全項目表示）
-    page = st.sidebar.radio(
-        "機能を選択してください",
+    page = st.sidebar.selectbox(
+        "🎯 機能を選択してください",
         [
             "🏠 ホーム",
             "📈 最新株価",
@@ -403,57 +596,112 @@ def main():
             "🔍 高度なデータ分析",
             "💾 データエクスポート"
         ],
-        index=0
+        index=0,
+        help="利用したい機能を選択してください"
     )
     
     # ホームページ
     if page == "🏠 ホーム":
-        st.markdown("## 🏠 ホーム")
+        st.markdown("""
+        <div class="fade-in">
+            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">🏠 ホーム</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # システム概要カード
+        st.markdown("""
+        <div class="section-header">
+            📊 システム概要
+        </div>
+        """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("📊 登録企業数", len(company_searcher.companies))
+            st.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-icon">🏢</div>
+                <div class="metric-content">
+                    <div class="metric-value">{len(company_searcher.companies):,}</div>
+                    <div class="metric-label">登録企業数</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col2:
-            st.metric("🏢 ファンダメンタル分析対応", len(fundamental_analyzer.financial_data))
+            st.markdown(f"""
+            <div class="metric-container">
+                <div class="metric-icon">📈</div>
+                <div class="metric-content">
+                    <div class="metric-value">{len(fundamental_analyzer.financial_data)}</div>
+                    <div class="metric-label">ファンダメンタル分析対応</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col3:
-            st.metric("🌐 データソース", 6)
+            st.markdown("""
+            <div class="metric-container">
+                <div class="metric-icon">🌐</div>
+                <div class="metric-content">
+                    <div class="metric-value">6</div>
+                    <div class="metric-label">データソース</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
         # リアルタイム機能の紹介
-        st.markdown("---")
-        st.markdown("## ⚡ 新機能: リアルタイム監視システム")
+        st.markdown("""
+        <div class="section-header">
+            ⚡ 新機能: リアルタイム監視システム
+        </div>
+        """, unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("""
-            **🚀 リアルタイム機能:**
-            - **即座のデータ更新**: WebSocket通信
-            - **プッシュ通知**: 重要な価格変動
-            - **自動監視**: 30秒ごとの更新
-            - **アラート機能**: カスタマイズ可能な閾値
-            """)
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+                <h3 style="color: white; margin-bottom: 1rem;">🚀 リアルタイム機能</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 0.5rem 0;">✅ <strong>即座のデータ更新</strong>: WebSocket通信</li>
+                    <li style="margin: 0.5rem 0;">🔔 <strong>プッシュ通知</strong>: 重要な価格変動</li>
+                    <li style="margin: 0.5rem 0;">⏰ <strong>自動監視</strong>: 30秒ごとの更新</li>
+                    <li style="margin: 0.5rem 0;">🎯 <strong>アラート機能</strong>: カスタマイズ可能な閾値</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col2:
             st.markdown("""
-            **📊 監視対象銘柄:**
-            - **9984**: ソフトバンクG
-            - **9433**: KDDI
-            - **7203**: トヨタ自動車
-            - **6758**: ソニーG
-            - **6861**: キーエンス
-            """)
+            <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+                <h3 style="color: white; margin-bottom: 1rem;">📊 監視対象銘柄</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 0.5rem 0;">📱 <strong>9984</strong>: ソフトバンクG</li>
+                    <li style="margin: 0.5rem 0;">📡 <strong>9433</strong>: KDDI</li>
+                    <li style="margin: 0.5rem 0;">🚗 <strong>7203</strong>: トヨタ自動車</li>
+                    <li style="margin: 0.5rem 0;">🎮 <strong>6758</strong>: ソニーG</li>
+                    <li style="margin: 0.5rem 0;">🔧 <strong>6861</strong>: キーエンス</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
         
-        if st.button("⚡ リアルタイム監視を試す", type="primary"):
-            st.session_state.page = "⚡ リアルタイム監視"
-            st.rerun()
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        st.markdown("---")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("⚡ リアルタイム監視を試す", type="primary", use_container_width=True):
+                st.session_state.page = "⚡ リアルタイム監視"
+                st.rerun()
+        
+        st.markdown("<br>", unsafe_allow_html=True)
         
         # 主要企業の一覧（最適化版）
-        st.markdown("## ⭐ 主要企業")
+        st.markdown("""
+        <div class="section-header">
+            ⭐ 主要企業一覧
+        </div>
+        """, unsafe_allow_html=True)
         
         # キャッシュ付きで主要企業を取得
         popular_companies = get_cached_data(
@@ -462,45 +710,96 @@ def main():
             _company_searcher=company_searcher
         )
         
-        cols = st.columns(2)
+        # 企業カードをグリッド表示
+        cols = st.columns(3)
         for i, company in enumerate(popular_companies):
-            col_idx = i % 2
+            col_idx = i % 3
             with cols[col_idx]:
-                with st.expander(f"{company['name']} ({company['code']})"):
-                    st.write(f"**業種:** {company['sector']}")
-                    st.write(f"**市場:** {company['market']}")
+                # 最新株価を取得（キャッシュ付き）
+                try:
+                    price_data = get_cached_data(
+                        f"latest_price_stooq_{company['code']}", 
+                        company['code'],
+                        _fetcher=fetcher
+                    )
                     
-                    # 最新株価を取得（キャッシュ付き）
-                    try:
-                        price_data = get_cached_data(
-                            f"latest_price_stooq_{company['code']}", 
-                            company['code'],
-                            _fetcher=fetcher
-                        )
-                        if "error" not in price_data:
-                            st.write(f"**現在値:** {format_currency_web(price_data['close'])}")
-                            st.write(f"**日付:** {price_data['date']}")
-                        else:
-                            st.write("**現在値:** データ取得エラー")
-                    except:
-                        st.write("**現在値:** データ取得エラー")
+                    if "error" not in price_data:
+                        price_display = format_currency_web(price_data['close'])
+                        date_display = price_data['date']
+                        status_color = "#28a745"
+                        status_icon = "✅"
+                    else:
+                        price_display = "データ取得エラー"
+                        date_display = "N/A"
+                        status_color = "#dc3545"
+                        status_icon = "❌"
+                except:
+                    price_display = "データ取得エラー"
+                    date_display = "N/A"
+                    status_color = "#dc3545"
+                    status_icon = "❌"
+                
+                st.markdown(f"""
+                <div style="background: white; border-radius: 15px; padding: 1.5rem; margin: 0.5rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border-left: 5px solid {status_color};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; color: #495057;">{company['name']}</h4>
+                        <span style="background: {status_color}; color: white; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">{status_icon}</span>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: #667eea;">銘柄コード:</strong> {company['code']}
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: #667eea;">業種:</strong> {company['sector']}
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: #667eea;">市場:</strong> {company['market']}
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong style="color: #667eea;">現在値:</strong> {price_display}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #6c757d;">
+                        <strong>更新日:</strong> {date_display}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
     
     # 最新株価ページ
     elif page == "📈 最新株価":
-        st.markdown("## 📈 最新株価取得")
+        st.markdown("""
+        <div class="fade-in">
+            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">📈 最新株価取得</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 入力フォーム
+        st.markdown("""
+        <div class="section-header">
+            🎯 株価データ取得
+        </div>
+        """, unsafe_allow_html=True)
         
         # 銘柄コード入力
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            ticker_input = st.text_input("銘柄コードを入力してください", placeholder="例: 7203, 6758, 9984")
+            ticker_input = st.text_input(
+                "銘柄コードを入力してください", 
+                placeholder="例: 7203, 6758, 9984",
+                help="4桁の銘柄コードを入力してください"
+            )
         
         with col2:
-            source = st.selectbox("データソース", ["stooq", "yahoo", "both"])
+            source = st.selectbox(
+                "データソース", 
+                ["stooq", "yahoo", "both"],
+                help="データを取得するソースを選択してください"
+            )
         
-        if st.button("📊 株価を取得", type="primary"):
-            if ticker_input:
-                ticker = ticker_input.strip()
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("📊 株価を取得", type="primary", use_container_width=True):
+                if ticker_input:
+                    ticker = ticker_input.strip()
                 
                 with st.spinner(f"{ticker}の株価を取得中..."):
                     try:
@@ -567,31 +866,48 @@ def main():
     
     # リアルタイム監視ページ
     elif page == "⚡ リアルタイム監視":
-        st.markdown("## ⚡ リアルタイム株価監視")
-        st.markdown("### 🚀 リアルタイムデータ更新システム")
+        st.markdown("""
+        <div class="fade-in">
+            <h2 style="color: #667eea; font-weight: 700; margin-bottom: 2rem;">⚡ リアルタイム株価監視</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="section-header">
+            🚀 リアルタイムデータ更新システム
+        </div>
+        """, unsafe_allow_html=True)
         
         # リアルタイム機能の説明
         col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("""
-            **🔴 リアルタイム機能:**
-            - **WebSocket通信**: 即座のデータ更新
-            - **プッシュ通知**: 重要な価格変動の通知
-            - **自動更新**: 30秒ごとのデータ更新
-            - **主要銘柄監視**: 9984, 9433, 7203, 6758, 6861
-            """)
+            <div style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+                <h3 style="color: white; margin-bottom: 1rem;">🔴 リアルタイム機能</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 0.5rem 0;">⚡ <strong>WebSocket通信</strong>: 即座のデータ更新</li>
+                    <li style="margin: 0.5rem 0;">🔔 <strong>プッシュ通知</strong>: 重要な価格変動の通知</li>
+                    <li style="margin: 0.5rem 0;">⏰ <strong>自動更新</strong>: 30秒ごとのデータ更新</li>
+                    <li style="margin: 0.5rem 0;">📱 <strong>主要銘柄監視</strong>: 9984, 9433, 7203, 6758, 6861</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
         
         with col2:
             st.markdown("""
-            **📊 監視機能:**
-            - **価格変動**: リアルタイム価格追跡
-            - **ボラティリティ**: 価格変動率の監視
-            - **出来高**: 取引量の変化
-            - **市場状況**: 取引時間の表示
-            """)
+            <div style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);">
+                <h3 style="color: white; margin-bottom: 1rem;">📊 監視機能</h3>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin: 0.5rem 0;">📈 <strong>価格変動</strong>: リアルタイム価格追跡</li>
+                    <li style="margin: 0.5rem 0;">📊 <strong>ボラティリティ</strong>: 価格変動率の監視</li>
+                    <li style="margin: 0.5rem 0;">📦 <strong>出来高</strong>: 取引量の変化</li>
+                    <li style="margin: 0.5rem 0;">🕒 <strong>市場状況</strong>: 取引時間の表示</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
         
-        st.markdown("---")
+        st.markdown("<br>", unsafe_allow_html=True)
         
         # リアルタイム監視の開始/停止
         col1, col2 = st.columns(2)
