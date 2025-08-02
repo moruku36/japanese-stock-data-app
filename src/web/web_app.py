@@ -71,6 +71,20 @@ try:
         format_currency, format_number, PerformanceMonitor, 
         performance_monitor, MemoryOptimizer, OptimizedCache
     )
+    
+    # セキュリティ機能をインポート
+    try:
+        from security.auth_manager import AuthenticationManager, AuthorizationManager
+        from utils.error_handler import ErrorHandler, ErrorCategory, ErrorSeverity
+        SECURITY_ENABLED = True
+    except ImportError as e:
+        st.warning("セキュリティ機能が見つかりません。認証機能を無効化します。")
+        AuthenticationManager = None
+        AuthorizationManager = None
+        ErrorHandler = None
+        ErrorCategory = None
+        ErrorSeverity = None
+        SECURITY_ENABLED = False
 except ImportError as e:
     st.error(f"モジュールのインポートエラー: {e}")
     st.info("必要なモジュールがインストールされていない可能性があります。")
@@ -94,6 +108,7 @@ except ImportError as e:
     performance_monitor = lambda x: x
     MemoryOptimizer = None
     OptimizedCache = None
+    SECURITY_ENABLED = False
 
 # ページ設定
 st.set_page_config(
@@ -947,9 +962,141 @@ def create_stock_price_chart(df, ticker_symbol):
     
     return fig
 
+def show_login_page(auth_manager, authz_manager, error_handler):
+    """ログインページを表示"""
+    st.markdown("""
+    <div style="text-align: center; margin: 2rem 0;">
+        <h2 style="color: #3b82f6;">🔐 ログイン</h2>
+        <p style="color: #6c757d;">システムにログインしてください</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # ログインフォーム
+    with st.form("login_form"):
+        username = st.text_input("ユーザー名", placeholder="ユーザー名を入力")
+        password = st.text_input("パスワード", type="password", placeholder="パスワードを入力")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            login_button = st.form_submit_button("🔐 ログイン", use_container_width=True)
+        with col2:
+            guest_button = st.form_submit_button("👤 ゲストとして利用", use_container_width=True)
+        
+        if login_button:
+            if username and password:
+                try:
+                    # 簡易認証（実際の実装ではデータベースを使用）
+                    if username == "admin" and password == "admin123":
+                        # 認証成功
+                        st.session_state.authenticated = True
+                        st.session_state.user_role = "admin"
+                        st.session_state.username = username
+                        
+                        # セッションを作成
+                        session_id = auth_manager.create_session("admin_001", username)
+                        st.session_state.session_id = session_id
+                        
+                        st.success("✅ ログインに成功しました！")
+                        st.rerun()
+                    elif username == "user" and password == "user123":
+                        # 一般ユーザー認証
+                        st.session_state.authenticated = True
+                        st.session_state.user_role = "user"
+                        st.session_state.username = username
+                        
+                        # セッションを作成
+                        session_id = auth_manager.create_session("user_001", username)
+                        st.session_state.session_id = session_id
+                        
+                        st.success("✅ ログインに成功しました！")
+                        st.rerun()
+                    else:
+                        # 認証失敗
+                        error_info = error_handler.handle_error(
+                            Exception("認証に失敗しました"),
+                            ErrorCategory.AUTHENTICATION,
+                            ErrorSeverity.MEDIUM,
+                            {'username': username}
+                        )
+                        user_message = error_handler.get_user_friendly_message(error_info)
+                        st.error(f"❌ {user_message}")
+                except Exception as e:
+                    error_info = error_handler.handle_error(
+                        e,
+                        ErrorCategory.AUTHENTICATION,
+                        ErrorSeverity.HIGH,
+                        {'username': username}
+                    )
+                    user_message = error_handler.get_user_friendly_message(error_info)
+                    st.error(f"❌ ログインエラー: {user_message}")
+            else:
+                st.error("❌ ユーザー名とパスワードを入力してください")
+        
+        if guest_button:
+            # ゲストとして利用
+            st.session_state.authenticated = True
+            st.session_state.user_role = "guest"
+            st.session_state.username = "guest"
+            st.success("✅ ゲストとしてログインしました！")
+            st.rerun()
+    
+    # テスト用アカウント情報
+    st.markdown("""
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 2rem;">
+        <h4 style="color: #495057;">🧪 テスト用アカウント</h4>
+        <p style="color: #6c757d; margin: 0;">
+            <strong>管理者:</strong> admin / admin123<br>
+            <strong>一般ユーザー:</strong> user / user123<br>
+            <strong>ゲスト:</strong> ゲストとして利用ボタンをクリック
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def show_logout_button():
+    """ログアウトボタンを表示"""
+    if st.sidebar.button("🚪 ログアウト", use_container_width=True):
+        if SECURITY_ENABLED and st.session_state.session_id:
+            # セッションを削除
+            auth_manager = AuthenticationManager()
+            auth_manager.remove_session(st.session_state.session_id)
+        
+        # セッション状態をクリア
+        st.session_state.authenticated = False
+        st.session_state.user_role = 'guest'
+        st.session_state.session_id = None
+        st.session_state.username = None
+        
+        st.success("✅ ログアウトしました")
+        st.rerun()
+
+def check_permission(required_permission):
+    """権限チェック"""
+    if not SECURITY_ENABLED:
+        return True
+    
+    if not st.session_state.authenticated:
+        return False
+    
+    authz_manager = AuthorizationManager()
+    return authz_manager.has_permission(st.session_state.user_role, required_permission)
+
 def main():
     """メイン関数（最適化版）"""
     try:
+        # セキュリティ機能の初期化
+        if SECURITY_ENABLED:
+            auth_manager = AuthenticationManager()
+            authz_manager = AuthorizationManager()
+            error_handler = ErrorHandler()
+            
+            # セッション状態の初期化
+            if 'authenticated' not in st.session_state:
+                st.session_state.authenticated = False
+            if 'user_role' not in st.session_state:
+                st.session_state.user_role = 'guest'
+            if 'session_id' not in st.session_state:
+                st.session_state.session_id = None
+        
         # ヘッダー
         st.markdown("""
         <div class="fade-in">
@@ -966,6 +1113,11 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
+        # 認証チェック
+        if SECURITY_ENABLED and not st.session_state.authenticated:
+            show_login_page(auth_manager, authz_manager, error_handler)
+            return
+        
         # システム初期化
         with st.spinner('🚀 システムを初期化中...'):
             fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager = initialize_system()
@@ -975,7 +1127,17 @@ def main():
             st.info("🔄 ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
             return
     except Exception as e:
-        st.error(f"❌ アプリケーションの起動に失敗しました: {e}")
+        if SECURITY_ENABLED and error_handler:
+            error_info = error_handler.handle_error(
+                e, 
+                ErrorCategory.SYSTEM, 
+                ErrorSeverity.HIGH,
+                {'context': 'main_function_initialization'}
+            )
+            user_message = error_handler.get_user_friendly_message(error_info)
+            st.error(f"❌ アプリケーションの起動に失敗しました: {user_message}")
+        else:
+            st.error(f"❌ アプリケーションの起動に失敗しました: {e}")
         st.info("📞 エラーが解決しない場合は、管理者にお問い合わせください。")
         return
     
@@ -995,24 +1157,56 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # 機能選択（全項目表示）
-    page = st.sidebar.selectbox(
-        "🎯 機能を選択してください",
-        [
-            "🏠 ホーム",
-            "📈 最新株価",
-            "⚡ リアルタイム監視",
+    # ユーザー情報表示
+    if SECURITY_ENABLED and st.session_state.authenticated:
+        user_role_display = {
+            'admin': '👑 管理者',
+            'user': '👤 ユーザー',
+            'guest': '👤 ゲスト'
+        }
+        role_display = user_role_display.get(st.session_state.user_role, '👤 ユーザー')
+        
+        st.sidebar.markdown(f"""
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+            <div style="text-align: center;">
+                <div style="font-weight: 600; color: #495057;">{role_display}</div>
+                <div style="font-size: 0.9rem; color: #6c757d;">{st.session_state.username}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # 機能選択（権限に応じて表示）
+    available_pages = ["🏠 ホーム", "📈 最新株価"]
+    
+    # 読み取り権限がある場合の機能
+    if check_permission('read'):
+        available_pages.extend([
             "📊 株価チャート",
             "📈 テクニカル分析チャート",
             "🏢 ファンダメンタル分析",
             "⚖️ 財務指標比較",
             "📦 複数銘柄分析",
-            "🔍 高度なデータ分析",
-            "💾 データエクスポート"
-        ],
+            "🔍 高度なデータ分析"
+        ])
+    
+    # 書き込み権限がある場合の機能
+    if check_permission('write'):
+        available_pages.append("💾 データエクスポート")
+    
+    # 管理者権限がある場合の機能
+    if check_permission('admin'):
+        available_pages.append("⚡ リアルタイム監視")
+    
+    page = st.sidebar.selectbox(
+        "🎯 機能を選択してください",
+        available_pages,
         index=0,
         help="利用したい機能を選択してください"
     )
+    
+    # ログアウトボタン
+    if SECURITY_ENABLED and st.session_state.authenticated:
+        show_logout_button()
     
     # ホームページ
     if page == "🏠 ホーム":
@@ -1293,6 +1487,12 @@ def main():
     
     # リアルタイム監視ページ
     elif page == "⚡ リアルタイム監視":
+        # 権限チェック
+        if not check_permission('admin'):
+            st.error("❌ この機能を利用する権限がありません。")
+            st.info("リアルタイム監視機能には管理者権限が必要です。")
+            return
+        
         st.markdown("""
         <div class="fade-in">
             <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 2rem;">⚡ リアルタイム株価監視</h2>
@@ -2481,6 +2681,12 @@ def main():
     
     # データエクスポートページ
     elif page == "💾 データエクスポート":
+        # 権限チェック
+        if not check_permission('write'):
+            st.error("❌ この機能を利用する権限がありません。")
+            st.info("データエクスポート機能には書き込み権限が必要です。")
+            return
+        
         st.markdown("## 💾 データエクスポート")
         
         col1, col2, col3 = st.columns(3)
@@ -2531,7 +2737,17 @@ def main():
                             st.error("データが見つかりませんでした")
                     
                     except Exception as e:
-                        st.error(f"❌ エラーが発生しました: {e}")
+                        if SECURITY_ENABLED and error_handler:
+                            error_info = error_handler.handle_error(
+                                e,
+                                ErrorCategory.DATA,
+                                ErrorSeverity.MEDIUM,
+                                {'ticker': ticker, 'source': source, 'operation': 'export'}
+                            )
+                            user_message = error_handler.get_user_friendly_message(error_info)
+                            st.error(f"❌ エラーが発生しました: {user_message}")
+                        else:
+                            st.error(f"❌ エラーが発生しました: {e}")
     
     # 高度なデータ分析ページ
     elif page == "🔍 高度なデータ分析":
