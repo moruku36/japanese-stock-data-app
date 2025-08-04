@@ -1317,10 +1317,19 @@ def main():
         
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # リアルタイム監視の状態表示
+        if st.session_state.get('real_time_active', False):
+            start_time = st.session_state.get('real_time_start_time', datetime.now())
+            elapsed_time = datetime.now() - start_time
+            st.success(f"🟢 リアルタイム監視が実行中です（開始時刻: {start_time.strftime('%H:%M:%S')}, 経過時間: {elapsed_time.seconds}秒）")
+        
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.button("⚡ リアルタイム監視を試す", type="primary", use_container_width=True):
                 st.session_state.selected_page = "⚡ リアルタイム監視"
+                # リアルタイム監視を開始
+                st.session_state.real_time_active = True
+                st.session_state.real_time_start_time = datetime.now()
                 st.rerun()
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1332,39 +1341,64 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # キャッシュ付きで主要企業を取得
-        popular_companies = get_cached_data(
-            "popular_companies", 
-            10,
-            _company_searcher=company_searcher
-        )
+        # 主要企業を取得（リアルタイム監視が有効な場合はキャッシュを使用せず）
+        if st.session_state.get('real_time_active', False):
+            popular_companies = company_searcher.get_popular_companies(10)
+        else:
+            popular_companies = get_cached_data(
+                "popular_companies", 
+                10,
+                _company_searcher=company_searcher
+            )
         
         # 企業カードをグリッド表示
         cols = st.columns(3)
         for i, company in enumerate(popular_companies):
             col_idx = i % 3
             with cols[col_idx]:
-                # 最新株価を取得（キャッシュ付き）
+                # 最新株価を取得（リアルタイム監視が有効な場合はキャッシュを使用せず）
                 try:
-                    price_data = get_cached_data(
-                        f"latest_price_stooq_{company['code']}", 
-                        company['code'],
-                        _fetcher=fetcher
-                    )
+                    if st.session_state.get('real_time_active', False):
+                        price_data = fetcher.get_latest_price(company['code'], "stooq")
+                    else:
+                        price_data = get_cached_data(
+                            f"latest_price_stooq_{company['code']}", 
+                            company['code'],
+                            _fetcher=fetcher
+                        )
                     
                     if "error" not in price_data:
                         price_display = format_currency_web(price_data['close'])
                         date_display = price_data['date']
                         status_color = "#28a745"
                         status_icon = "✅"
+                        
+                        # リアルタイム監視が有効な場合は価格変化を計算
+                        if st.session_state.get('real_time_active', False):
+                            if f'prev_price_{company["code"]}' not in st.session_state:
+                                st.session_state[f'prev_price_{company["code"]}'] = price_data['close']
+                            
+                            current_price = price_data['close']
+                            prev_price = st.session_state[f'prev_price_{company["code"]}']
+                            price_change = current_price - prev_price
+                            price_change_percent = (price_change / prev_price) * 100 if prev_price > 0 else 0
+                            
+                            # 前回の価格を更新
+                            st.session_state[f'prev_price_{company["code"]}'] = current_price
+                            
+                            change_display = f"{price_change:+.0f} ({price_change_percent:+.1f}%)"
+                        else:
+                            change_display = ""
                     else:
                         price_display = "データ取得エラー"
                         date_display = "N/A"
+                        change_display = ""
                         status_color = "#dc3545"
                         status_icon = "❌"
                 except:
                     price_display = "データ取得エラー"
                     date_display = "N/A"
+                    change_display = ""
                     status_color = "#dc3545"
                     status_icon = "❌"
                 
@@ -1386,6 +1420,7 @@ def main():
                     <div style="margin-bottom: 0.5rem;">
                         <strong style="color: #3b82f6;">現在値:</strong> {price_display}
                     </div>
+                    {f'<div style="margin-bottom: 0.5rem;"><strong style="color: #3b82f6;">変化:</strong> {change_display}</div>' if change_display else ''}
                     <div style="font-size: 0.9rem; color: #9ca3af;">
                         <strong>更新日:</strong> {date_display}
                     </div>
@@ -1584,16 +1619,12 @@ def main():
             # 主要銘柄のリアルタイムデータを表示
             major_tickers = ["9984", "9433", "7203", "6758", "6861"]
             
-            # リアルタイムデータを取得（実際の株価データを使用）
+            # リアルタイムデータを取得（キャッシュを使用せず最新データを取得）
             real_time_data = {}
             for ticker in major_tickers:
                 try:
-                    # 最新の株価データを取得
-                    latest_data = get_cached_data(
-                        f"latest_price_stooq_{ticker}", 
-                        ticker,
-                        _fetcher=fetcher
-                    )
+                    # キャッシュを使用せずに最新の株価データを直接取得
+                    latest_data = fetcher.get_latest_price(ticker, "stooq")
                     
                     if "error" not in latest_data:
                         # 前回のデータと比較して変化を計算
@@ -1709,6 +1740,80 @@ def main():
                 
                 # 更新時刻の表示
                 st.markdown(f"**最終更新時刻:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                
+                # リアルタイム主要企業一覧
+                st.markdown("### ⭐ リアルタイム主要企業一覧")
+                
+                # 主要企業の最新データを取得（キャッシュを使用せず）
+                popular_companies = company_searcher.get_popular_companies(10)
+                
+                # 企業カードをグリッド表示
+                cols = st.columns(3)
+                for i, company in enumerate(popular_companies):
+                    col_idx = i % 3
+                    with cols[col_idx]:
+                        # 最新株価を直接取得（キャッシュを使用せず）
+                        try:
+                            price_data = fetcher.get_latest_price(company['code'], "stooq")
+                            
+                            if "error" not in price_data:
+                                price_display = format_currency_web(price_data['close'])
+                                date_display = price_data['date']
+                                status_color = "#28a745"
+                                status_icon = "✅"
+                                
+                                # 価格変化を計算
+                                if f'prev_price_{company["code"]}' not in st.session_state:
+                                    st.session_state[f'prev_price_{company["code"]}'] = price_data['close']
+                                
+                                current_price = price_data['close']
+                                prev_price = st.session_state[f'prev_price_{company["code"]}']
+                                price_change = current_price - prev_price
+                                price_change_percent = (price_change / prev_price) * 100 if prev_price > 0 else 0
+                                
+                                # 前回の価格を更新
+                                st.session_state[f'prev_price_{company["code"]}'] = current_price
+                                
+                                change_display = f"{price_change:+.0f} ({price_change_percent:+.1f}%)"
+                            else:
+                                price_display = "データ取得エラー"
+                                date_display = "N/A"
+                                change_display = "N/A"
+                                status_color = "#dc3545"
+                                status_icon = "❌"
+                        except:
+                            price_display = "データ取得エラー"
+                            date_display = "N/A"
+                            change_display = "N/A"
+                            status_color = "#dc3545"
+                            status_icon = "❌"
+                        
+                        st.markdown(f"""
+                        <div style="background: #374151; border-radius: 15px; padding: 1.5rem; margin: 0.5rem 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); border-left: 5px solid {status_color};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h4 style="margin: 0; color: #ffffff;">{company['name']}</h4>
+                                <span style="background: {status_color}; color: white; padding: 0.25rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">{status_icon}</span>
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: #3b82f6;">銘柄コード:</strong> {company['code']}
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: #3b82f6;">業種:</strong> {company['sector']}
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: #3b82f6;">市場:</strong> {company['market']}
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: #3b82f6;">現在値:</strong> {price_display}
+                            </div>
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: #3b82f6;">変化:</strong> {change_display}
+                            </div>
+                            <div style="font-size: 0.9rem; color: #9ca3af;">
+                                <strong>更新日:</strong> {date_display}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
                 # リアルタイムアラート設定
                 st.markdown("### 🔔 リアルタイムアラート設定")
