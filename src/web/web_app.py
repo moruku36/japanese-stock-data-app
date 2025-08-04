@@ -1197,12 +1197,20 @@ def main():
     if check_permission('admin'):
         available_pages.append("⚡ リアルタイム監視")
     
+    # セッション状態からページを取得、またはデフォルト値を設定
+    if 'selected_page' not in st.session_state:
+        st.session_state.selected_page = "🏠 ホーム"
+    
     page = st.sidebar.selectbox(
         "🎯 機能を選択してください",
         available_pages,
-        index=0,
+        index=available_pages.index(st.session_state.selected_page) if st.session_state.selected_page in available_pages else 0,
         help="利用したい機能を選択してください"
     )
+    
+    # ページが変更された場合、セッション状態を更新
+    if page != st.session_state.selected_page:
+        st.session_state.selected_page = page
     
     # ログアウトボタン
     if SECURITY_ENABLED and st.session_state.authenticated:
@@ -1312,7 +1320,7 @@ def main():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             if st.button("⚡ リアルタイム監視を試す", type="primary", use_container_width=True):
-                st.session_state.page = "⚡ リアルタイム監視"
+                st.session_state.selected_page = "⚡ リアルタイム監視"
                 st.rerun()
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1536,26 +1544,36 @@ def main():
         
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # リアルタイム監視の状態表示
+        if st.session_state.get('real_time_active', False):
+            start_time = st.session_state.get('real_time_start_time', datetime.now())
+            elapsed_time = datetime.now() - start_time
+            st.success(f"🟢 リアルタイム監視が実行中です（開始時刻: {start_time.strftime('%H:%M:%S')}, 経過時間: {elapsed_time.seconds}秒）")
+        else:
+            st.info("🔴 リアルタイム監視は停止中です")
+        
         # リアルタイム監視の開始/停止
         col1, col2 = st.columns(2)
         
         with col1:
             if st.button("🚀 リアルタイム監視開始", type="primary"):
                 try:
-                    # リアルタイムサービスを開始
-                    start_real_time_services()
-                    st.success("✅ リアルタイム監視を開始しました！")
+                    # リアルタイム監視を開始
                     st.session_state.real_time_active = True
+                    st.session_state.real_time_start_time = datetime.now()
+                    st.success("✅ リアルタイム監視を開始しました！")
+                    st.rerun()
                 except Exception as e:
                     st.error(f"❌ リアルタイム監視の開始に失敗しました: {e}")
         
         with col2:
             if st.button("⏹️ リアルタイム監視停止"):
                 try:
-                    # リアルタイムサービスを停止
-                    stop_real_time_services()
-                    st.success("✅ リアルタイム監視を停止しました！")
+                    # リアルタイム監視を停止
                     st.session_state.real_time_active = False
+                    st.session_state.real_time_start_time = None
+                    st.success("✅ リアルタイム監視を停止しました！")
+                    st.rerun()
                 except Exception as e:
                     st.error(f"❌ リアルタイム監視の停止に失敗しました: {e}")
         
@@ -1566,14 +1584,40 @@ def main():
             # 主要銘柄のリアルタイムデータを表示
             major_tickers = ["9984", "9433", "7203", "6758", "6861"]
             
-            # リアルタイムデータを取得
+            # リアルタイムデータを取得（実際の株価データを使用）
             real_time_data = {}
             for ticker in major_tickers:
                 try:
-                    # リアルタイムデータを取得（実際のAPIから）
-                    update_data = real_time_manager._get_real_time_data(ticker)
-                    if update_data:
-                        real_time_data[ticker] = update_data.data
+                    # 最新の株価データを取得
+                    latest_data = get_cached_data(
+                        f"latest_price_stooq_{ticker}", 
+                        ticker,
+                        _fetcher=fetcher
+                    )
+                    
+                    if "error" not in latest_data:
+                        # 前回のデータと比較して変化を計算
+                        if f'prev_price_{ticker}' not in st.session_state:
+                            st.session_state[f'prev_price_{ticker}'] = latest_data['close']
+                        
+                        current_price = latest_data['close']
+                        prev_price = st.session_state[f'prev_price_{ticker}']
+                        price_change = current_price - prev_price
+                        price_change_percent = (price_change / prev_price) * 100 if prev_price > 0 else 0
+                        
+                        # 前回の価格を更新
+                        st.session_state[f'prev_price_{ticker}'] = current_price
+                        
+                        real_time_data[ticker] = {
+                            'current_price': current_price,
+                            'price_change': price_change,
+                            'price_change_percent': price_change_percent,
+                            'volume': latest_data.get('volume', 0),
+                            'market_status': 'open' if datetime.now().hour < 15 else 'closed',
+                            'last_updated': datetime.now().strftime("%H:%M:%S")
+                        }
+                    else:
+                        st.warning(f"銘柄 {ticker} のデータ取得エラー: {latest_data['error']}")
                 except Exception as e:
                     st.warning(f"銘柄 {ticker} のリアルタイムデータ取得エラー: {e}")
             
@@ -1635,13 +1679,36 @@ def main():
                     fig_change.update_layout(height=400)
                     st.plotly_chart(fig_change, use_container_width=True)
                 
-                # 自動更新
+                # 自動更新機能
                 st.markdown("### 🔄 自動更新")
-                st.info("データは30秒ごとに自動更新されます。")
+                
+                # 自動更新の設定
+                col1, col2 = st.columns(2)
+                with col1:
+                    auto_refresh = st.checkbox("自動更新を有効にする", value=True)
+                with col2:
+                    refresh_interval = st.selectbox("更新間隔", [5, 10, 30, 60], format_func=lambda x: f"{x}秒")
+                
+                if auto_refresh:
+                    st.info(f"データは{refresh_interval}秒ごとに自動更新されます。")
+                    
+                    # JavaScriptを使用した自動更新
+                    st.markdown(f"""
+                    <script>
+                    setTimeout(function() {{
+                        window.location.reload();
+                    }}, {refresh_interval * 1000});
+                    </script>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.info("手動更新のみ有効です。")
                 
                 # 手動更新ボタン
                 if st.button("🔄 手動更新"):
                     st.rerun()
+                
+                # 更新時刻の表示
+                st.markdown(f"**最終更新時刻:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
                 
                 # リアルタイムアラート設定
                 st.markdown("### 🔔 リアルタイムアラート設定")
@@ -1688,6 +1755,30 @@ def main():
                 st.warning("リアルタイムデータが取得できませんでした。")
         else:
             st.info("🚀 リアルタイム監視を開始してください。")
+            
+            # デモ用のサンプルデータを表示
+            st.markdown("### 📊 デモ用サンプルデータ")
+            st.info("リアルタイム監視を開始すると、実際の株価データが表示されます。")
+            
+            # サンプルデータを表示
+            sample_tickers = ["9984", "9433", "7203", "6758", "6861"]
+            sample_data = {
+                "9984": {"name": "ソフトバンクG", "price": 8500, "change": 150, "change_percent": 1.8},
+                "9433": {"name": "KDDI", "price": 4200, "change": -50, "change_percent": -1.2},
+                "7203": {"name": "トヨタ自動車", "price": 2800, "change": 80, "change_percent": 2.9},
+                "6758": {"name": "ソニーG", "price": 12000, "change": 200, "change_percent": 1.7},
+                "6861": {"name": "キーエンス", "price": 65000, "change": -1000, "change_percent": -1.5}
+            }
+            
+            cols = st.columns(len(sample_tickers))
+            for i, ticker in enumerate(sample_tickers):
+                data = sample_data[ticker]
+                with cols[i]:
+                    st.metric(
+                        f"{ticker} ({data['name']})",
+                        f"¥{data['price']:,.0f}",
+                        f"{data['change']:+.0f} ({data['change_percent']:+.1f}%)"
+                    )
     
     # 株価チャートページ
     elif page == "📊 株価チャート":
