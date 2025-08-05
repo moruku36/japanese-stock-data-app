@@ -45,6 +45,12 @@
 - **財務健全性**: 流動比率、自己資本比率、負債比率
 - **投資判断**: 総合スコアによる買い・売り・ホールド推奨
 
+### 🎯 高度なファンダメンタル分析
+- **ROIC分析**: 投下資本利益率の詳細計算
+- **品質指標**: Altman Z-Score、Piotroski F-Score
+- **ESGメトリクス**: 環境・社会・ガバナンス指標の評価
+- **総合評価**: 複数指標を統合した投資判断
+
 ### ⚖️ 財務指標比較
 - **複数企業比較**: 最大5社の財務指標を並べて比較
 - **業界比較**: 同業他社との財務指標比較
@@ -130,9 +136,9 @@ streamlit run web_app.py
 ### 基本的な使用方法
 
 ```python
-from stock_data_fetcher import JapaneseStockDataFetcher
-from stock_analyzer import StockAnalyzer
-from company_search import CompanySearch
+from src.core.stock_data_fetcher import JapaneseStockDataFetcher
+from src.core.stock_analyzer import StockAnalyzer
+from src.core.company_search import CompanySearch
 
 # システムの初期化
 fetcher = JapaneseStockDataFetcher()
@@ -163,7 +169,7 @@ analyzer.generate_report(ticker, "stooq", days=30)
 ### 会社名検索の使用例
 
 ```python
-from company_search import CompanySearch
+from src.core.company_search import CompanySearch
 
 searcher = CompanySearch()
 
@@ -206,32 +212,62 @@ fetcher.save_to_csv(df, "4784", "stooq")
 
 ```
 japanese-stock-data-app/
-├── web_app.py                 # Streamlit Webアプリケーション
-├── main.py                    # メインインターフェース
-├── stock_data_fetcher.py      # 株価データ取得クラス
-├── stock_analyzer.py          # 分析・可視化クラス
-├── company_search.py          # 会社名検索機能
-├── company_data.json          # 企業データベース
-├── fundamental_analyzer.py    # ファンダメンタル分析機能
-├── technical_analysis.py      # テクニカル分析機能
-├── advanced_data_sources.py   # 高度なデータソース
-├── async_data_sources.py      # 非同期データ取得
-├── real_time_updater.py       # リアルタイム更新機能
-├── ml_predictor.py            # 機械学習予測機能
-├── portfolio_optimizer.py     # ポートフォリオ最適化
-├── performance_test.py        # パフォーマンステスト
-├── test_system.py             # システムテスト
-├── utils.py                   # ユーティリティ関数
-├── config.py                  # 設定ファイル
-├── optimization_config.py     # 最適化設定
-├── requirements.txt           # 依存関係
+├── .devcontainer/             # 開発環境設定
+│   └── devcontainer.json
+├── .streamlit/                # Streamlit設定
+│   └── config.toml
+├── config/                    # 設定ファイル
+│   ├── config.py
+│   └── optimization_config.py
+├── docs/                      # ドキュメント
+│   ├── advanced_fundamental_analysis_guide.md
+│   ├── IMPROVEMENT_PROPOSALS.md
+│   ├── IMPROVEMENTS_IMPLEMENTED.md
+│   ├── README_WebUI.md
+│   └── system_architecture.md
+├── src/                       # ソースコード
+│   ├── analysis/              # 分析機能
+│   │   ├── advanced_data_sources.py
+│   │   ├── advanced_fundamental_analyzer.py
+│   │   ├── fundamental_analyzer.py
+│   │   └── technical_analysis.py
+│   ├── core/                  # コア機能
+│   │   ├── company_data.json
+│   │   ├── company_search.py
+│   │   ├── stock_analyzer.py
+│   │   └── stock_data_fetcher.py
+│   ├── data/                  # データ処理
+│   │   ├── async_data_sources.py
+│   │   └── real_time_updater.py
+│   ├── ml/                    # 機械学習
+│   │   ├── ml_predictor.py
+│   │   └── portfolio_optimizer.py
+│   ├── security/              # セキュリティ
+│   │   ├── __init__.py
+│   │   └── auth_manager.py
+│   ├── utils/                 # ユーティリティ
+│   │   ├── __init__.py
+│   │   ├── error_handler.py
+│   │   └── utils.py
+│   └── web/                   # Web関連
+│       ├── main.py
+│       └── web_app.py
+├── tests/                     # テストファイル
+│   ├── __init__.py
+│   ├── performance_test.py
+│   ├── run_all_tests.py
+│   ├── test_error_handler.py
+│   ├── test_integration.py
+│   ├── test_security.py
+│   └── test_system.py
+├── .gitignore                 # Git除外設定
+├── main.py                    # メインエントリーポイント
 ├── README.md                  # このファイル
-├── README_WebUI.md            # WebUI専用README
-├── system_architecture.md     # システムアーキテクチャ
-├── IMPROVEMENT_PROPOSALS.md   # 改善提案
-└── stock_data/                # データ保存ディレクトリ（自動作成）
-    ├── stooq_stock_data_4784.csv
-    └── yahoo_stock_data_4784.csv
+├── README_Streamlit.md        # Streamlit専用README
+├── requirements.txt           # 依存関係
+├── streamlit_app.py          # Streamlit Webアプリ
+├── test_advanced_fundamental.py # 高度分析テスト
+└── web_app.py                # レガシーWebアプリ
 ```
 
 ## 🎨 出力されるチャート

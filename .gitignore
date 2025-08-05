@@ -138,10 +138,27 @@ stock_data/
 # Cache files
 cache/
 *.pkl
+__pycache__/
+.cache/
 
 # Log files
 *.log
 logs/
+stock_system*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+.*.swp
+.*.swo
+
+# Duplicate files (from cloud sync conflicts)
+*(*).py
+*(*).json
+*(*).md
+*(*).txt
 
 # Config files (optional - uncomment to ignore user config)
 # config.json
