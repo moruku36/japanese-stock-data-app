@@ -85,6 +85,19 @@ try:
         ErrorCategory = None
         ErrorSeverity = None
         SECURITY_ENABLED = False
+    
+    # 新しいWeb機能をインポート
+    try:
+        from web.dashboard import DashboardManager
+        from web.portfolio_optimization import PortfolioOptimizer
+        from web.api_monitoring import APIMonitor
+        NEW_FEATURES_ENABLED = True
+    except ImportError as e:
+        st.warning(f"新しい機能のインポートに失敗しました: {e}")
+        DashboardManager = None
+        PortfolioOptimizer = None
+        APIMonitor = None
+        NEW_FEATURES_ENABLED = False
 except ImportError as e:
     st.error(f"モジュールのインポートエラー: {e}")
     st.info("必要なモジュールがインストールされていない可能性があります。")
@@ -1080,6 +1093,24 @@ def check_permission(required_permission):
     authz_manager = AuthorizationManager()
     return authz_manager.has_permission(st.session_state.user_role, required_permission)
 
+def check_new_features_availability():
+    """新機能の利用可能性をチェック"""
+    if not NEW_FEATURES_ENABLED:
+        return False, "新機能のインポートに失敗しました"
+    
+    missing_features = []
+    if DashboardManager is None:
+        missing_features.append("ダッシュボード")
+    if PortfolioOptimizer is None:
+        missing_features.append("ポートフォリオ最適化")
+    if APIMonitor is None:
+        missing_features.append("API監視")
+    
+    if missing_features:
+        return False, f"次の機能が利用できません: {', '.join(missing_features)}"
+    
+    return True, "すべての新機能が利用可能です"
+
 def main():
     """メイン関数（最適化版）"""
     try:
@@ -1188,6 +1219,14 @@ def main():
             "📦 複数銘柄分析",
             "🔍 高度なデータ分析"
         ])
+        
+        # 新機能を追加
+        if NEW_FEATURES_ENABLED:
+            available_pages.extend([
+                "🎯 ダッシュボード",
+                "📈 ポートフォリオ最適化",
+                "📡 API監視"
+            ])
     
     # 書き込み権限がある場合の機能
     if check_permission('write'):
@@ -1309,11 +1348,66 @@ def main():
                     <li style="margin: 0.5rem 0;">📱 <strong>9984</strong>: ソフトバンクG</li>
                     <li style="margin: 0.5rem 0;">📡 <strong>9433</strong>: KDDI</li>
                     <li style="margin: 0.5rem 0;">🚗 <strong>7203</strong>: トヨタ自動車</li>
-                    <li style="margin: 0.5rem 0;">🎮 <strong>6758</strong>: ソニーG</li>
-                    <li style="margin: 0.5rem 0;">🔧 <strong>6861</strong>: キーエンス</li>
+                    <li style="margin: 0.5rem 0;">💻 <strong>6758</strong>: ソニーG</li>
                 </ul>
             </div>
             """, unsafe_allow_html=True)
+        
+        # 新機能の紹介
+        features_available, features_status = check_new_features_availability()
+        
+        st.markdown("""
+        <div class="section-header">
+            🎯 新機能: 高度な分析ツール
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if features_available:
+            st.success(f"✅ {features_status}")
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown("""
+                <div style="background: #8b5cf6; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);">
+                    <h3 style="color: white; margin-bottom: 1rem;">🎯 ダッシュボード</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">📊 <strong>市場概要</strong>: リアルタイム市場データ</li>
+                        <li style="margin: 0.5rem 0;">🗺️ <strong>セクターヒートマップ</strong>: 業界動向</li>
+                        <li style="margin: 0.5rem 0;">⭐ <strong>ウォッチリスト</strong>: 銘柄監視</li>
+                        <li style="margin: 0.5rem 0;">📰 <strong>ニュースフィード</strong>: 最新情報</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown("""
+                <div style="background: #f59e0b; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);">
+                    <h3 style="color: white; margin-bottom: 1rem;">📈 ポートフォリオ最適化</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">🎯 <strong>効率的フロンティア</strong>: 最適化理論</li>
+                        <li style="margin: 0.5rem 0;">🎲 <strong>モンテカルロ</strong>: リスク分析</li>
+                        <li style="margin: 0.5rem 0;">⚠️ <strong>VaR/CVaR</strong>: リスク測定</li>
+                        <li style="margin: 0.5rem 0;">⚖️ <strong>最適配分</strong>: 資産分散</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown("""
+                <div style="background: #ef4444; color: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);">
+                    <h3 style="color: white; margin-bottom: 1rem;">📡 API監視</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 0.5rem 0;">🔍 <strong>ヘルスチェック</strong>: API状態監視</li>
+                        <li style="margin: 0.5rem 0;">⏱️ <strong>レスポンス時間</strong>: 性能測定</li>
+                        <li style="margin: 0.5rem 0;">🚨 <strong>アラート</strong>: 障害通知</li>
+                        <li style="margin: 0.5rem 0;">📊 <strong>統計情報</strong>: 利用状況分析</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning(f"⚠️ {features_status}")
+            st.info("新機能は現在利用できませんが、すべての基本機能は正常に動作します。")
         
         st.markdown("<br>", unsafe_allow_html=True)
         
@@ -3194,6 +3288,34 @@ def main():
                     
                     except Exception as e:
                         st.error(f"❌ 高度分析でエラーが発生しました: {e}")
+    
+    # 新機能ページ
+    elif page == "🎯 ダッシュボード" and NEW_FEATURES_ENABLED:
+        st.markdown("## 🎯 ダッシュボード")
+        try:
+            dashboard_manager = DashboardManager()
+            dashboard_manager.render_main_dashboard()
+        except Exception as e:
+            st.error(f"❌ ダッシュボードの読み込みでエラーが発生しました: {e}")
+            st.info("ダッシュボード機能は現在利用できません。基本機能をご利用ください。")
+    
+    elif page == "📈 ポートフォリオ最適化" and NEW_FEATURES_ENABLED:
+        st.markdown("## 📈 ポートフォリオ最適化")
+        try:
+            portfolio_optimizer = PortfolioOptimizer()
+            portfolio_optimizer.render_portfolio_optimization()
+        except Exception as e:
+            st.error(f"❌ ポートフォリオ最適化の読み込みでエラーが発生しました: {e}")
+            st.info("ポートフォリオ最適化機能は現在利用できません。基本機能をご利用ください。")
+    
+    elif page == "📡 API監視" and NEW_FEATURES_ENABLED:
+        st.markdown("## 📡 API監視")
+        try:
+            api_monitor = APIMonitor()
+            api_monitor.render_api_monitoring()
+        except Exception as e:
+            st.error(f"❌ API監視の読み込みでエラーが発生しました: {e}")
+            st.info("API監視機能は現在利用できません。基本機能をご利用ください。")
 
 if __name__ == "__main__":
     main() 
