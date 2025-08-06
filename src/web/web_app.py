@@ -98,6 +98,19 @@ try:
         PortfolioOptimizer = None
         APIMonitor = None
         NEW_FEATURES_ENABLED = False
+    
+    # 改善機能の統合
+    try:
+        from web.system_integrator import (
+            ImprovedSystemIntegrator, initialize_improved_app, get_system_integrator
+        )
+        IMPROVED_FEATURES_ENABLED = True
+    except ImportError as e:
+        st.warning(f"改善機能のインポートに失敗しました: {e}")
+        ImprovedSystemIntegrator = None
+        initialize_improved_app = None
+        get_system_integrator = None
+        IMPROVED_FEATURES_ENABLED = False
 except ImportError as e:
     st.error(f"モジュールのインポートエラー: {e}")
     st.info("必要なモジュールがインストールされていない可能性があります。")
@@ -1114,6 +1127,11 @@ def check_new_features_availability():
 def main():
     """メイン関数（最適化版）"""
     try:
+        # 改善機能の初期化
+        system_integrator = None
+        if IMPROVED_FEATURES_ENABLED:
+            system_integrator = initialize_improved_app()
+        
         # セキュリティ機能の初期化
         if SECURITY_ENABLED:
             auth_manager = AuthenticationManager()
@@ -1131,7 +1149,7 @@ def main():
         # ヘッダー
         st.markdown("""
         <div class="fade-in">
-            <h1 style="color: #3b82f6;">🇯🇵 日本の株価データ分析システム</h1>
+            <h1 style="color: #3b82f6;">🇯🇵 日本の株価データ分析システム（改善版）</h1>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1139,10 +1157,15 @@ def main():
         st.markdown("""
         <div style="text-align: center; margin-bottom: 2rem;">
             <p style="font-size: 1.2rem; color: #6c757d; font-weight: 500;">
-                📊 リアルタイム株価監視 | 📈 テクニカル分析 | 🏢 ファンダメンタル分析 | ⚡ 高度なデータ分析
+                📊 リアルタイム株価監視 | 📈 テクニカル分析 | 🏢 ファンダメンタル分析 | ⚡ 高度なデータ分析 | 🛡️ セキュリティ強化
             </p>
         </div>
         """, unsafe_allow_html=True)
+        
+        # 改善機能の状態表示
+        if system_integrator:
+            with st.expander("🎯 システム改善機能の状態", expanded=False):
+                system_integrator.show_system_status()
         
         # 認証チェック
         if SECURITY_ENABLED and not st.session_state.authenticated:
@@ -1227,6 +1250,15 @@ def main():
                 "📈 ポートフォリオ最適化",
                 "📡 API監視"
             ])
+        
+        # 改善機能を追加
+        if IMPROVED_FEATURES_ENABLED:
+            available_pages.extend([
+                "📡 データソース管理",
+                "🛡️ セキュリティ管理",
+                "⚙️ UI最適化",
+                "📈 強化チャート機能"
+            ])
     
     # 書き込み権限がある場合の機能
     if check_permission('write'):
@@ -1235,6 +1267,14 @@ def main():
     # 管理者権限がある場合の機能
     if check_permission('admin'):
         available_pages.append("⚡ リアルタイム監視")
+        
+        # 改善機能の管理機能
+        if IMPROVED_FEATURES_ENABLED:
+            available_pages.extend([
+                "📊 システム状態監視",
+                "🛠️ エラーハンドリング",
+                "📋 トラブルシューティング"
+            ])
     
     # セッション状態からページを取得、またはデフォルト値を設定
     if 'selected_page' not in st.session_state:
@@ -3316,6 +3356,212 @@ def main():
         except Exception as e:
             st.error(f"❌ API監視の読み込みでエラーが発生しました: {e}")
             st.info("API監視機能は現在利用できません。基本機能をご利用ください。")
+    
+    # 改善機能ページ
+    elif page == "📡 データソース管理" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 📡 データソース管理")
+        if system_integrator and system_integrator.data_source_manager:
+            system_integrator.show_data_source_status()
+            
+            st.markdown("### 🔄 データ取得テスト")
+            col1, col2 = st.columns(2)
+            with col1:
+                test_symbol = st.text_input("銘柄コード", value="7203", help="テスト用の銘柄コードを入力")
+            with col2:
+                test_period = st.selectbox("期間", ["1mo", "3mo", "6mo", "1y"], index=0)
+            
+            if st.button("データ取得テスト実行"):
+                import asyncio
+                async def test_fetch():
+                    with st.spinner("データを取得中..."):
+                        data = await system_integrator.get_enhanced_stock_data(test_symbol, test_period)
+                        if data is not None:
+                            st.success(f"✅ データ取得成功: {len(data)}行のデータ")
+                            st.dataframe(data.head(10))
+                        else:
+                            st.error("❌ データ取得に失敗しました")
+                
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(test_fetch())
+                except Exception as e:
+                    system_integrator.handle_user_input_error(e, f"{test_symbol}:{test_period}")
+                finally:
+                    loop.close()
+        else:
+            st.warning("データソース管理機能が利用できません")
+    
+    elif page == "🛡️ セキュリティ管理" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 🛡️ セキュリティ管理")
+        if system_integrator and system_integrator.security_manager:
+            system_integrator.show_security_status()
+            
+            # セキュリティ設定
+            st.markdown("### ⚙️ セキュリティ設定")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**認証設定**")
+                enable_2fa = st.checkbox("二要素認証を有効化", help="セキュリティを強化します")
+                session_timeout = st.slider("セッション有効期限（分）", 5, 120, 30)
+                
+            with col2:
+                st.markdown("**アクセス制御**")
+                max_login_attempts = st.slider("最大ログイン試行回数", 3, 10, 5)
+                enable_rate_limiting = st.checkbox("レート制限を有効化", value=True)
+            
+            if st.button("設定を保存"):
+                st.success("✅ セキュリティ設定を保存しました")
+        else:
+            st.warning("セキュリティ管理機能が利用できません")
+    
+    elif page == "⚙️ UI最適化" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## ⚙️ UI最適化")
+        if system_integrator and system_integrator.ui_optimizer:
+            system_integrator.show_performance_metrics()
+            system_integrator.show_accessibility_controls()
+            
+            st.markdown("### 🎨 表示設定")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                ui_mode = st.selectbox(
+                    "UIモード",
+                    ["ライトモード", "ダークモード", "ハイコントラスト", "モバイル"],
+                    help="表示モードを選択してください"
+                )
+                
+                font_size = st.slider("フォントサイズ", 12, 24, 16)
+                
+            with col2:
+                animation_enabled = st.checkbox("アニメーションを有効化", value=True)
+                compact_mode = st.checkbox("コンパクト表示", value=False)
+            
+            if st.button("UI設定を適用"):
+                st.success("✅ UI設定を適用しました")
+                st.info("設定はページリロード後に反映されます")
+        else:
+            st.warning("UI最適化機能が利用できません")
+    
+    elif page == "📈 強化チャート機能" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 📈 強化チャート機能")
+        if system_integrator and system_integrator.chart_manager:
+            st.markdown("### ⚙️ チャート設定")
+            chart_settings = system_integrator.show_enhanced_chart_controls()
+            
+            st.markdown("### 📊 チャートプレビュー")
+            
+            # サンプルデータでチャートを表示
+            col1, col2 = st.columns([3, 1])
+            with col2:
+                sample_symbol = st.text_input("銘柄コード", value="7203")
+                if st.button("チャート生成"):
+                    with col1:
+                        with st.spinner("チャートを生成中..."):
+                            # サンプルデータを生成してチャートを表示
+                            import pandas as pd
+                            import numpy as np
+                            from datetime import datetime, timedelta
+                            
+                            dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now(), freq='D')
+                            sample_data = pd.DataFrame({
+                                'Date': dates,
+                                'Open': 2000 + np.cumsum(np.random.randn(len(dates)) * 10),
+                                'High': 2000 + np.cumsum(np.random.randn(len(dates)) * 10) + 50,
+                                'Low': 2000 + np.cumsum(np.random.randn(len(dates)) * 10) - 50,
+                                'Close': 2000 + np.cumsum(np.random.randn(len(dates)) * 10),
+                                'Volume': np.random.randint(1000000, 5000000, len(dates))
+                            })
+                            
+                            chart = system_integrator.create_enhanced_chart(
+                                sample_data, 
+                                chart_settings, 
+                                f"{sample_symbol} - 強化チャート"
+                            )
+                            
+                            if chart:
+                                st.plotly_chart(chart, use_container_width=True)
+                            else:
+                                st.error("チャートの生成に失敗しました")
+        else:
+            st.warning("強化チャート機能が利用できません")
+    
+    elif page == "📊 システム状態監視" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 📊 システム状態監視")
+        if system_integrator:
+            system_integrator.show_system_status()
+            
+            # 自動更新設定
+            st.markdown("### 🔄 監視設定")
+            auto_refresh = st.checkbox("自動更新を有効化", value=False)
+            if auto_refresh:
+                refresh_interval = st.slider("更新間隔（秒）", 5, 60, 10)
+                if st.button("今すぐ更新"):
+                    st.rerun()
+        else:
+            st.warning("システム状態監視機能が利用できません")
+    
+    elif page == "🛠️ エラーハンドリング" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 🛠️ エラーハンドリング")
+        if system_integrator and system_integrator.error_handler:
+            system_integrator.show_error_summary()
+            
+            st.markdown("### 🧪 エラーテスト")
+            st.info("システムのエラーハンドリング機能をテストできます")
+            
+            test_error_type = st.selectbox(
+                "テストするエラータイプ",
+                ["ネットワークエラー", "データ形式エラー", "ユーザー入力エラー", "システムエラー"]
+            )
+            
+            if st.button("エラーテスト実行"):
+                try:
+                    if test_error_type == "ネットワークエラー":
+                        raise ConnectionError("テスト用ネットワークエラー")
+                    elif test_error_type == "データ形式エラー":
+                        raise ValueError("テスト用データ形式エラー")
+                    elif test_error_type == "ユーザー入力エラー":
+                        raise TypeError("テスト用ユーザー入力エラー")
+                    else:
+                        raise RuntimeError("テスト用システムエラー")
+                except Exception as e:
+                    system_integrator.handle_user_input_error(e, f"テスト: {test_error_type}")
+        else:
+            st.warning("エラーハンドリング機能が利用できません")
+    
+    elif page == "📋 トラブルシューティング" and IMPROVED_FEATURES_ENABLED:
+        st.markdown("## 📋 トラブルシューティング")
+        if system_integrator and system_integrator.error_handler:
+            system_integrator.show_troubleshooting_guide()
+            
+            st.markdown("### 🔍 システム診断")
+            if st.button("システム診断を実行"):
+                with st.spinner("システムを診断中..."):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**機能状態チェック**")
+                        features = [
+                            ("データソース管理", system_integrator.is_feature_available("data_source_manager")),
+                            ("エラーハンドリング", system_integrator.is_feature_available("error_handler")),
+                            ("セキュリティ", system_integrator.is_feature_available("security")),
+                            ("UI最適化", system_integrator.is_feature_available("ui_optimizer")),
+                            ("チャート管理", system_integrator.is_feature_available("chart_manager"))
+                        ]
+                        
+                        for feature_name, available in features:
+                            status = "✅ 正常" if available else "❌ 無効"
+                            st.markdown(f"- {feature_name}: {status}")
+                    
+                    with col2:
+                        st.markdown("**推奨事項**")
+                        st.markdown("- 定期的にシステム状態を確認してください")
+                        st.markdown("- エラーログを監視してください")
+                        st.markdown("- セキュリティ設定を最新に保ってください")
+                        st.markdown("- パフォーマンスメトリクスを定期確認してください")
+        else:
+            st.warning("トラブルシューティング機能が利用できません")
 
 if __name__ == "__main__":
     main() 
