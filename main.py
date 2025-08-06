@@ -1,26 +1,11 @@
 #!/usr/bin/env python3
 """
-日本株式データアプリケーション - Streamlit Web UI
-メインエントリーポイント
+日本株式データアプリケーション - Streamlit Cloud メインエントリーポイント
+セキュア軽量版を実行
 """
 
-import sys
-import os
+# streamlit_app.pyのセキュア軽量版を実行
+from streamlit_app import main
 
-# プロジェクトルートとsrcディレクトリをパスに追加
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.join(current_dir, 'src')
-project_root = current_dir
-
-# パスを設定
-sys.path.insert(0, src_dir)
-sys.path.insert(0, project_root)
-
-# Streamlitアプリケーションを実行
 if __name__ == "__main__":
-    import streamlit.web.cli as stcli
-    import sys
-    
-    # Streamlitアプリケーションを実行
-    sys.argv = ["streamlit", "run", "src/web/web_app.py", "--server.port=8501"]
-    sys.exit(stcli.main()) 
+    main() 
