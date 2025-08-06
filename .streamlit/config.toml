@@ -1,7 +1,13 @@
+[global]
+developmentMode = false
+
 [server]
 headless = true
 enableCORS = false
+enableXsrfProtection = false
 port = 8501
+runOnSave = true
+allowRunOnSave = true
 
 [browser]
 gatherUsageStats = false

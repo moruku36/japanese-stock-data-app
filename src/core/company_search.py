@@ -25,6 +25,19 @@ class CompanySearch:
             # 現在のファイルのディレクトリを基準にパスを設定
             current_dir = os.path.dirname(os.path.abspath(__file__))
             self.data_file = os.path.join(current_dir, "company_data.json")
+            
+            # Streamlit Cloud環境での代替パス
+            if not os.path.exists(self.data_file):
+                # Streamlit Cloud用の代替パス
+                alt_paths = [
+                    os.path.join('/app/src/core', "company_data.json"),
+                    os.path.join(os.getcwd(), 'src', 'core', "company_data.json"),
+                    os.path.join(os.getcwd(), "company_data.json")
+                ]
+                for alt_path in alt_paths:
+                    if os.path.exists(alt_path):
+                        self.data_file = alt_path
+                        break
         else:
             self.data_file = data_file
         self.companies = self._load_company_data()
