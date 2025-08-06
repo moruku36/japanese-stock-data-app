@@ -16,8 +16,20 @@ project_root = current_dir
 sys.path.insert(0, src_dir)
 sys.path.insert(0, project_root)
 
-# web_app.pyのmain関数をインポートして実行
-from web.web_app import main
+try:
+    # web_app.pyのmain関数をインポートして実行
+    from src.web.web_app import main
+except ImportError:
+    # フォールバック: 直接パスを指定
+    try:
+        from web.web_app import main
+    except ImportError:
+        # 最後の手段: 相対インポート
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("web_app", os.path.join(src_dir, "web", "web_app.py"))
+        web_app_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(web_app_module)
+        main = web_app_module.main
 
 if __name__ == "__main__":
     main() 

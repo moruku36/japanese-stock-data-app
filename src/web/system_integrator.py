@@ -21,39 +21,59 @@ logger = logging.getLogger(__name__)
 
 # 改善機能のインポート
 try:
-    from data.data_source_manager import DataSourceManager
+    from src.data.data_source_manager import DataSourceManager
     DATA_SOURCE_MANAGER_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"データソース管理機能が利用できません: {e}")
-    DATA_SOURCE_MANAGER_AVAILABLE = False
+except ImportError:
+    try:
+        from data.data_source_manager import DataSourceManager
+        DATA_SOURCE_MANAGER_AVAILABLE = True
+    except ImportError as e:
+        logger.warning(f"データソース管理機能が利用できません: {e}")
+        DATA_SOURCE_MANAGER_AVAILABLE = False
 
 try:
-    from utils.enhanced_error_handler import EnhancedErrorHandler, ErrorCategory, ErrorSeverity
+    from src.utils.enhanced_error_handler import EnhancedErrorHandler, ErrorCategory, ErrorSeverity
     ENHANCED_ERROR_HANDLER_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"強化エラーハンドリングが利用できません: {e}")
-    ENHANCED_ERROR_HANDLER_AVAILABLE = False
+except ImportError:
+    try:
+        from utils.enhanced_error_handler import EnhancedErrorHandler, ErrorCategory, ErrorSeverity
+        ENHANCED_ERROR_HANDLER_AVAILABLE = True
+    except ImportError as e:
+        logger.warning(f"強化エラーハンドリングが利用できません: {e}")
+        ENHANCED_ERROR_HANDLER_AVAILABLE = False
 
 try:
-    from security.enhanced_security_manager import EnhancedSecurityManager, UserRole
+    from src.security.enhanced_security_manager import EnhancedSecurityManager, UserRole
     ENHANCED_SECURITY_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"強化セキュリティが利用できません: {e}")
-    ENHANCED_SECURITY_AVAILABLE = False
+except ImportError:
+    try:
+        from security.enhanced_security_manager import EnhancedSecurityManager, UserRole
+        ENHANCED_SECURITY_AVAILABLE = True
+    except ImportError as e:
+        logger.warning(f"強化セキュリティが利用できません: {e}")
+        ENHANCED_SECURITY_AVAILABLE = False
 
 try:
-    from web.ui_optimizer import UIOptimizer, UIMode, init_optimized_ui
+    from src.web.ui_optimizer import UIOptimizer, UIMode, init_optimized_ui
     UI_OPTIMIZER_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"UI最適化機能が利用できません: {e}")
-    UI_OPTIMIZER_AVAILABLE = False
+except ImportError:
+    try:
+        from web.ui_optimizer import UIOptimizer, UIMode, init_optimized_ui
+        UI_OPTIMIZER_AVAILABLE = True
+    except ImportError as e:
+        logger.warning(f"UI最適化機能が利用できません: {e}")
+        UI_OPTIMIZER_AVAILABLE = False
 
 try:
-    from web.enhanced_chart_manager import EnhancedChartManager
+    from src.web.enhanced_chart_manager import EnhancedChartManager
     ENHANCED_CHART_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"強化チャート機能が利用できません: {e}")
-    ENHANCED_CHART_AVAILABLE = False
+except ImportError:
+    try:
+        from web.enhanced_chart_manager import EnhancedChartManager
+        ENHANCED_CHART_AVAILABLE = True
+    except ImportError as e:
+        logger.warning(f"強化チャート機能が利用できません: {e}")
+        ENHANCED_CHART_AVAILABLE = False
 
 class ImprovedSystemIntegrator:
     """改善システム統合クラス"""

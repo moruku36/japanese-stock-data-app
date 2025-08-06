@@ -101,16 +101,22 @@ try:
     
     # 改善機能の統合
     try:
-        from web.system_integrator import (
+        from src.web.system_integrator import (
             ImprovedSystemIntegrator, initialize_improved_app, get_system_integrator
         )
         IMPROVED_FEATURES_ENABLED = True
-    except ImportError as e:
-        st.warning(f"改善機能のインポートに失敗しました: {e}")
-        ImprovedSystemIntegrator = None
-        initialize_improved_app = None
-        get_system_integrator = None
-        IMPROVED_FEATURES_ENABLED = False
+    except ImportError:
+        try:
+            from web.system_integrator import (
+                ImprovedSystemIntegrator, initialize_improved_app, get_system_integrator
+            )
+            IMPROVED_FEATURES_ENABLED = True
+        except ImportError as e:
+            st.warning(f"改善機能のインポートに失敗しました: {e}")
+            ImprovedSystemIntegrator = None
+            initialize_improved_app = None
+            get_system_integrator = None
+            IMPROVED_FEATURES_ENABLED = False
 except ImportError as e:
     st.error(f"モジュールのインポートエラー: {e}")
     st.info("必要なモジュールがインストールされていない可能性があります。")
