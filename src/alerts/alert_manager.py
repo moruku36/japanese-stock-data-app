@@ -17,9 +17,18 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from enum import Enum
 import asyncio
-import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+
+# メール関連のインポートをオプション化
+try:
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    EMAIL_AVAILABLE = True
+except ImportError:
+    EMAIL_AVAILABLE = False
+    smtplib = None
+    MIMEText = None
+    MIMEMultipart = None
 
 logger = logging.getLogger(__name__)
 
@@ -326,7 +335,11 @@ class AlertManager:
             return
         
         try:
-            msg = MimeMultipart()
+            if not EMAIL_AVAILABLE:
+                logger.warning("メール機能が利用できません。インポートエラーです。")
+                return
+                
+            msg = MIMEMultipart()
             msg['From'] = self.notification_settings["email_username"]
             msg['To'] = self.notification_settings["email_username"]  # 自分宛て
             msg['Subject'] = f"株価アラート: {alert.company_name}({alert.symbol})"
@@ -343,7 +356,7 @@ class AlertManager:
 日本株式データ分析システム
             """
             
-            msg.attach(MimeText(body, 'plain', 'utf-8'))
+            msg.attach(MIMEText(body, 'plain', 'utf-8'))
             
             # SMTP送信
             server = smtplib.SMTP(self.notification_settings["email_smtp_server"], 

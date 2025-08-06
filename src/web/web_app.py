@@ -21,17 +21,16 @@ from typing import Dict, Any, List
 logger = logging.getLogger(__name__)
 
 # プロジェクトのモジュールをインポート
-import sys
-import os
+# sys と os は既にインポート済み
 
 # プロジェクトルートとsrcディレクトリをパスに追加
 current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, '..')
 project_root = os.path.join(src_dir, '..')
 
-# パスを設定
-sys.path.insert(0, src_dir)
-sys.path.insert(0, project_root)
+# パスを設定 - 絶対パスを使用
+sys.path.insert(0, os.path.abspath(src_dir))
+sys.path.insert(0, os.path.abspath(project_root))
 
 try:
     from core.stock_data_fetcher import JapaneseStockDataFetcher
@@ -86,20 +85,34 @@ try:
         ErrorSeverity = None
         SECURITY_ENABLED = False
     
-    # 新機能モジュールをインポート
+    # 新機能モジュールをインポート - 複数パターンで試行
+    HIGH_PRIORITY_FEATURES_ENABLED = False
+    show_alert_management_ui = None
+    show_portfolio_management_ui = None
+    show_enhanced_dashboard_ui = None
+    show_notifications = None
+    show_integrated_notifications = None
+    
+    # インポートパターン1: 直接インポート
     try:
         from alerts.alert_manager import show_alert_management_ui, show_notifications
         from portfolio.portfolio_manager import show_portfolio_management_ui
         from dashboard.enhanced_dashboard import show_enhanced_dashboard_ui, show_integrated_notifications
         HIGH_PRIORITY_FEATURES_ENABLED = True
-    except ImportError as e:
-        st.warning(f"高優先機能のインポートに失敗しました: {e}")
-        show_alert_management_ui = None
-        show_portfolio_management_ui = None
-        show_enhanced_dashboard_ui = None
-        show_notifications = None
-        show_integrated_notifications = None
-        HIGH_PRIORITY_FEATURES_ENABLED = False
+        st.success("✅ 高優先機能が正常にロードされました")
+    except ImportError:
+        # インポートパターン2: src prefix付き
+        try:
+            sys.path.append(src_dir)
+            from alerts.alert_manager import show_alert_management_ui, show_notifications
+            from portfolio.portfolio_manager import show_portfolio_management_ui  
+            from dashboard.enhanced_dashboard import show_enhanced_dashboard_ui, show_integrated_notifications
+            HIGH_PRIORITY_FEATURES_ENABLED = True
+            st.success("✅ 高優先機能が正常にロードされました（パターン2）")
+        except ImportError as e:
+            st.warning(f"⚠️ 高優先機能のインポートに失敗しました: {e}")
+            st.info("基本機能のみで動作します")
+            HIGH_PRIORITY_FEATURES_ENABLED = False
     
     # 新しいWeb機能をインポート
     try:
