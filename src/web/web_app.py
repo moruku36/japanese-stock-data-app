@@ -86,6 +86,21 @@ try:
         ErrorSeverity = None
         SECURITY_ENABLED = False
     
+    # 新機能モジュールをインポート
+    try:
+        from alerts.alert_manager import show_alert_management_ui, show_notifications
+        from portfolio.portfolio_manager import show_portfolio_management_ui
+        from dashboard.enhanced_dashboard import show_enhanced_dashboard_ui, show_integrated_notifications
+        HIGH_PRIORITY_FEATURES_ENABLED = True
+    except ImportError as e:
+        st.warning(f"高優先機能のインポートに失敗しました: {e}")
+        show_alert_management_ui = None
+        show_portfolio_management_ui = None
+        show_enhanced_dashboard_ui = None
+        show_notifications = None
+        show_integrated_notifications = None
+        HIGH_PRIORITY_FEATURES_ENABLED = False
+    
     # 新しいWeb機能をインポート
     try:
         from web.dashboard import DashboardManager
@@ -1281,6 +1296,14 @@ def main():
                 "🛠️ エラーハンドリング",
                 "📋 トラブルシューティング"
             ])
+    
+    # 高優先機能を追加
+    if HIGH_PRIORITY_FEATURES_ENABLED:
+        available_pages.extend([
+            "🎯 強化ダッシュボード",
+            "🔔 カスタムアラート", 
+            "💼 ポートフォリオ管理"
+        ])
     
     # セッション状態からページを取得、またはデフォルト値を設定
     if 'selected_page' not in st.session_state:
@@ -3568,6 +3591,29 @@ def main():
                         st.markdown("- パフォーマンスメトリクスを定期確認してください")
         else:
             st.warning("トラブルシューティング機能が利用できません")
+    
+    # 高優先機能のページ処理
+    elif page == "🎯 強化ダッシュボード" and HIGH_PRIORITY_FEATURES_ENABLED:
+        if show_enhanced_dashboard_ui:
+            show_enhanced_dashboard_ui()
+            if show_integrated_notifications:
+                show_integrated_notifications()
+        else:
+            st.error("強化ダッシュボード機能が利用できません")
+    
+    elif page == "🔔 カスタムアラート" and HIGH_PRIORITY_FEATURES_ENABLED:
+        if show_alert_management_ui:
+            show_alert_management_ui()
+            if show_notifications:
+                show_notifications()
+        else:
+            st.error("カスタムアラート機能が利用できません")
+    
+    elif page == "💼 ポートフォリオ管理" and HIGH_PRIORITY_FEATURES_ENABLED:
+        if show_portfolio_management_ui:
+            show_portfolio_management_ui()
+        else:
+            st.error("ポートフォリオ管理機能が利用できません")
 
 if __name__ == "__main__":
     main() 

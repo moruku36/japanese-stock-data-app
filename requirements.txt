@@ -48,6 +48,20 @@ alembic>=1.11.0
 
 # 改善機能の追加依存関係
 yfinance>=0.2.18
+
+# 高優先機能の依存関係
+# アラート・通知機能
+email-validator>=2.0.0
+schedule>=1.2.0
+
+# ポートフォリオ管理
+pypfopt>=1.5.5
+empyrical>=0.5.5
+ffn>=0.3.7
+
+# 強化ダッシュボード
+folium>=0.14.0
+wordcloud>=1.9.2
 alpha-vantage>=2.3.1
 httpx>=0.24.0
 tenacity>=8.2.0
