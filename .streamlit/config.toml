@@ -3,17 +3,7 @@ developmentMode = false
 
 [server]
 headless = true
-enableCORS = false
-enableXsrfProtection = false
 port = 8501
-runOnSave = true
-allowRunOnSave = true
 
 [browser]
-gatherUsageStats = false
-
-[theme]
-primaryColor = "#3b82f6"
-backgroundColor = "#1e1e1e"
-secondaryBackgroundColor = "#2d2d2d"
-textColor = "#ffffff" 
+gatherUsageStats = false 
