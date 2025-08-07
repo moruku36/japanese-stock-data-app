@@ -1,0 +1,18 @@
+# Exclude heavy / unnecessary directories from upload to Streamlit Cloud
+cache/
+cache/**
+stock_data/
+stock_data/**
+data/
+data/**
+logs/
+logs/**
+__pycache__/
+**/__pycache__/
+*.pkl
+*.log
+*.tmp
+*.zip
+docs/
+tests/
+archive/
