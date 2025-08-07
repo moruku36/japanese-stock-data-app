@@ -14,17 +14,30 @@ import secrets
 import re
 from typing import Optional
 
-# 高度なテクニカル分析用ライブラリ
+# 高度なテクニカル分析用ライブラリ（軽量化）
+ADVANCED_FEATURES_AVAILABLE = False
 try:
     import pandas_ta as ta
+    ADVANCED_FEATURES_AVAILABLE = True
+except ImportError:
+    pass
+
+# 統計分析ライブラリ（オプション）
+SCIPY_AVAILABLE = False
+SKLEARN_AVAILABLE = False
+try:
     from scipy import stats
+    SCIPY_AVAILABLE = True
+except ImportError:
+    pass
+
+try:
     from sklearn.preprocessing import StandardScaler
     from sklearn.cluster import DBSCAN
     from sklearn.ensemble import IsolationForest
-    ADVANCED_FEATURES_AVAILABLE = True
+    SKLEARN_AVAILABLE = True
 except ImportError:
-    ADVANCED_FEATURES_AVAILABLE = False
-    st.warning("高度なテクニカル分析機能が利用できません。pandas-ta, scipy, scikit-learnをインストールしてください。")
+    pass
 
 class SecurityManager:
     """軽量セキュリティ管理クラス"""
@@ -428,7 +441,7 @@ def calculate_advanced_indicators(hist, indicators_config):
 
 def detect_anomalies(hist, method='isolation_forest'):
     """異常値検出"""
-    if not ADVANCED_FEATURES_AVAILABLE:
+    if not ADVANCED_FEATURES_AVAILABLE or not SKLEARN_AVAILABLE:
         return hist, []
     
     try:
@@ -484,7 +497,7 @@ def detect_anomalies(hist, method='isolation_forest'):
 
 def analyze_trend(hist, method='linear_regression'):
     """トレンド分析"""
-    if not ADVANCED_FEATURES_AVAILABLE:
+    if not ADVANCED_FEATURES_AVAILABLE or not SCIPY_AVAILABLE:
         return {}
     
     try:
@@ -812,15 +825,19 @@ def show_technical_analysis(hist, selected_stock, user_info):
     elif analysis_type == "高度分析" and ADVANCED_FEATURES_AVAILABLE:
         show_advanced_analysis(hist, selected_stock)
     
-    elif analysis_type == "異常値検出" and ADVANCED_FEATURES_AVAILABLE:
+    elif analysis_type == "異常値検出" and ADVANCED_FEATURES_AVAILABLE and SKLEARN_AVAILABLE:
         show_anomaly_detection(hist, selected_stock)
     
-    elif analysis_type == "トレンド分析" and ADVANCED_FEATURES_AVAILABLE:
+    elif analysis_type == "トレンド分析" and ADVANCED_FEATURES_AVAILABLE and SCIPY_AVAILABLE:
         show_trend_analysis(hist, selected_stock)
     
     else:
         if not ADVANCED_FEATURES_AVAILABLE:
-            st.warning("高度な分析機能を利用するには、pandas-ta, scipy, scikit-learnをインストールしてください")
+            st.info("💡 高度な分析機能を利用するには、pandas-taライブラリが必要です")
+        elif analysis_type == "異常値検出" and not SKLEARN_AVAILABLE:
+            st.info("💡 異常値検出にはscikit-learnライブラリが必要です")
+        elif analysis_type == "トレンド分析" and not SCIPY_AVAILABLE:
+            st.info("💡 トレンド分析にはscipyライブラリが必要です")
         show_basic_technical_analysis(hist, selected_stock)
 
 def show_basic_technical_analysis(hist, selected_stock):
