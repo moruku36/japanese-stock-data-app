@@ -14,6 +14,18 @@ import secrets
 import re
 from typing import Optional
 
+# 高度なテクニカル分析用ライブラリ
+try:
+    import pandas_ta as ta
+    from scipy import stats
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.cluster import DBSCAN
+    from sklearn.ensemble import IsolationForest
+    ADVANCED_FEATURES_AVAILABLE = True
+except ImportError:
+    ADVANCED_FEATURES_AVAILABLE = False
+    st.warning("高度なテクニカル分析機能が利用できません。pandas-ta, scipy, scikit-learnをインストールしてください。")
+
 class SecurityManager:
     """軽量セキュリティ管理クラス"""
     
@@ -315,7 +327,7 @@ def show_all_stocks_list():
     st.info("💡 銘柄名の一部を入力して検索することができます。例: 「トヨタ」「ソニー」「銀行」など")
 
 def calculate_technical_indicators(hist):
-    """テクニカル指標を計算"""
+    """基本的なテクニカル指標を計算"""
     # 移動平均
     hist['MA5'] = hist['Close'].rolling(window=5).mean()
     hist['MA25'] = hist['Close'].rolling(window=25).mean()
@@ -337,6 +349,253 @@ def calculate_technical_indicators(hist):
     hist['BB_Lower'] = hist['BB_Middle'] - (bb_std_dev * bb_std)
     
     return hist
+
+def calculate_advanced_indicators(hist, indicators_config):
+    """高度なテクニカル指標を計算"""
+    if not ADVANCED_FEATURES_AVAILABLE:
+        return hist
+    
+    try:
+        # pandas_taを使用して高度な指標を計算
+        df = hist.copy()
+        
+        # EMA (指数移動平均)
+        if indicators_config.get('ema_enabled', False):
+            ema_periods = indicators_config.get('ema_periods', [12, 26, 50])
+            for period in ema_periods:
+                if len(df) > period:
+                    df[f'EMA_{period}'] = ta.ema(df['Close'], length=period)
+        
+        # MACD
+        if indicators_config.get('macd_enabled', False):
+            macd_fast = indicators_config.get('macd_fast', 12)
+            macd_slow = indicators_config.get('macd_slow', 26)
+            macd_signal = indicators_config.get('macd_signal', 9)
+            
+            macd_data = ta.macd(df['Close'], fast=macd_fast, slow=macd_slow, signal=macd_signal)
+            if macd_data is not None and len(macd_data.columns) >= 3:
+                df['MACD'] = macd_data.iloc[:, 0]
+                df['MACD_histogram'] = macd_data.iloc[:, 1]
+                df['MACD_signal'] = macd_data.iloc[:, 2]
+        
+        # Stochastic Oscillator
+        if indicators_config.get('stoch_enabled', False):
+            stoch_k = indicators_config.get('stoch_k', 14)
+            stoch_d = indicators_config.get('stoch_d', 3)
+            
+            stoch_data = ta.stoch(df['High'], df['Low'], df['Close'], k=stoch_k, d=stoch_d)
+            if stoch_data is not None and len(stoch_data.columns) >= 2:
+                df['Stoch_K'] = stoch_data.iloc[:, 0]
+                df['Stoch_D'] = stoch_data.iloc[:, 1]
+        
+        # Williams %R
+        if indicators_config.get('willr_enabled', False):
+            willr_period = indicators_config.get('willr_period', 14)
+            df['WillR'] = ta.willr(df['High'], df['Low'], df['Close'], length=willr_period)
+        
+        # ATR (Average True Range)
+        if indicators_config.get('atr_enabled', False):
+            atr_period = indicators_config.get('atr_period', 14)
+            df['ATR'] = ta.atr(df['High'], df['Low'], df['Close'], length=atr_period)
+        
+        # CCI (Commodity Channel Index)
+        if indicators_config.get('cci_enabled', False):
+            cci_period = indicators_config.get('cci_period', 20)
+            df['CCI'] = ta.cci(df['High'], df['Low'], df['Close'], length=cci_period)
+        
+        # OBV (On-Balance Volume)
+        if indicators_config.get('obv_enabled', False):
+            df['OBV'] = ta.obv(df['Close'], df['Volume'])
+        
+        # VWAP (Volume Weighted Average Price)
+        if indicators_config.get('vwap_enabled', False):
+            df['VWAP'] = ta.vwap(df['High'], df['Low'], df['Close'], df['Volume'])
+        
+        # ADX (Average Directional Index)
+        if indicators_config.get('adx_enabled', False):
+            adx_period = indicators_config.get('adx_period', 14)
+            adx_data = ta.adx(df['High'], df['Low'], df['Close'], length=adx_period)
+            if adx_data is not None and len(adx_data.columns) >= 3:
+                df['ADX'] = adx_data.iloc[:, 0]
+                df['DMP'] = adx_data.iloc[:, 1]  # +DI
+                df['DMN'] = adx_data.iloc[:, 2]  # -DI
+        
+        return df
+        
+    except Exception as e:
+        st.warning(f"高度な指標の計算中にエラーが発生しました: {str(e)}")
+        return hist
+
+def detect_anomalies(hist, method='isolation_forest'):
+    """異常値検出"""
+    if not ADVANCED_FEATURES_AVAILABLE:
+        return hist, []
+    
+    try:
+        # 価格データの準備
+        price_data = hist[['Open', 'High', 'Low', 'Close', 'Volume']].copy()
+        price_data = price_data.dropna()
+        
+        if len(price_data) < 10:
+            return hist, []
+        
+        # データの正規化
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(price_data)
+        
+        anomalies = []
+        
+        if method == 'isolation_forest':
+            # Isolation Forest による異常値検出
+            iso_forest = IsolationForest(contamination=0.1, random_state=42)
+            anomaly_labels = iso_forest.fit_predict(scaled_data)
+            
+            anomaly_indices = np.where(anomaly_labels == -1)[0]
+            for idx in anomaly_indices:
+                if idx < len(hist):
+                    anomalies.append({
+                        'date': hist.index[idx],
+                        'price': hist['Close'].iloc[idx],
+                        'type': 'isolation_forest',
+                        'score': iso_forest.score_samples(scaled_data[idx:idx+1])[0]
+                    })
+        
+        elif method == 'zscore':
+            # Z-score による異常値検出
+            for col in ['Close', 'Volume']:
+                if col in hist.columns:
+                    z_scores = np.abs(stats.zscore(hist[col].dropna()))
+                    anomaly_indices = np.where(z_scores > 3)[0]
+                    
+                    for idx in anomaly_indices:
+                        if idx < len(hist):
+                            anomalies.append({
+                                'date': hist.index[idx],
+                                'price': hist['Close'].iloc[idx],
+                                'type': f'zscore_{col.lower()}',
+                                'score': z_scores[idx]
+                            })
+        
+        return hist, anomalies
+        
+    except Exception as e:
+        st.warning(f"異常値検出中にエラーが発生しました: {str(e)}")
+        return hist, []
+
+def analyze_trend(hist, method='linear_regression'):
+    """トレンド分析"""
+    if not ADVANCED_FEATURES_AVAILABLE:
+        return {}
+    
+    try:
+        # データの準備
+        prices = hist['Close'].dropna()
+        if len(prices) < 10:
+            return {}
+        
+        x = np.arange(len(prices))
+        y = prices.values
+        
+        trend_analysis = {}
+        
+        if method == 'linear_regression':
+            # 線形回帰によるトレンド分析
+            slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+            
+            trend_analysis = {
+                'slope': slope,
+                'intercept': intercept,
+                'r_squared': r_value**2,
+                'p_value': p_value,
+                'trend_direction': 'up' if slope > 0 else 'down',
+                'trend_strength': abs(r_value),
+                'trend_line': intercept + slope * x
+            }
+        
+        elif method == 'polynomial':
+            # 多項式回帰によるトレンド分析
+            degree = 2
+            coeffs = np.polyfit(x, y, degree)
+            trend_line = np.polyval(coeffs, x)
+            
+            # R²の計算
+            ss_res = np.sum((y - trend_line) ** 2)
+            ss_tot = np.sum((y - np.mean(y)) ** 2)
+            r_squared = 1 - (ss_res / ss_tot)
+            
+            trend_analysis = {
+                'coefficients': coeffs,
+                'r_squared': r_squared,
+                'trend_line': trend_line,
+                'degree': degree
+            }
+        
+        return trend_analysis
+        
+    except Exception as e:
+        st.warning(f"トレンド分析中にエラーが発生しました: {str(e)}")
+        return {}
+
+def calculate_support_resistance(hist, method='pivot_points'):
+    """サポート・レジスタンスレベルの計算"""
+    try:
+        levels = []
+        
+        if method == 'pivot_points':
+            # ピボットポイント法
+            high = hist['High'].max()
+            low = hist['Low'].min()
+            close = hist['Close'].iloc[-1]
+            
+            pivot = (high + low + close) / 3
+            
+            # サポート・レジスタンスレベル
+            r1 = 2 * pivot - low
+            s1 = 2 * pivot - high
+            r2 = pivot + (high - low)
+            s2 = pivot - (high - low)
+            r3 = high + 2 * (pivot - low)
+            s3 = low - 2 * (high - pivot)
+            
+            levels = [
+                {'level': s3, 'type': 'support', 'strength': 3},
+                {'level': s2, 'type': 'support', 'strength': 2},
+                {'level': s1, 'type': 'support', 'strength': 1},
+                {'level': pivot, 'type': 'pivot', 'strength': 0},
+                {'level': r1, 'type': 'resistance', 'strength': 1},
+                {'level': r2, 'type': 'resistance', 'strength': 2},
+                {'level': r3, 'type': 'resistance', 'strength': 3}
+            ]
+        
+        elif method == 'local_extrema':
+            # ローカル極値法
+            prices = hist['Close'].values
+            window = 10
+            
+            for i in range(window, len(prices) - window):
+                # ローカル最大値（レジスタンス）
+                if all(prices[i] >= prices[i-j] and prices[i] >= prices[i+j] for j in range(1, window+1)):
+                    levels.append({
+                        'level': prices[i],
+                        'type': 'resistance',
+                        'strength': 1,
+                        'date': hist.index[i]
+                    })
+                
+                # ローカル最小値（サポート）
+                elif all(prices[i] <= prices[i-j] and prices[i] <= prices[i+j] for j in range(1, window+1)):
+                    levels.append({
+                        'level': prices[i],
+                        'type': 'support',
+                        'strength': 1,
+                        'date': hist.index[i]
+                    })
+        
+        return levels
+        
+    except Exception as e:
+        st.warning(f"サポート・レジスタンス計算中にエラーが発生しました: {str(e)}")
+        return []
 
 def show_fundamental_analysis(stock, info, hist, user_info, security_manager):
     """ファンダメンタル分析を表示"""
@@ -525,13 +784,47 @@ def show_fundamental_analysis(stock, info, hist, user_info, security_manager):
                 st.code(str(e))
 
 def show_technical_analysis(hist, selected_stock, user_info):
-    """テクニカル分析を表示"""
-    st.subheader("📈 テクニカル分析")
+    """高度なテクニカル分析を表示"""
+    st.subheader("📈 高度なテクニカル分析")
     
     if "write" not in user_info["permissions"]:
         st.warning("テクニカル分析の表示には書き込み権限が必要です")
         return
     
+    # 分析設定のサイドバー
+    with st.sidebar:
+        st.markdown("---")
+        st.subheader("⚙️ テクニカル分析設定")
+        
+        # 基本設定
+        analysis_type = st.selectbox(
+            "分析タイプ",
+            ["カスタム指標", "基本指標", "高度分析", "異常値検出", "トレンド分析"],
+            key="tech_analysis_type"
+        )
+    
+    if analysis_type == "基本指標":
+        show_basic_technical_analysis(hist, selected_stock)
+    
+    elif analysis_type == "カスタム指標" and ADVANCED_FEATURES_AVAILABLE:
+        show_custom_indicators(hist, selected_stock)
+    
+    elif analysis_type == "高度分析" and ADVANCED_FEATURES_AVAILABLE:
+        show_advanced_analysis(hist, selected_stock)
+    
+    elif analysis_type == "異常値検出" and ADVANCED_FEATURES_AVAILABLE:
+        show_anomaly_detection(hist, selected_stock)
+    
+    elif analysis_type == "トレンド分析" and ADVANCED_FEATURES_AVAILABLE:
+        show_trend_analysis(hist, selected_stock)
+    
+    else:
+        if not ADVANCED_FEATURES_AVAILABLE:
+            st.warning("高度な分析機能を利用するには、pandas-ta, scipy, scikit-learnをインストールしてください")
+        show_basic_technical_analysis(hist, selected_stock)
+
+def show_basic_technical_analysis(hist, selected_stock):
+    """基本的なテクニカル分析を表示"""
     try:
         # テクニカル指標を計算
         hist_with_indicators = calculate_technical_indicators(hist.copy())
@@ -585,132 +878,633 @@ def show_technical_analysis(hist, selected_stock, user_info):
         
         st.plotly_chart(fig_ma, use_container_width=True)
         
-        # ボリンジャーバンド
-        st.write("**📊 ボリンジャーバンド**")
+        # ボリンジャーバンドとRSI
+        col1, col2 = st.columns(2)
         
-        fig_bb = go.Figure()
+        with col1:
+            st.write("**📊 ボリンジャーバンド**")
+            
+            fig_bb = go.Figure()
+            
+            fig_bb.add_trace(go.Candlestick(
+                x=hist_with_indicators.index,
+                open=hist_with_indicators['Open'],
+                high=hist_with_indicators['High'],
+                low=hist_with_indicators['Low'],
+                close=hist_with_indicators['Close'],
+                name="価格",
+                opacity=0.6
+            ))
+            
+            fig_bb.add_trace(go.Scatter(
+                x=hist_with_indicators.index,
+                y=hist_with_indicators['BB_Upper'],
+                mode='lines',
+                name='上限バンド',
+                line=dict(color='red', dash='dash')
+            ))
+            
+            fig_bb.add_trace(go.Scatter(
+                x=hist_with_indicators.index,
+                y=hist_with_indicators['BB_Middle'],
+                mode='lines',
+                name='中央線(20日MA)',
+                line=dict(color='blue')
+            ))
+            
+            fig_bb.add_trace(go.Scatter(
+                x=hist_with_indicators.index,
+                y=hist_with_indicators['BB_Lower'],
+                mode='lines',
+                name='下限バンド',
+                line=dict(color='red', dash='dash')
+            ))
+            
+            fig_bb.update_layout(
+                title="ボリンジャーバンド",
+                yaxis_title="価格 (¥)",
+                height=300
+            )
+            
+            st.plotly_chart(fig_bb, use_container_width=True)
         
-        # ローソク足
-        fig_bb.add_trace(go.Candlestick(
-            x=hist_with_indicators.index,
-            open=hist_with_indicators['Open'],
-            high=hist_with_indicators['High'],
-            low=hist_with_indicators['Low'],
-            close=hist_with_indicators['Close'],
-            name="価格",
+        with col2:
+            st.write("**📊 RSI（相対力指数）**")
+            
+            fig_rsi = go.Figure()
+            
+            fig_rsi.add_trace(go.Scatter(
+                x=hist_with_indicators.index,
+                y=hist_with_indicators['RSI'],
+                mode='lines',
+                name='RSI',
+                line=dict(color='purple')
+            ))
+            
+            fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="買われすぎ(70)")
+            fig_rsi.add_hline(y=30, line_dash="dash", line_color="blue", annotation_text="売られすぎ(30)")
+            
+            fig_rsi.update_layout(
+                title="RSI",
+                yaxis_title="RSI",
+                yaxis=dict(range=[0, 100]),
+                height=300
+            )
+            
+            st.plotly_chart(fig_rsi, use_container_width=True)
+        
+        # シグナル分析
+        show_basic_signals(hist_with_indicators)
+        
+    except Exception as e:
+        st.error("基本テクニカル分析の処理中にエラーが発生しました")
+        st.code(str(e))
+
+def show_custom_indicators(hist, selected_stock):
+    """カスタマイズ可能な指標を表示"""
+    st.write("**⚙️ カスタムテクニカル指標**")
+    
+    # サイドバーで指標設定
+    with st.sidebar:
+        st.write("**指標設定**")
+        
+        # EMA設定
+        ema_enabled = st.checkbox("EMA (指数移動平均)", value=True)
+        ema_periods = []
+        if ema_enabled:
+            ema_12 = st.checkbox("EMA 12", value=True)
+            ema_26 = st.checkbox("EMA 26", value=True)
+            ema_50 = st.checkbox("EMA 50", value=False)
+            if ema_12: ema_periods.append(12)
+            if ema_26: ema_periods.append(26)
+            if ema_50: ema_periods.append(50)
+        
+        # MACD設定
+        macd_enabled = st.checkbox("MACD", value=True)
+        if macd_enabled:
+            macd_fast = st.slider("MACD Fast", 5, 20, 12)
+            macd_slow = st.slider("MACD Slow", 20, 35, 26)
+            macd_signal = st.slider("MACD Signal", 5, 15, 9)
+        
+        # その他の指標
+        stoch_enabled = st.checkbox("Stochastic Oscillator", value=False)
+        willr_enabled = st.checkbox("Williams %R", value=False)
+        atr_enabled = st.checkbox("ATR", value=False)
+        cci_enabled = st.checkbox("CCI", value=False)
+        obv_enabled = st.checkbox("OBV", value=False)
+        vwap_enabled = st.checkbox("VWAP", value=False)
+        adx_enabled = st.checkbox("ADX", value=False)
+    
+    # 指標設定
+    indicators_config = {
+        'ema_enabled': ema_enabled,
+        'ema_periods': ema_periods,
+        'macd_enabled': macd_enabled,
+        'stoch_enabled': stoch_enabled,
+        'willr_enabled': willr_enabled,
+        'atr_enabled': atr_enabled,
+        'cci_enabled': cci_enabled,
+        'obv_enabled': obv_enabled,
+        'vwap_enabled': vwap_enabled,
+        'adx_enabled': adx_enabled,
+    }
+    
+    if macd_enabled:
+        indicators_config.update({
+            'macd_fast': macd_fast,
+            'macd_slow': macd_slow,
+            'macd_signal': macd_signal
+        })
+    
+    # 高度な指標を計算
+    hist_advanced = calculate_advanced_indicators(hist.copy(), indicators_config)
+    
+    # チャート表示
+    if ema_enabled and ema_periods:
+        show_ema_chart(hist_advanced, selected_stock, ema_periods)
+    
+    if macd_enabled:
+        show_macd_chart(hist_advanced, selected_stock)
+    
+    # その他の指標を2列で表示
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if stoch_enabled and 'Stoch_K' in hist_advanced.columns:
+            show_stochastic_chart(hist_advanced)
+        
+        if atr_enabled and 'ATR' in hist_advanced.columns:
+            show_atr_chart(hist_advanced)
+        
+        if obv_enabled and 'OBV' in hist_advanced.columns:
+            show_obv_chart(hist_advanced)
+    
+    with col2:
+        if willr_enabled and 'WillR' in hist_advanced.columns:
+            show_willr_chart(hist_advanced)
+        
+        if cci_enabled and 'CCI' in hist_advanced.columns:
+            show_cci_chart(hist_advanced)
+        
+        if adx_enabled and 'ADX' in hist_advanced.columns:
+            show_adx_chart(hist_advanced)
+
+def show_ema_chart(hist, selected_stock, periods):
+    """EMAチャートを表示"""
+    st.write("**📊 EMA (指数移動平均)**")
+    
+    fig = go.Figure()
+    
+    # 価格
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['Close'],
+        mode='lines',
+        name='終値',
+        line=dict(color='black', width=2)
+    ))
+    
+    # EMA
+    colors = ['red', 'blue', 'green', 'orange', 'purple']
+    for i, period in enumerate(periods):
+        if f'EMA_{period}' in hist.columns:
+            fig.add_trace(go.Scatter(
+                x=hist.index,
+                y=hist[f'EMA_{period}'],
+                mode='lines',
+                name=f'EMA {period}',
+                line=dict(color=colors[i % len(colors)], width=1)
+            ))
+    
+    fig.update_layout(
+        title=f"{selected_stock} - EMA",
+        yaxis_title="価格 (¥)",
+        height=400
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_macd_chart(hist, selected_stock):
+    """MACDチャートを表示"""
+    if 'MACD' not in hist.columns:
+        return
+    
+    st.write("**📊 MACD**")
+    
+    fig = go.Figure()
+    
+    # MACD線
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['MACD'],
+        mode='lines',
+        name='MACD',
+        line=dict(color='blue')
+    ))
+    
+    # シグナル線
+    if 'MACD_signal' in hist.columns:
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['MACD_signal'],
+            mode='lines',
+            name='Signal',
+            line=dict(color='red')
+        ))
+    
+    # ヒストグラム
+    if 'MACD_histogram' in hist.columns:
+        fig.add_trace(go.Bar(
+            x=hist.index,
+            y=hist['MACD_histogram'],
+            name='Histogram',
+            marker_color='gray',
             opacity=0.6
         ))
-        
-        # ボリンジャーバンド
-        fig_bb.add_trace(go.Scatter(
-            x=hist_with_indicators.index,
-            y=hist_with_indicators['BB_Upper'],
+    
+    fig.add_hline(y=0, line_dash="dash", line_color="black")
+    
+    fig.update_layout(
+        title=f"{selected_stock} - MACD",
+        yaxis_title="MACD",
+        height=300
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_stochastic_chart(hist):
+    """ストキャスティクスチャートを表示"""
+    st.write("**📊 Stochastic Oscillator**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['Stoch_K'],
+        mode='lines',
+        name='%K',
+        line=dict(color='blue')
+    ))
+    
+    if 'Stoch_D' in hist.columns:
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['Stoch_D'],
             mode='lines',
-            name='上限バンド',
-            line=dict(color='red', dash='dash')
+            name='%D',
+            line=dict(color='red')
+        ))
+    
+    fig.add_hline(y=80, line_dash="dash", line_color="red", annotation_text="買われすぎ(80)")
+    fig.add_hline(y=20, line_dash="dash", line_color="blue", annotation_text="売られすぎ(20)")
+    
+    fig.update_layout(
+        title="Stochastic Oscillator",
+        yaxis_title="Stochastic",
+        yaxis=dict(range=[0, 100]),
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_willr_chart(hist):
+    """Williams %Rチャートを表示"""
+    st.write("**📊 Williams %R**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['WillR'],
+        mode='lines',
+        name='Williams %R',
+        line=dict(color='purple')
+    ))
+    
+    fig.add_hline(y=-20, line_dash="dash", line_color="red", annotation_text="買われすぎ(-20)")
+    fig.add_hline(y=-80, line_dash="dash", line_color="blue", annotation_text="売られすぎ(-80)")
+    
+    fig.update_layout(
+        title="Williams %R",
+        yaxis_title="Williams %R",
+        yaxis=dict(range=[-100, 0]),
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_atr_chart(hist):
+    """ATRチャートを表示"""
+    st.write("**📊 ATR (Average True Range)**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['ATR'],
+        mode='lines',
+        name='ATR',
+        line=dict(color='orange'),
+        fill='tonexty'
+    ))
+    
+    fig.update_layout(
+        title="ATR - ボラティリティ指標",
+        yaxis_title="ATR",
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_cci_chart(hist):
+    """CCIチャートを表示"""
+    st.write("**📊 CCI (Commodity Channel Index)**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['CCI'],
+        mode='lines',
+        name='CCI',
+        line=dict(color='green')
+    ))
+    
+    fig.add_hline(y=100, line_dash="dash", line_color="red", annotation_text="買われすぎ(100)")
+    fig.add_hline(y=-100, line_dash="dash", line_color="blue", annotation_text="売られすぎ(-100)")
+    fig.add_hline(y=0, line_dash="solid", line_color="black")
+    
+    fig.update_layout(
+        title="CCI",
+        yaxis_title="CCI",
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_obv_chart(hist):
+    """OBVチャートを表示"""
+    st.write("**📊 OBV (On-Balance Volume)**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['OBV'],
+        mode='lines',
+        name='OBV',
+        line=dict(color='brown')
+    ))
+    
+    fig.update_layout(
+        title="OBV - 出来高指標",
+        yaxis_title="OBV",
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_adx_chart(hist):
+    """ADXチャートを表示"""
+    st.write("**📊 ADX (Average Directional Index)**")
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=hist.index,
+        y=hist['ADX'],
+        mode='lines',
+        name='ADX',
+        line=dict(color='black', width=2)
+    ))
+    
+    if 'DMP' in hist.columns:
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['DMP'],
+            mode='lines',
+            name='+DI',
+            line=dict(color='green')
+        ))
+    
+    if 'DMN' in hist.columns:
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['DMN'],
+            mode='lines',
+            name='-DI',
+            line=dict(color='red')
+        ))
+    
+    fig.add_hline(y=25, line_dash="dash", line_color="orange", annotation_text="強いトレンド(25)")
+    
+    fig.update_layout(
+        title="ADX - トレンド強度",
+        yaxis_title="ADX",
+        height=250
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_advanced_analysis(hist, selected_stock):
+    """高度な統計分析を表示"""
+    st.write("**🔬 高度な統計分析**")
+    
+    # サポート・レジスタンス分析
+    st.write("**📊 サポート・レジスタンスレベル**")
+    
+    method = st.selectbox("計算方法", ["pivot_points", "local_extrema"], key="sr_method")
+    levels = calculate_support_resistance(hist, method)
+    
+    if levels:
+        # チャートに表示
+        fig = go.Figure()
+        
+        fig.add_trace(go.Candlestick(
+            x=hist.index,
+            open=hist['Open'],
+            high=hist['High'],
+            low=hist['Low'],
+            close=hist['Close'],
+            name="価格"
         ))
         
-        fig_bb.add_trace(go.Scatter(
-            x=hist_with_indicators.index,
-            y=hist_with_indicators['BB_Middle'],
+        # レベル線を追加
+        for level in levels:
+            color = 'red' if level['type'] == 'resistance' else 'blue' if level['type'] == 'support' else 'gray'
+            line_style = 'solid' if level['strength'] >= 2 else 'dash'
+            
+            fig.add_hline(
+                y=level['level'],
+                line_dash=line_style,
+                line_color=color,
+                annotation_text=f"{level['type'].title()} {level['level']:.0f}"
+            )
+        
+        fig.update_layout(
+            title=f"{selected_stock} - サポート・レジスタンスレベル",
+            yaxis_title="価格 (¥)",
+            height=500
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # レベル一覧表
+        levels_df = pd.DataFrame(levels)
+        if not levels_df.empty:
+            levels_df['level'] = levels_df['level'].round(0)
+            st.dataframe(levels_df, use_container_width=True)
+
+def show_anomaly_detection(hist, selected_stock):
+    """異常値検出を表示"""
+    st.write("**⚠️ 異常値検出**")
+    
+    method = st.selectbox("検出方法", ["isolation_forest", "zscore"], key="anomaly_method")
+    hist_analyzed, anomalies = detect_anomalies(hist, method)
+    
+    if anomalies:
+        # 異常値をチャートに表示
+        fig = go.Figure()
+        
+        fig.add_trace(go.Candlestick(
+            x=hist.index,
+            open=hist['Open'],
+            high=hist['High'],
+            low=hist['Low'],
+            close=hist['Close'],
+            name="価格"
+        ))
+        
+        # 異常値をマーク
+        anomaly_dates = [a['date'] for a in anomalies]
+        anomaly_prices = [a['price'] for a in anomalies]
+        
+        fig.add_trace(go.Scatter(
+            x=anomaly_dates,
+            y=anomaly_prices,
+            mode='markers',
+            name='異常値',
+            marker=dict(
+                symbol='x',
+                size=10,
+                color='red'
+            )
+        ))
+        
+        fig.update_layout(
+            title=f"{selected_stock} - 異常値検出",
+            yaxis_title="価格 (¥)",
+            height=500
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # 異常値一覧
+        st.write(f"**検出された異常値: {len(anomalies)}件**")
+        anomalies_df = pd.DataFrame(anomalies)
+        if not anomalies_df.empty:
+            anomalies_df['date'] = pd.to_datetime(anomalies_df['date']).dt.strftime('%Y-%m-%d')
+            anomalies_df['price'] = anomalies_df['price'].round(0)
+            st.dataframe(anomalies_df, use_container_width=True)
+    else:
+        st.info("異常値は検出されませんでした")
+
+def show_trend_analysis(hist, selected_stock):
+    """トレンド分析を表示"""
+    st.write("**📈 トレンド分析**")
+    
+    method = st.selectbox("分析方法", ["linear_regression", "polynomial"], key="trend_method")
+    trend_analysis = analyze_trend(hist, method)
+    
+    if trend_analysis:
+        # トレンドラインをチャートに表示
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['Close'],
             mode='lines',
-            name='中央線(20日MA)',
+            name='終値',
             line=dict(color='blue')
         ))
         
-        fig_bb.add_trace(go.Scatter(
-            x=hist_with_indicators.index,
-            y=hist_with_indicators['BB_Lower'],
-            mode='lines',
-            name='下限バンド',
-            line=dict(color='red', dash='dash')
-        ))
+        if 'trend_line' in trend_analysis:
+            fig.add_trace(go.Scatter(
+                x=hist.index,
+                y=trend_analysis['trend_line'],
+                mode='lines',
+                name='トレンドライン',
+                line=dict(color='red', dash='dash')
+            ))
         
-        fig_bb.update_layout(
-            title=f"{selected_stock} - ボリンジャーバンド",
+        fig.update_layout(
+            title=f"{selected_stock} - トレンド分析",
             yaxis_title="価格 (¥)",
             height=400
         )
         
-        st.plotly_chart(fig_bb, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
         
-        # RSI
-        st.write("**📊 RSI（相対力指数）**")
+        # 分析結果
+        col1, col2 = st.columns(2)
         
-        fig_rsi = go.Figure()
-        
-        fig_rsi.add_trace(go.Scatter(
-            x=hist_with_indicators.index,
-            y=hist_with_indicators['RSI'],
-            mode='lines',
-            name='RSI',
-            line=dict(color='purple')
-        ))
-        
-        # 買われすぎ・売られすぎライン
-        fig_rsi.add_hline(y=70, line_dash="dash", line_color="red", annotation_text="買われすぎ(70)")
-        fig_rsi.add_hline(y=30, line_dash="dash", line_color="blue", annotation_text="売られすぎ(30)")
-        
-        fig_rsi.update_layout(
-            title=f"{selected_stock} - RSI",
-            yaxis_title="RSI",
-            yaxis=dict(range=[0, 100]),
-            height=300
-        )
-        
-        st.plotly_chart(fig_rsi, use_container_width=True)
-        
-        # テクニカル分析サマリー
-        st.write("**🎯 テクニカル分析サマリー**")
-        
-        latest_data = hist_with_indicators.iloc[-1]
-        
-        # シグナル分析
-        signals = []
-        
-        # 移動平均のシグナル
-        if not pd.isna(latest_data['MA5']) and not pd.isna(latest_data['MA25']):
-            if latest_data['MA5'] > latest_data['MA25']:
-                signals.append("✅ 短期移動平均が中期移動平均を上回る（買いシグナル）")
-            else:
-                signals.append("❌ 短期移動平均が中期移動平均を下回る（売りシグナル）")
-        
-        # RSIのシグナル
-        if not pd.isna(latest_data['RSI']):
-            if latest_data['RSI'] > 70:
-                signals.append("⚠️ RSI買われすぎ圏（売り検討）")
-            elif latest_data['RSI'] < 30:
-                signals.append("⚠️ RSI売られすぎ圏（買い検討）")
-            else:
-                signals.append("📊 RSI中立圏")
-        
-        # ボリンジャーバンドのシグナル
-        if (not pd.isna(latest_data['BB_Upper']) and 
-            not pd.isna(latest_data['BB_Lower']) and
-            not pd.isna(latest_data['Close'])):
+        with col1:
+            if method == 'linear_regression':
+                direction = "上昇トレンド" if trend_analysis.get('slope', 0) > 0 else "下降トレンド"
+                st.metric("トレンド方向", direction)
+                st.metric("R²決定係数", f"{trend_analysis.get('r_squared', 0):.3f}")
             
-            if latest_data['Close'] > latest_data['BB_Upper']:
-                signals.append("⚠️ ボリンジャーバンド上限突破（売り検討）")
-            elif latest_data['Close'] < latest_data['BB_Lower']:
-                signals.append("⚠️ ボリンジャーバンド下限突破（買い検討）")
-            else:
-                signals.append("📊 ボリンジャーバンド範囲内")
+        with col2:
+            if method == 'linear_regression':
+                strength = trend_analysis.get('trend_strength', 0)
+                strength_text = "強い" if strength > 0.7 else "中程度" if strength > 0.4 else "弱い"
+                st.metric("トレンド強度", strength_text)
+                st.metric("傾き", f"{trend_analysis.get('slope', 0):.2f}")
+
+def show_basic_signals(hist):
+    """基本的なシグナル分析を表示"""
+    st.write("**🎯 テクニカルシグナル**")
+    
+    latest_data = hist.iloc[-1]
+    signals = []
+    
+    # 移動平均のシグナル
+    if not pd.isna(latest_data['MA5']) and not pd.isna(latest_data['MA25']):
+        if latest_data['MA5'] > latest_data['MA25']:
+            signals.append("✅ 短期移動平均が中期移動平均を上回る（買いシグナル）")
+        else:
+            signals.append("❌ 短期移動平均が中期移動平均を下回る（売りシグナル）")
+    
+    # RSIのシグナル
+    if not pd.isna(latest_data['RSI']):
+        if latest_data['RSI'] > 70:
+            signals.append("⚠️ RSI買われすぎ圏（売り検討）")
+        elif latest_data['RSI'] < 30:
+            signals.append("⚠️ RSI売られすぎ圏（買い検討）")
+        else:
+            signals.append("📊 RSI中立圏")
+    
+    # ボリンジャーバンドのシグナル
+    if (not pd.isna(latest_data['BB_Upper']) and 
+        not pd.isna(latest_data['BB_Lower']) and
+        not pd.isna(latest_data['Close'])):
         
-        for signal in signals:
-            st.write(signal)
-        
-        st.info("""
-        **テクニカル分析の注意点**
-        - 過去のデータに基づく分析であり、将来の株価を保証するものではありません
-        - 複数の指標を組み合わせて総合的に判断することが重要です
-        - ファンダメンタル分析も併用してください
-        """)
-        
-    except Exception as e:
-        st.error("テクニカル分析の処理中にエラーが発生しました")
-        if "admin" in user_info["permissions"]:
-            with st.expander("詳細エラー（管理者のみ）"):
-                st.code(str(e))
+        if latest_data['Close'] > latest_data['BB_Upper']:
+            signals.append("⚠️ ボリンジャーバンド上限突破（売り検討）")
+        elif latest_data['Close'] < latest_data['BB_Lower']:
+            signals.append("⚠️ ボリンジャーバンド下限突破（買い検討）")
+        else:
+            signals.append("📊 ボリンジャーバンド範囲内")
+    
+    for signal in signals:
+        st.write(signal)
+    
+    st.info("""
+    **テクニカル分析の注意点**
+    - 過去のデータに基づく分析であり、将来の株価を保証するものではありません
+    - 複数の指標を組み合わせて総合的に判断することが重要です
+    - ファンダメンタル分析も併用してください
+    """)
 
 def show_stock_comparison(base_stock_code, base_stock_name, period, user_info, security_manager):
     """銘柄比較機能"""
