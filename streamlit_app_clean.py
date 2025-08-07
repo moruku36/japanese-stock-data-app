@@ -53,24 +53,12 @@ st.markdown("**テスト版が正常に表示されています**")
 # ライブラリテスト
 try:
     import yfinance as yf
-    st.success("✅ yfinance利用可能")
+    st.success("yfinance利用可能")
 except:
-    st.warning("⚠️ yfinance利用不可")
+    st.warning("yfinance利用不可")
 
 try:
     import plotly
-    st.success("✅ plotly利用可能") 
+    st.success("plotly利用可能") 
 except:
-    st.warning("⚠️ plotly利用不可")
-
-# フッター
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: gray;'>
-    📈 日本株データ分析アプリ - 簡易版 | 
-    正常動作テスト版
-    </div>
-    """, 
-    unsafe_allow_html=True
-)
+    st.warning("plotly利用不可")
