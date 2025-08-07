@@ -1,19 +1,6 @@
-# 必須の基本依存関係
-pandas>=2.0.0
-numpy>=1.24.0
+# 最小限の必須依存関係
 streamlit>=1.28.0
-plotly>=5.15.0
-requests>=2.31.0
-
-# データ取得
+pandas>=1.5.0
+numpy>=1.21.0
 yfinance>=0.2.18
-
-# 軽量なテクニカル分析ライブラリ
-pandas-ta>=0.3.14
-
-# 基本的なユーティリティ
-python-dateutil>=2.8.0
-beautifulsoup4>=4.12.0
-
-# Streamlit Cloud対応
-protobuf<=3.20.3 
+plotly>=5.0.0 
