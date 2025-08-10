@@ -2,3 +2,7 @@ streamlit==1.37.0
 pandas
 yfinance
 plotly
+pandas_datareader
+aiohttp
+matplotlib
+seaborn

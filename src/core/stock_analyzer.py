@@ -80,8 +80,9 @@ class StockAnalyzer:
                 filepath = f"stock_data/{filename}"
                 plt.savefig(filepath, dpi=300, bbox_inches='tight')
                 print(f"チャートを保存しました: {filepath}")
-            
-            plt.show()
+            else:
+                # 非表示モードでは描画をスキップ
+                plt.close()
             
         except Exception as e:
             print(f"チャート作成に失敗: {e}")
@@ -207,8 +208,9 @@ class StockAnalyzer:
                 filepath = f"stock_data/{filename}"
                 plt.savefig(filepath, dpi=300, bbox_inches='tight')
                 print(f"テクニカル分析チャートを保存しました: {filepath}")
-            
-            plt.show()
+            else:
+                # 非表示モードでは描画をスキップ
+                plt.close()
             
         except Exception as e:
             print(f"テクニカル分析チャートの作成に失敗: {e}")

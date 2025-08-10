@@ -1808,8 +1808,9 @@ class FundamentalAnalyzer:
             filepath = f"stock_data/{filename}"
             plt.savefig(filepath, dpi=300, bbox_inches='tight')
             print(f"ファンダメンタル分析チャートを保存しました: {filepath}")
-        
-        plt.show()
+        else:
+            # 非表示モードでは描画をスキップ
+            plt.close()
     
     def generate_fundamental_report(self, ticker_symbol: str):
         """

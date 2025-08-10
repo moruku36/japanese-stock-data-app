@@ -18,10 +18,7 @@ plt.rcParams['font.family'] = ['Arial Unicode MS', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 # プロジェクトのモジュールをインポート
-from stock_data_fetcher import JapaneseStockDataFetcher
-from stock_analyzer import StockAnalyzer
-from company_search import CompanySearch
-from fundamental_analyzer import FundamentalAnalyzer
+# 先にパス設定を行う
 import sys
 import os
 
@@ -31,8 +28,14 @@ src_dir = os.path.join(current_dir, '..')
 project_root = os.path.join(src_dir, '..')
 
 # パスを設定
-sys.path.insert(0, src_dir)
-sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.abspath(src_dir))
+sys.path.insert(0, os.path.abspath(project_root))
+
+# パッケージ配下から正しいモジュールパスで読み込む
+from core.stock_data_fetcher import JapaneseStockDataFetcher
+from core.stock_analyzer import StockAnalyzer
+from core.company_search import CompanySearch
+from analysis.fundamental_analyzer import FundamentalAnalyzer
 
 from config.config import config
 from utils.utils import ProgressBar, format_currency, format_number

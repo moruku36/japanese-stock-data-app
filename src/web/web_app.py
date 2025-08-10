@@ -20,6 +20,60 @@ from typing import Dict, Any, List
 # ログ設定
 logger = logging.getLogger(__name__)
 
+# 機能フラグ（必ず事前に初期化しておく）
+HIGH_PRIORITY_FEATURES_ENABLED = False
+NEW_FEATURES_ENABLED = False
+IMPROVED_FEATURES_ENABLED = False
+
+def render_minimal_app():
+    """依存関係が揃っていない場合に表示する最小動作版UI"""
+    st.title("📈 日本株データ分析アプリ - 最小版")
+    from datetime import datetime as _dt
+    st.success("✅ 最小軽量版が正常に動作しています！")
+    st.info(f"起動時刻: {_dt.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    import pandas as _pd
+    test_data = _pd.DataFrame({
+        '銘柄コード': ['7203', '9984', '6758'],
+        '企業名': ['トヨタ自動車', 'ソフトバンクG', 'ソニーG'],
+        '株価': [2500, 6000, 12000],
+        '前日比': ['+50', '-100', '+200']
+    })
+    st.dataframe(test_data, use_container_width=True)
+    selected = st.selectbox("銘柄を選択してください", [f"{r['銘柄コード']} - {r['企業名']}" for _, r in test_data.iterrows()])
+    st.write(f"選択: {selected}")
+    st.markdown("---")
+    # かんたん取得ツール（可能なら本物のフェッチャーで動かす）
+    st.markdown("### 🔎 クイック最新株価取得")
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        _ticker = st.text_input("銘柄コード (例: 7203)", value="7203")
+    with col2:
+        _source = st.selectbox("データソース", ["stooq", "yahoo"], index=0)
+    with col3:
+        _do_fetch = st.button("取得", use_container_width=True)
+    if _do_fetch and _ticker.strip():
+        try:
+            from core.stock_data_fetcher import JapaneseStockDataFetcher as _Fetcher
+            _f = _Fetcher(max_workers=2)
+            _data = _f.get_latest_price(_ticker.strip(), _source)
+            if "error" not in _data:
+                st.success("データ取得に成功しました")
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("終値", f"{_data['close']:,.0f}円")
+                m2.metric("始値", f"{_data['open']:,.0f}円")
+                m3.metric("高値", f"{_data['high']:,.0f}円")
+                m4.metric("安値", f"{_data['low']:,.0f}円")
+                st.caption(f"日付: {_data['date']} / ソース: {_data['source']}")
+            else:
+                st.error(f"取得エラー: {_data['error']}")
+        except Exception as _e:
+            st.warning(f"フェッチャーの初期化に失敗しました: {_e}")
+    st.markdown("---")
+    if st.button("🚀 フル機能を起動する (再試行)"):
+        st.session_state["force_full"] = True
+        st.rerun()
+    st.info("一部のモジュールが利用できないため、基本機能のみを提供しています。必要な依存関係をインストールすると全機能が有効になります。")
+
 # プロジェクトのモジュールをインポート
 # sys と os は既にインポート済み
 
@@ -37,6 +91,14 @@ if os.path.exists('/app'):  # Streamlit Cloud環境
     streamlit_cloud_src = '/app/src'
     if os.path.exists(streamlit_cloud_src):
         sys.path.insert(0, streamlit_cloud_src)
+
+"""最初のStreamlitコールは必ず st.set_page_config() にする（import時の警告より前）"""
+st.set_page_config(
+    page_title="🇯🇵 日本の株価データ分析システム",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 try:
     from core.stock_data_fetcher import JapaneseStockDataFetcher
@@ -194,13 +256,7 @@ except ImportError as e:
     OptimizedCache = None
     SECURITY_ENABLED = False
 
-# ページ設定
-st.set_page_config(
-    page_title="🇯🇵 日本の株価データ分析システム",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# ページ設定はファイル先頭で実施済み
 
 # カスタムCSS
 st.markdown("""
@@ -808,8 +864,8 @@ def initialize_system():
         advanced_data_manager = AdvancedDataManager()
         technical_analyzer = TechnicalAnalyzer() if TechnicalAnalyzer else None
         
-        # リアルタイムデータ管理を初期化
-        real_time_manager = RealTimeDataManager()
+        # リアルタイムデータ管理を初期化（利用不可ならNone）
+        real_time_manager = RealTimeDataManager() if 'RealTimeDataManager' in globals() and RealTimeDataManager else None
         
         # パフォーマンス監視終了
         if PerformanceMonitor:
@@ -1231,13 +1287,26 @@ def main():
             return
         
         # システム初期化
+        # フル機能を強制再試行するフラグ
+        force_full = st.session_state.get("force_full", False)
         with st.spinner('🚀 システムを初期化中...'):
             fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager = initialize_system()
         
-        if not all([fetcher, analyzer, company_searcher, fundamental_analyzer, advanced_data_manager, technical_analyzer, real_time_manager]):
-            st.error("❌ システムの初期化に失敗しました。")
-            st.info("🔄 ページを再読み込みするか、しばらく時間をおいてから再度お試しください。")
+        # 必須コンポーネントのみチェック（任意機能はNone許容）
+        core_ready = all([
+            fetcher,
+            analyzer,
+            company_searcher,
+            fundamental_analyzer,
+            advanced_data_manager,
+        ])
+        if not core_ready and not force_full:
+            # 最小モードにフォールバック
+            render_minimal_app()
             return
+        # フラグは使い切り
+        if force_full:
+            st.session_state["force_full"] = False
     except Exception as e:
         if SECURITY_ENABLED and error_handler:
             error_info = error_handler.handle_error(
