@@ -13,7 +13,7 @@
    - GitHubアカウントでログイン
    - 「New app」をクリック
    - リポジトリを選択
-   - **Main file path**: `web_app.py`
+   - **Main file path**: `streamlit_app.py`
    - **Python version**: 3.11以上
    - 「Deploy!」をクリック
 
@@ -25,9 +25,7 @@
 
 ```
 japanese-stock-data-app/
-├── web_app.py              # Streamlit Cloud用エントリーポイント
-├── streamlit_app.py        # ローカル用エントリーポイント
-├── main.py                 # CLI用エントリーポイント
+├── streamlit_app.py        # エントリーポイント（Cloud/ローカル共通）
 ├── requirements.txt        # Python依存関係
 ├── .streamlit/
 │   └── config.toml        # Streamlit設定
@@ -78,11 +76,11 @@ textColor = "#262730"
 このエラーが発生した場合：
 
 1. **ファイル名の確認**
-   - プロジェクトルートに`web_app.py`が存在することを確認
+   - プロジェクトルートに`streamlit_app.py`が存在することを確認
    - ファイル名が正確であることを確認
 
 2. **パスの確認**
-   - `web_app.py`がプロジェクトルートにあることを確認
+   - `streamlit_app.py`がプロジェクトルートにあることを確認
    - サブディレクトリに配置されていないことを確認
 
 3. **インポートエラーの確認**
@@ -92,7 +90,7 @@ textColor = "#262730"
 ### モジュールインポートエラー
 
 1. **sys.pathの設定確認**
-   - `web_app.py`で`sys.path.insert(0, src_dir)`が設定されていることを確認
+   - `streamlit_app.py`で`sys.path.insert(0, src_dir)`が設定されていることを確認
    - `sys.path.insert(0, project_root)`が設定されていることを確認
 
 2. **依存関係の確認**
@@ -103,7 +101,7 @@ textColor = "#262730"
 
 1. **ローカルで変更をテスト**
    ```bash
-   streamlit run web_app.py
+   streamlit run streamlit_app.py
    ```
 
 2. **GitHubにプッシュ**

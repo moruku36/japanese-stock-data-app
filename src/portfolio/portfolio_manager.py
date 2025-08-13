@@ -18,7 +18,12 @@ import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
-import yfinance as yf
+try:
+    import yfinance as yf  # type: ignore
+    _YF_AVAILABLE = True
+except Exception:
+    yf = None  # type: ignore
+    _YF_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 

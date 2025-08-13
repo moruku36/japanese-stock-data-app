@@ -6,26 +6,12 @@
 
 ## 🎯 エントリーポイントファイル
 
-以下のいずれかのファイルをStreamlit Cloudのエントリーポイントとして指定してください：
+Streamlit Cloudのエントリーポイントには、次を指定してください：
 
-### 推奨順位
-
-1. **`streamlit_app.py`** （最推奨）
-   - セキュア軽量版のメインファイル
-   - 認証・認可システム搭載
-   - Streamlit Cloud最適化済み
-
-2. **`app.py`**
-   - streamlit_app.pyのエイリアス
-   - 軽量エントリーポイント
-
-3. **`main.py`**
-   - 代替エントリーポイント
-   - streamlit_app.pyを参照
-
-4. **`web_app.py`**
-   - フォールバック用
-   - streamlit_app.pyを参照
+- **`streamlit_app.py`**（推奨・単一）
+  - セキュア軽量版のメインファイル
+  - 認証・認可システム搭載
+  - Streamlit Cloud最適化済み
 
 ## ⚙️ Streamlit Cloud 設定
 

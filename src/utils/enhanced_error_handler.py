@@ -473,6 +473,18 @@ class EnhancedErrorHandler:
             logger.error(f"エラーログのエクスポートに失敗: {e}")
             raise
 
+    # === コールバックAPI（互換用） ===
+    def register_error_callback(self, category: ErrorCategory, callback: Callable):
+        """カテゴリ別のエラー表示コールバックを登録"""
+        self.error_callbacks[category] = callback
+
+    def unregister_error_callback(self, category: ErrorCategory):
+        if category in self.error_callbacks:
+            del self.error_callbacks[category]
+
+    def clear_error_callbacks(self):
+        self.error_callbacks.clear()
+
 # グローバルインスタンス
 enhanced_error_handler = EnhancedErrorHandler()
 

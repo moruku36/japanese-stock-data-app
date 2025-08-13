@@ -15,8 +15,18 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import logging
 from typing import Dict, List, Tuple, Any
-from scipy.optimize import minimize
-import yfinance as yf
+try:
+    from scipy.optimize import minimize  # type: ignore
+    _SCIPY_AVAILABLE = True
+except Exception:
+    minimize = None  # type: ignore
+    _SCIPY_AVAILABLE = False
+try:
+    import yfinance as yf  # type: ignore
+    _YF_AVAILABLE = True
+except Exception:
+    yf = None  # type: ignore
+    _YF_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +97,18 @@ class PortfolioOptimizer:
     
     def optimize_portfolio(self, returns: pd.DataFrame, objective: str = 'sharpe') -> Dict[str, Any]:
         """ポートフォリオ最適化"""
+        if not _SCIPY_AVAILABLE or minimize is None:
+            st.warning("scipyが見つからないため最適化をスキップします。requirements.txtでscipyをインストールしてください。")
+            n_assets = len(returns.columns)
+            weights = np.array([1/n_assets] * n_assets)
+            metrics = self.calculate_portfolio_metrics(weights, returns)
+            return {
+                'weights': weights,
+                'tickers': returns.columns.tolist(),
+                'metrics': metrics,
+                'success': True,
+                'note': 'scipy未インストールのため等重みを返却'
+            }
         n_assets = len(returns.columns)
         
         # 制約条件

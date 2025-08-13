@@ -99,6 +99,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# 重複設定防止フラグ（UI最適化側の安全設定と整合）
+try:
+    import streamlit as _st
+    _st.session_state["_page_config_applied"] = True
+except Exception:
+    pass
 
 try:
     from core.stock_data_fetcher import JapaneseStockDataFetcher
@@ -206,8 +212,10 @@ try:
         from web.portfolio_optimization import PortfolioOptimizer
         from web.api_monitoring import APIMonitor
         NEW_FEATURES_ENABLED = True
-    except ImportError as e:
-        st.warning(f"新しい機能のインポートに失敗しました: {e}")
+    except Exception as e:
+        st.warning("新機能のインポートに失敗しました。requirements.txt の依存関係を確認してください。")
+        with st.expander("詳細 (クリックで展開)"):
+            st.code(str(e))
         DashboardManager = None
         PortfolioOptimizer = None
         APIMonitor = None
@@ -215,17 +223,19 @@ try:
     
     # 改善機能の統合
     try:
-        from src.web.system_integrator import (
+        # まず相対パス優先
+        from web.system_integrator import (
             ImprovedSystemIntegrator, initialize_improved_app, get_system_integrator
         )
         IMPROVED_FEATURES_ENABLED = True
-    except ImportError:
+    except Exception:
         try:
-            from web.system_integrator import (
+            # 明示srcパスも試す
+            from src.web.system_integrator import (
                 ImprovedSystemIntegrator, initialize_improved_app, get_system_integrator
             )
             IMPROVED_FEATURES_ENABLED = True
-        except ImportError as e:
+        except Exception as e:
             st.warning(f"改善機能のインポートに失敗しました: {e}")
             ImprovedSystemIntegrator = None
             initialize_improved_app = None
@@ -1105,17 +1115,33 @@ def create_stock_price_chart(df, ticker_symbol):
 def show_login_page(auth_manager, authz_manager, error_handler):
     """ログインページを表示"""
     st.markdown("""
-    <div style="text-align: center; margin: 2rem 0;">
-        <h2 style="color: #3b82f6;">🔐 ログイン</h2>
-        <p style="color: #6c757d;">システムにログインしてください</p>
+    <div style="display:flex; justify-content:center;">
+      <div style="max-width:520px; width:100%; background:#ffffff; border:1px solid #e5e7eb; border-radius:14px; padding:24px; box-shadow: 0 10px 20px rgba(0,0,0,0.04);">
+        <div style="text-align:center; margin-bottom: 1rem;">
+          <h2 style="color:#111827; margin:0;">🔐 ログイン</h2>
+          <p style="color:#6b7280; margin:4px 0 0;">アカウントでサインイン、またはゲストで開始</p>
+        </div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
-    
+
+    if 'show_password' not in st.session_state:
+        st.session_state.show_password = False
+
     # ログインフォーム
     with st.form("login_form"):
         username = st.text_input("ユーザー名", placeholder="ユーザー名を入力")
-        password = st.text_input("パスワード", type="password", placeholder="パスワードを入力")
-        
+        # パスワード表示切替
+        pw_col1, pw_col2 = st.columns([3,1])
+        with pw_col1:
+            password = st.text_input(
+                "パスワード",
+                type=("text" if st.session_state.show_password else "password"),
+                placeholder="パスワードを入力"
+            )
+        with pw_col2:
+            st.checkbox("表示", key="show_password")
+
         col1, col2 = st.columns(2)
         with col1:
             login_button = st.form_submit_button("🔐 ログイン", use_container_width=True)
@@ -1182,13 +1208,13 @@ def show_login_page(auth_manager, authz_manager, error_handler):
     
     # テスト用アカウント情報
     st.markdown("""
-    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 2rem;">
-        <h4 style="color: #495057;">🧪 テスト用アカウント</h4>
-        <p style="color: #6c757d; margin: 0;">
-            <strong>管理者:</strong> admin / admin123<br>
-            <strong>一般ユーザー:</strong> user / user123<br>
-            <strong>ゲスト:</strong> ゲストとして利用ボタンをクリック
-        </p>
+    <div style="background:#f9fafb; padding:16px; border-radius:12px; margin-top:16px; border:1px solid #eef2f7;">
+      <h4 style="color:#111827; margin:0 0 6px;">🧪 テスト用アカウント</h4>
+      <div style="color:#4b5563;">
+        <div><strong>管理者:</strong> admin / admin123</div>
+        <div><strong>一般ユーザー:</strong> user / user123</div>
+        <div><strong>ゲスト:</strong> 「ゲストとして利用」をクリック</div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1276,10 +1302,9 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # 改善機能の状態表示
+        # 改善機能の状態表示（エクスパンダ内でさらにエクスパンダを使うため直置き表示）
         if system_integrator:
-            with st.expander("🎯 システム改善機能の状態", expanded=False):
-                system_integrator.show_system_status()
+            system_integrator.show_system_status()
         
         # 認証チェック
         if SECURITY_ENABLED and not st.session_state.authenticated:
@@ -1317,8 +1342,19 @@ def main():
             )
             user_message = error_handler.get_user_friendly_message(error_info)
             st.error(f"❌ アプリケーションの起動に失敗しました: {user_message}")
+            try:
+                with st.expander("エラー詳細"):
+                    st.write(f"種類: {error_info.get('error_type')}")
+                    st.write(f"メッセージ: {error_info.get('error_message')}")
+                    tb = error_info.get('traceback')
+                    if tb:
+                        st.code(tb)
+            except Exception:
+                pass
         else:
             st.error(f"❌ アプリケーションの起動に失敗しました: {e}")
+            with st.expander("エラー詳細"):
+                st.exception(e)
         st.info("📞 エラーが解決しない場合は、管理者にお問い合わせください。")
         return
     
@@ -1415,8 +1451,9 @@ def main():
     if 'selected_page' not in st.session_state:
         st.session_state.selected_page = "🏠 ホーム"
     
+    st.sidebar.markdown("### ナビゲーション")
     page = st.sidebar.selectbox(
-        "🎯 機能を選択してください",
+        "機能",
         available_pages,
         index=available_pages.index(st.session_state.selected_page) if st.session_state.selected_page in available_pages else 0,
         help="利用したい機能を選択してください"
@@ -1438,6 +1475,40 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
+        # クイックアクセス
+        st.markdown("""
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; margin-bottom: 16px;">
+          <button style="padding:12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;">📈 最新株価</button>
+          <button style="padding:12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;">📊 チャート</button>
+          <button style="padding:12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;">⚡ リアルタイム</button>
+          <button style="padding:12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;">🏢 ファンダメンタル</button>
+          <button style="padding:12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer;">⚖️ 比較</button>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ボタンクリックをPython側で反映
+        q1, q2, q3, q4, q5 = st.columns(5)
+        with q1:
+            if st.button("📈 最新株価", use_container_width=True):
+                st.session_state.selected_page = "📈 最新株価"
+                st.rerun()
+        with q2:
+            if st.button("📊 チャート", use_container_width=True):
+                st.session_state.selected_page = "📊 株価チャート"
+                st.rerun()
+        with q3:
+            if st.button("⚡ リアルタイム", use_container_width=True):
+                st.session_state.selected_page = "⚡ リアルタイム監視"
+                st.rerun()
+        with q4:
+            if st.button("🏢 ファンダメンタル", use_container_width=True):
+                st.session_state.selected_page = "🏢 ファンダメンタル分析"
+                st.rerun()
+        with q5:
+            if st.button("⚖️ 比較", use_container_width=True):
+                st.session_state.selected_page = "⚖️ 財務指標比較"
+                st.rerun()
+
         # システム概要カード
         st.markdown("""
         <div class="section-header">
@@ -1953,31 +2024,40 @@ def main():
                         })
                 
                 if chart_data:
-                    df_chart = pd.DataFrame(chart_data)
+                    try:
+                        import pandas as _pd
+                        df_chart = _pd.DataFrame(chart_data)
+                    except Exception:
+                        st.warning("pandas が利用できないため、リアルタイムチャートを簡易表示に切り替えます。")
+                        df_chart = None
                     
                     # 価格チャート
-                    fig_price = px.bar(
-                        df_chart, 
-                        x='ticker', 
-                        y='price',
-                        title="リアルタイム株価",
-                        color='change',
-                        color_continuous_scale='RdYlGn'
-                    )
-                    fig_price.update_layout(height=400)
-                    st.plotly_chart(fig_price, use_container_width=True)
+                    if df_chart is not None:
+                        fig_price = px.bar(
+                            df_chart, 
+                            x='ticker', 
+                            y='price',
+                            title="リアルタイム株価",
+                            color='change',
+                            color_continuous_scale='RdYlGn'
+                        )
+                        fig_price.update_layout(height=400)
+                        st.plotly_chart(fig_price, use_container_width=True)
+                    else:
+                        st.table(chart_data)
                     
                     # 変動率チャート
-                    fig_change = px.bar(
-                        df_chart, 
-                        x='ticker', 
-                        y='change',
-                        title="価格変動率 (%)",
-                        color='change',
-                        color_continuous_scale='RdYlGn'
-                    )
-                    fig_change.update_layout(height=400)
-                    st.plotly_chart(fig_change, use_container_width=True)
+                    if df_chart is not None:
+                        fig_change = px.bar(
+                            df_chart, 
+                            x='ticker', 
+                            y='change',
+                            title="価格変動率 (%)",
+                            color='change',
+                            color_continuous_scale='RdYlGn'
+                        )
+                        fig_change.update_layout(height=400)
+                        st.plotly_chart(fig_change, use_container_width=True)
                 
                 # 自動更新機能
                 st.markdown("### 🔄 自動更新")
@@ -3597,7 +3677,6 @@ def main():
                             # サンプルデータを生成してチャートを表示
                             import pandas as pd
                             import numpy as np
-                            from datetime import datetime, timedelta
                             
                             dates = pd.date_range(start=datetime.now() - timedelta(days=30), end=datetime.now(), freq='D')
                             sample_data = pd.DataFrame({

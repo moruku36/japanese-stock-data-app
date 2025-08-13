@@ -26,7 +26,6 @@ japanese-stock-data-app/
 │   │   ├── streamlit_app_ultra_light.py
 │   │   └── streamlit_app_v2.py
 │   └── old_files/             # 古いファイル
-│       ├── main.py
 │       ├── app.py
 │       ├── web_app.py
 │       ├── test_*.py

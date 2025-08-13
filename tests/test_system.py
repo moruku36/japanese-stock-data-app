@@ -248,7 +248,7 @@ def main():
     if passed == total:
         print("\n🎉 すべてのテストが成功しました！システムは正常に動作します。")
         print("\n🚀 システムを起動するには以下のコマンドを実行してください:")
-        print("   python main.py")
+        print("   streamlit run streamlit_app.py")
     else:
         print(f"\n⚠️ {total - passed}個のテストが失敗しました。")
         print("エラーメッセージを確認して、必要なパッケージをインストールしてください。")

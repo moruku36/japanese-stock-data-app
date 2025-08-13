@@ -95,10 +95,17 @@ class UIOptimizer:
         elif mode == UIMode.MOBILE:
             self._apply_mobile_settings()
     
+    def _safe_set_page_config(self, **kwargs):
+        """Streamlitのページ設定を一度だけ適用（重複呼び出しを回避）"""
+        key = "_page_config_applied"
+        if not st.session_state.get(key, False):
+            st.set_page_config(**kwargs)
+            st.session_state[key] = True
+
     def _apply_lite_settings(self):
         """軽量版設定を適用"""
         # Streamlit設定
-        st.set_page_config(
+        self._safe_set_page_config(
             page_title="株価分析 (軽量版)",
             layout="centered",  # ワイドレイアウトを無効
             initial_sidebar_state="collapsed"
@@ -578,16 +585,16 @@ def init_optimized_ui():
     if 'ui_optimizer' not in st.session_state:
         st.session_state.ui_optimizer = ui_optimizer
     
-    # ページ設定
+    # ページ設定（重複防止）
     if ui_optimizer.ui_mode == UIMode.LITE:
-        st.set_page_config(
+        ui_optimizer._safe_set_page_config(
             page_title="株価分析システム (軽量版)",
             page_icon="📊",
             layout="centered",
             initial_sidebar_state="collapsed"
         )
     else:
-        st.set_page_config(
+        ui_optimizer._safe_set_page_config(
             page_title="株価分析システム",
             page_icon="📊",
             layout="wide",

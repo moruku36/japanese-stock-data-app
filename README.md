@@ -118,7 +118,7 @@ pip install -r requirements.txt
 #### 2. Webアプリケーションのローカル実行
 
 ```bash
-streamlit run web_app.py
+streamlit run streamlit_app.py
 ```
 
 ローカルでWebアプリケーションを実行する場合は、ブラウザで `http://localhost:8501` にアクセスしてください。
@@ -274,7 +274,6 @@ japanese-stock-data-app/
 │   │   ├── error_handler.py
 │   │   └── utils.py
 │   └── web/                   # Web関連
-│       ├── main.py
 │       └── web_app.py
 ├── tests/                     # テストファイル
 │   ├── __init__.py
@@ -285,13 +284,11 @@ japanese-stock-data-app/
 │   ├── test_security.py
 │   └── test_system.py
 ├── .gitignore                 # Git除外設定
-├── main.py                    # メインエントリーポイント
 ├── README.md                  # このファイル
 ├── README_Streamlit.md        # Streamlit専用README
 ├── requirements.txt           # 依存関係
 ├── streamlit_app.py          # Streamlit Webアプリ
 ├── test_advanced_fundamental.py # 高度分析テスト
-└── web_app.py                # レガシーWebアプリ
 ```
 
 ## 🎨 出力されるチャート

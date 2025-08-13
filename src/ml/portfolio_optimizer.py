@@ -12,7 +12,12 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Tuple
 import cvxpy as cp
-from scipy.optimize import minimize
+try:
+    from scipy.optimize import minimize  # type: ignore
+    _SCIPY_AVAILABLE = True
+except Exception:
+    minimize = None  # type: ignore
+    _SCIPY_AVAILABLE = False
 import plotly.graph_objects as go
 import plotly.express as px
 from dataclasses import dataclass

@@ -28,9 +28,12 @@ except ImportError:
     st.warning("Plotly が利用できません。基本的なチャート機能のみ利用可能です。")
 
 try:
-    import yfinance as yf
+    import yfinance as yf  # type: ignore
+    _YF_AVAILABLE = True
     YFINANCE_AVAILABLE = True
-except ImportError:
+except Exception:
+    yf = None  # type: ignore
+    _YF_AVAILABLE = False
     YFINANCE_AVAILABLE = False
     st.warning("yfinance が利用できません。デモデータを使用します。")
 

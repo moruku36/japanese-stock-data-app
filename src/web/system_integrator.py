@@ -142,6 +142,12 @@ class ImprovedSystemIntegrator:
         except Exception as e:
             logger.error(f"Streamlit初期化エラー: {e}")
             st.error("アプリケーションの初期化中にエラーが発生しました")
+            try:
+                with st.expander("エラー詳細"):
+                    st.exception(e)
+            except Exception:
+                # 安全側フォールバック
+                st.caption(f"詳細: {e}")
     
     def _setup_error_callbacks(self):
         """エラーハンドリングコールバックを設定"""
@@ -316,20 +322,21 @@ class ImprovedSystemIntegrator:
         if not self.error_handler:
             return
         
-        with st.expander("🛠️ トラブルシューティングガイド", expanded=False):
-            guide = self.error_handler.get_troubleshooting_guide()
-            
-            st.markdown("**一般的な解決手順**")
-            for step in guide["general_steps"]:
-                st.markdown(f"- {step}")
-            
-            st.markdown("**よくある問題と解決策**")
-            for issue in guide["common_issues"]:
-                with st.expander(issue["issue"]):
-                    for solution in issue["solutions"]:
-                        st.markdown(f"**{solution['title']}**")
-                        for step in solution["steps"]:
-                            st.markdown(f"- {step}")
+        # ネスト禁止のため、外側のエクスパンダを使わずフラットに表示
+        st.markdown("### 🛠️ トラブルシューティングガイド")
+        guide = self.error_handler.get_troubleshooting_guide()
+        
+        st.markdown("**一般的な解決手順**")
+        for step in guide["general_steps"]:
+            st.markdown(f"- {step}")
+        
+        st.markdown("**よくある問題と解決策**")
+        for issue in guide["common_issues"]:
+            st.markdown(f"#### {issue['issue']}")
+            for solution in issue["solutions"]:
+                st.markdown(f"**{solution['title']}**")
+                for step in solution["steps"]:
+                    st.markdown(f"- {step}")
     
     def handle_user_input_error(self, error: Exception, user_input: str = ""):
         """ユーザー入力エラーを処理"""

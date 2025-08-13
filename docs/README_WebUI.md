@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ### 2. WebUIの起動
 
 ```bash
-streamlit run web_app.py
+streamlit run streamlit_app.py
 ```
 
 ブラウザで `http://localhost:8501` にアクセスすると、WebUIが表示されます。
