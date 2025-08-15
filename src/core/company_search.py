@@ -58,6 +58,84 @@ class CompanySearch:
         except Exception as e:
             print(f"❌ 会社データの読み込みに失敗: {e}")
             return []
+
+    def _save_company_data(self) -> None:
+        """会社データを保存（動的拡張を永続化）"""
+        try:
+            data = {"companies": self.companies}
+            with open(self.data_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            # 保存失敗は致命的ではないため警告のみ
+            print(f"⚠️ 会社データの保存に失敗: {e}")
+
+    def _fetch_company_from_remote(self, code: str) -> Optional[Dict]:
+        """外部から会社情報を取得（yfinance）し、辞書形式で返す。
+
+        Returns None if not found or on error.
+        """
+        try:
+            import yfinance as yf  # lazy import
+        except Exception:
+            return None
+
+        try:
+            ticker = yf.Ticker(f"{code}.T")
+            name = None
+            sector = None
+            market = "東証"
+
+            # yfinanceの情報取得は環境によって差があるためフォールバック多段
+            try:
+                info = getattr(ticker, 'info', {}) or {}
+                name = info.get('shortName') or info.get('longName')
+                sector = info.get('sector')
+            except Exception:
+                info = {}
+
+            if not name:
+                try:
+                    fast = getattr(ticker, 'fast_info', None)
+                    if fast:
+                        name = fast.get('shortName') or name
+                except Exception:
+                    pass
+
+            if not name:
+                # 名前が取れなくてもコードだけで登録可能にする
+                name = f"銘柄{code}"
+            if not sector:
+                sector = "不明"
+
+            return {
+                'code': code,
+                'name': name,
+                'sector': sector,
+                'market': market
+            }
+        except Exception:
+            return None
+
+    def _add_or_update_company(self, company: Dict) -> Dict:
+        """社内リストへ追加（既存なら更新）し、保存する"""
+        # 既存チェック
+        for i, c in enumerate(self.companies):
+            if c.get('code') == company.get('code'):
+                # 既存をアップデート（欠損のみ補完）
+                updated = {
+                    'code': c.get('code', company.get('code')),
+                    'name': c.get('name', company.get('name')),
+                    'sector': c.get('sector', company.get('sector', '不明')),
+                    'market': c.get('market', company.get('market', '東証')),
+                }
+                self.companies[i] = updated
+                self._save_company_data()
+                return updated
+
+        # 新規追加
+        self.companies.append(company)
+        self._save_company_data()
+        return company
     
     def search_by_name(self, query: str, limit: int = 10) -> List[Dict]:
         """
@@ -125,6 +203,21 @@ class CompanySearch:
         for company in self.companies:
             if company['code'] == code:
                 return company
+
+        # 未登録の場合でも、4桁の日本株コードは動的に解決を試みる
+        if code.isdigit() and len(code) == 4:
+            remote = self._fetch_company_from_remote(code)
+            if remote:
+                return self._add_or_update_company(remote)
+            # リモート取得に失敗してもスタブを登録して分析できるようにする
+            stub = {
+                'code': code,
+                'name': f"銘柄{code}",
+                'sector': '不明',
+                'market': '東証'
+            }
+            return self._add_or_update_company(stub)
+
         return None
     
     def search_by_sector(self, sector: str, limit: int = 20) -> List[Dict]:
