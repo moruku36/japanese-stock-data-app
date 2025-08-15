@@ -16,6 +16,11 @@ import sys
 import time
 import logging
 from typing import Dict, Any, List
+try:
+    # Streamlitの再実行例外（rerun時に投げられる）
+    from streamlit.runtime.scriptrunner.script_runner import RerunException  # type: ignore
+except Exception:
+    RerunException = Exception  # フォールバック（ローカル実行互換）
 
 # ログ設定
 logger = logging.getLogger(__name__)
@@ -71,7 +76,11 @@ def render_minimal_app():
     st.markdown("---")
     if st.button("🚀 フル機能を起動する (再試行)"):
         st.session_state["force_full"] = True
-        st.rerun()
+        try:
+            st.rerun()
+        except RerunException:
+            # Streamlitの内部再実行制御を安全に握りつぶす
+            pass
     st.info("一部のモジュールが利用できないため、基本機能のみを提供しています。必要な依存関係をインストールすると全機能が有効になります。")
 
 # プロジェクトのモジュールをインポート
@@ -1333,8 +1342,12 @@ def main():
             advanced_data_manager,
         ])
         if not core_ready and not force_full:
-            # 最小モードにフォールバック
-            render_minimal_app()
+            # 最小モードにフォールバック（rerunを伴わない安全な描画のみに制限）
+            try:
+                render_minimal_app()
+            except RerunException:
+                # rerunは無視して継続（再実行指示で落ちないように）
+                pass
             return
         # フラグは使い切り
         if force_full:
