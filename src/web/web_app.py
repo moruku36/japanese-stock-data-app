@@ -16,11 +16,7 @@ import sys
 import time
 import logging
 from typing import Dict, Any, List
-try:
-    # Streamlitの再実行例外（rerun時に投げられる）
-    from streamlit.runtime.scriptrunner.script_runner import RerunException  # type: ignore
-except Exception:
-    RerunException = Exception  # フォールバック（ローカル実行互換）
+# rerun例外の直接捕捉は避け、再試行はセッションフラグだけで制御（安定性優先）
 
 # ログ設定
 logger = logging.getLogger(__name__)
@@ -75,12 +71,9 @@ def render_minimal_app():
             st.warning(f"フェッチャーの初期化に失敗しました: {_e}")
     st.markdown("---")
     if st.button("🚀 フル機能を起動する (再試行)"):
+        # ボタン自体が再実行を誘発するため、明示的な st.rerun は不要
         st.session_state["force_full"] = True
-        try:
-            st.rerun()
-        except RerunException:
-            # Streamlitの内部再実行制御を安全に握りつぶす
-            pass
+        st.info("フル機能の起動を再試行します…依存関係が揃っていれば次回レンダリングで有効化されます。")
     st.info("一部のモジュールが利用できないため、基本機能のみを提供しています。必要な依存関係をインストールすると全機能が有効になります。")
 
 # プロジェクトのモジュールをインポート
@@ -1317,9 +1310,11 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # 改善機能の状態表示（エクスパンダ内でさらにエクスパンダを使うため直置き表示）
+        # 改善機能の状態表示（開発情報はデフォルト非表示）
         if system_integrator:
-            system_integrator.show_system_status()
+            show_dev_info = st.sidebar.toggle("開発情報を表示", value=False, help="システム状態や内部情報を表示")
+            if show_dev_info:
+                system_integrator.show_system_status()
         
         # 認証チェック（シンプルUXのため、未認証時はゲストで自動利用可）
         if SECURITY_ENABLED and not st.session_state.authenticated:
@@ -1342,12 +1337,8 @@ def main():
             advanced_data_manager,
         ])
         if not core_ready and not force_full:
-            # 最小モードにフォールバック（rerunを伴わない安全な描画のみに制限）
-            try:
-                render_minimal_app()
-            except RerunException:
-                # rerunは無視して継続（再実行指示で落ちないように）
-                pass
+            # 最小モードにフォールバック（rerunは行わない）
+            render_minimal_app()
             return
         # フラグは使い切り
         if force_full:
