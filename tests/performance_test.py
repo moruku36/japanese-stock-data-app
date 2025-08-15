@@ -8,8 +8,8 @@
 import time
 import asyncio
 from datetime import datetime, timedelta
-from advanced_data_sources import AdvancedDataManager
-from async_data_sources import run_async_data_fetch_sync
+from analysis.advanced_data_sources import AdvancedDataManager
+from data.async_data_sources import run_async_data_fetch_sync
 
 def test_sync_performance():
     """同期処理の性能テスト"""

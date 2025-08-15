@@ -22,6 +22,12 @@ except ImportError:
             self.rate_limit = rate_limit
             self.period = period
         
+        async def __aenter__(self):
+            return self
+        
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+        
         async def acquire(self):
             pass
         
