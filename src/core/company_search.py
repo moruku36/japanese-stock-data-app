@@ -8,6 +8,7 @@
 
 import json
 import os
+import sys
 from typing import List, Dict, Optional, Tuple
 from difflib import SequenceMatcher
 
@@ -383,6 +384,17 @@ class CompanySearch:
 
 def main():
     """テスト用メイン関数"""
+    # WindowsコンソールでのUTF-8絵文字出力時のUnicodeEncodeError回避
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        try:
+            import io
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        except Exception:
+            pass
     searcher = CompanySearch()
     
     print("=== 会社名検索システム ===")

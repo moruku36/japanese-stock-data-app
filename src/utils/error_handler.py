@@ -184,11 +184,29 @@ class ErrorHandler:
                 ErrorSeverity.HIGH.value: "認証エラーが発生しました。",
                 ErrorSeverity.CRITICAL.value: "セキュリティエラーが発生しました。"
             },
+            ErrorCategory.AUTHORIZATION.value: {
+                ErrorSeverity.LOW.value: "一部の操作に対する権限がありません。",
+                ErrorSeverity.MEDIUM.value: "必要な権限が不足しています。管理者にお問い合わせください。",
+                ErrorSeverity.HIGH.value: "操作がブロックされました。権限設定を確認してください。",
+                ErrorSeverity.CRITICAL.value: "重大な認可エラーが発生しました。管理者に連絡してください。"
+            },
             ErrorCategory.SYSTEM.value: {
                 ErrorSeverity.LOW.value: "システムに軽微な問題が発生しました。",
                 ErrorSeverity.MEDIUM.value: "システムエラーが発生しました。",
                 ErrorSeverity.HIGH.value: "システムに問題が発生しました。",
                 ErrorSeverity.CRITICAL.value: "システムが停止しました。管理者に連絡してください。"
+            },
+            ErrorCategory.USER_INPUT.value: {
+                ErrorSeverity.LOW.value: "入力内容をご確認ください。",
+                ErrorSeverity.MEDIUM.value: "入力値に不備があります。もう一度やり直してください。",
+                ErrorSeverity.HIGH.value: "無効な入力が検出されました。サポートにお問い合わせください。",
+                ErrorSeverity.CRITICAL.value: "重大な入力エラーが発生しました。管理者に連絡してください。"
+            },
+            ErrorCategory.EXTERNAL_API.value: {
+                ErrorSeverity.LOW.value: "外部サービスからの応答が遅延しています。",
+                ErrorSeverity.MEDIUM.value: "外部APIでエラーが発生しました。しばらくしてから再試行してください。",
+                ErrorSeverity.HIGH.value: "外部サービスが一時的に利用できません。後ほどお試しください。",
+                ErrorSeverity.CRITICAL.value: "外部サービスで重大な障害が発生しました。管理者に連絡してください。"
             }
         }
         

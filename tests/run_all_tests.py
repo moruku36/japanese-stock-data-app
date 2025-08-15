@@ -12,6 +12,23 @@ import subprocess
 import time
 from datetime import datetime
 
+def _ensure_utf8_stdio():
+    """WindowsコンソールでUTF-8絵文字出力時のUnicodeEncodeError回避"""
+    try:
+        # Python 3.7+
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        try:
+            import io
+            sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+            sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+        except Exception:
+            # 最悪の場合は何もしない（絵文字は欠落するがテストは継続）
+            pass
+
+_ensure_utf8_stdio()
+
 def run_test_file(test_file):
     """個別のテストファイルを実行"""
     print(f"\n{'='*60}")
@@ -21,11 +38,18 @@ def run_test_file(test_file):
     start_time = time.time()
     
     try:
+        # Windows コンソールでの絵文字/日本語出力用に UTF-8 を強制
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
+        # subprocess 側でも UTF-8 でデコード、不可文字は置換
         result = subprocess.run(
             [sys.executable, test_file],
             capture_output=True,
             text=True,
-            cwd=os.path.dirname(test_file)
+            cwd=os.path.dirname(test_file),
+            env=env,
+            encoding="utf-8",
+            errors="replace"
         )
         
         end_time = time.time()

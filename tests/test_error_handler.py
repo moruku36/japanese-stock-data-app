@@ -209,7 +209,10 @@ class TestCustomErrors(unittest.TestCase):
 
 def run_error_handler_tests():
     """エラーハンドリングテストを実行"""
-    print("⚠️ エラーハンドリング機能テストを開始...")
+    try:
+        print("⚠️ エラーハンドリング機能テストを開始...")
+    except Exception:
+        print("[ERROR_HANDLER] エラーハンドリング機能テストを開始...")
     
     # テストスイートを作成
     test_suite = unittest.TestSuite()
@@ -223,19 +226,28 @@ def run_error_handler_tests():
     result = runner.run(test_suite)
     
     # 結果を表示
-    print(f"\n📊 エラーハンドリングテスト結果:")
+    try:
+        print(f"\n📊 エラーハンドリングテスト結果:")
+    except Exception:
+        print("\n[ERROR_HANDLER] テスト結果:")
     print(f"  実行テスト数: {result.testsRun}")
     print(f"  成功: {result.testsRun - len(result.failures) - len(result.errors)}")
     print(f"  失敗: {len(result.failures)}")
     print(f"  エラー: {len(result.errors)}")
     
     if result.failures:
-        print("\n❌ 失敗したテスト:")
+        try:
+            print("\n❌ 失敗したテスト:")
+        except Exception:
+            print("\n[ERROR_HANDLER] 失敗したテスト:")
         for test, traceback in result.failures:
             print(f"  - {test}: {traceback}")
     
     if result.errors:
-        print("\n⚠️ エラーが発生したテスト:")
+        try:
+            print("\n⚠️ エラーが発生したテスト:")
+        except Exception:
+            print("\n[ERROR_HANDLER] エラーが発生したテスト:")
         for test, traceback in result.errors:
             print(f"  - {test}: {traceback}")
     

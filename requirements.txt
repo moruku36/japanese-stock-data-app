@@ -10,3 +10,6 @@ PyJWT
 scipy>=1.11,<2.0
 requests>=2.31
 psutil
+beautifulsoup4
+asyncio-throttle
+pytest
