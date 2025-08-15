@@ -1271,6 +1271,12 @@ def main():
         system_integrator = None
         if IMPROVED_FEATURES_ENABLED:
             system_integrator = initialize_improved_app()
+            try:
+                # UI最適化の簡易適用（軽量表示を優先）
+                if 'ui_optimizer' in st.session_state:
+                    st.session_state.ui_optimizer.set_ui_mode(st.session_state.ui_optimizer.ui_mode)
+            except Exception:
+                pass
         
         # セキュリティ機能の初期化
         if SECURITY_ENABLED:
@@ -1306,10 +1312,11 @@ def main():
         if system_integrator:
             system_integrator.show_system_status()
         
-        # 認証チェック
+        # 認証チェック（シンプルUXのため、未認証時はゲストで自動利用可）
         if SECURITY_ENABLED and not st.session_state.authenticated:
-            show_login_page(auth_manager, authz_manager, error_handler)
-            return
+            st.session_state.authenticated = True
+            st.session_state.user_role = 'guest'
+            st.session_state.username = 'guest'
         
         # システム初期化
         # フル機能を強制再試行するフラグ
@@ -1392,6 +1399,124 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
+    # シンプルUIトグル（既定: ON）
+    if 'use_simple_ui' not in st.session_state:
+        st.session_state.use_simple_ui = True
+    st.session_state.use_simple_ui = st.sidebar.toggle("シンプルUI", value=st.session_state.use_simple_ui)
+
+    # シンプルUI: タブでフル機能に直接アクセス
+    if st.session_state.use_simple_ui:
+        tabs = st.tabs(["🏠 ホーム", "🎯 ダッシュボード", "📈 最適化", "📡 監視", "🔬 分析"])
+
+        # 🏠 ホーム: クイック最新株価
+        with tabs[0]:
+            st.markdown("""
+            <div class="fade-in">
+                <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 1rem;">🏠 ホーム</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+            col1, col2, col3 = st.columns([2,1,1])
+            with col1:
+                simple_ticker = st.text_input("銘柄コード", value="7203", placeholder="例: 7203")
+            with col2:
+                simple_source = st.selectbox("データソース", ["stooq", "yahoo"], index=0)
+            with col3:
+                if st.button("最新株価を取得", use_container_width=True):
+                    try:
+                        data = get_cached_data(
+                            f"latest_price_{simple_source}_{simple_ticker}",
+                            simple_ticker,
+                            _fetcher=fetcher
+                        )
+                        if "error" not in data:
+                            m1, m2, m3, m4 = st.columns(4)
+                            m1.metric("終値", format_currency_web(data['close']))
+                            m2.metric("始値", format_currency_web(data['open']))
+                            m3.metric("高値", format_currency_web(data['high']))
+                            m4.metric("安値", format_currency_web(data['low']))
+                            st.caption(f"日付: {data['date']} / ソース: {data['source']}")
+                        else:
+                            st.error(f"取得エラー: {data['error']}")
+                    except Exception as e:
+                        st.error(f"エラー: {e}")
+
+        # 🎯 ダッシュボード
+        with tabs[1]:
+            if NEW_FEATURES_ENABLED and 'render_dashboard' in globals():
+                try:
+                    from web.dashboard import render_dashboard  # 安全に再インポート
+                    render_dashboard()
+                except Exception as e:
+                    st.error(f"ダッシュボードの表示に失敗しました: {e}")
+            else:
+                st.info("ダッシュボード機能は現在利用できません")
+
+        # 📈 最適化
+        with tabs[2]:
+            if NEW_FEATURES_ENABLED and 'PortfolioOptimizer' in globals():
+                try:
+                    from web.portfolio_optimization import render_portfolio_optimization
+                    render_portfolio_optimization()
+                except Exception as e:
+                    st.error(f"ポートフォリオ最適化の表示に失敗しました: {e}")
+            else:
+                st.info("ポートフォリオ最適化機能は現在利用できません")
+
+        # 📡 監視
+        with tabs[3]:
+            if NEW_FEATURES_ENABLED and 'APIMonitor' in globals():
+                try:
+                    from web.api_monitoring import render_api_monitoring
+                    render_api_monitoring()
+                except Exception as e:
+                    st.error(f"API監視の表示に失敗しました: {e}")
+            else:
+                st.info("API監視機能は現在利用できません")
+
+        # 🔬 分析（シンプルなチャート）
+        with tabs[4]:
+            st.markdown("""
+            <div class="fade-in">
+                <h2 style="color: #2563eb; font-weight: 700; margin-bottom: 1rem;">🔬 分析</h2>
+            </div>
+            """, unsafe_allow_html=True)
+
+            a1, a2, a3 = st.columns([2,1,1])
+            with a1:
+                aticker = st.text_input("銘柄コード", value="7203")
+            with a2:
+                adays = st.number_input("日数", min_value=5, max_value=365, value=60)
+            with a3:
+                asource = st.selectbox("ソース", ["stooq", "yahoo"], index=0)
+
+            if st.button("チャート表示", type="primary"):
+                try:
+                    end_date = datetime.now().strftime('%Y-%m-%d')
+                    start_date = (datetime.now() - timedelta(days=int(adays))).strftime('%Y-%m-%d')
+                    if asource == "stooq":
+                        df = fetcher.fetch_stock_data_stooq(aticker, start_date, end_date)
+                    else:
+                        df = fetcher.fetch_stock_data_yahoo(aticker, start_date, end_date)
+
+                    if df is not None and not df.empty:
+                        fig = go.Figure(data=[
+                            go.Candlestick(
+                                x=df.index,
+                                open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'],
+                                name="Price"
+                            )
+                        ])
+                        fig.update_layout(height=500, xaxis_title='日付', yaxis_title='株価 (円)')
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("データが見つかりませんでした")
+                except Exception as e:
+                    st.error(f"表示エラー: {e}")
+
+        # シンプルUI利用時はここで終了（詳細ナビは非表示）
+        return
+
     # 機能選択（権限に応じて表示）
     available_pages = ["🏠 ホーム", "📈 最新株価"]
     
