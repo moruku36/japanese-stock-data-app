@@ -130,6 +130,28 @@ streamlit run streamlit_app.py
 
 ローカルでWebアプリケーションを実行する場合は、ブラウザで `http://localhost:8501` にアクセスしてください。
 
+### 🐳 Docker での実行（推奨）
+
+```bash
+# ビルド
+docker compose build
+
+# 起動（初回はプロジェクト直下に .env を用意して環境変数を設定）
+docker compose up -d
+
+# 停止
+docker compose down
+```
+
+`.env` の例:
+```
+JWT_SECRET_KEY=your-jwt-secret
+SECURITY_PASSWORD=your-kdf-password
+SECURITY_SALT=your-kdf-salt
+DATABASE_URL=sqlite:////app/database/app.db
+PIP_CONSTRAINT=/app/constraints.txt
+```
+
 ## 📊 利用可能なデータソース
 
 ### 基本データソース

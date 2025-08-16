@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: japanese-stock-data-app
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-secret}
+      - SECURITY_PASSWORD=${SECURITY_PASSWORD:-dev-password}
+      - SECURITY_SALT=${SECURITY_SALT:-dev-salt}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/database/app.db}
+      - PIP_CONSTRAINT=/app/constraints.txt
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./stock_data:/app/stock_data
+      - ./data:/app/data
+      - ./database:/app/database
+    restart: unless-stopped
+
+
