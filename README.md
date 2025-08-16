@@ -115,6 +115,13 @@
 pip install -r requirements.txt
 ```
 
+### CI/CD
+
+GitHub Actions による自動化を追加しました。
+
+- `.github/workflows/ci.yml`: main への push/PR で lint(ruff), format(black --check), pytest(coverage) を実行します。
+- `.github/workflows/deploy.yml`: `v*.*.*` タグの push をトリガーにスモークテストを実行し、Streamlit Cloud へのデプロイを促します（必要ならWebhook/API連携を追加してください）。
+
 #### 2. Webアプリケーションのローカル実行
 
 ```bash
