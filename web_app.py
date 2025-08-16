@@ -12,8 +12,7 @@ import sys
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, CURRENT_DIR)
 
-from streamlit_app import main  # type: ignore
-
 if __name__ == "__main__":
+    from streamlit_app import main  # type: ignore
     main()
 
