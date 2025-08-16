@@ -106,6 +106,7 @@ class ImprovedSystemIntegrator:
             
             # セキュリティ管理
             if ENHANCED_SECURITY_AVAILABLE:
+                # 環境変数 JWT_SECRET_KEY が未設定の場合は明示的にエラーにする
                 self.security_manager = EnhancedSecurityManager()
                 logger.info("強化セキュリティを初期化")
             

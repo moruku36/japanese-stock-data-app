@@ -88,7 +88,9 @@ class EnhancedSecurityManager:
             secret_key (str): JWT署名用の秘密鍵
             encryption_key (str): 暗号化用のキー
         """
-        self.secret_key = secret_key or self._generate_secret_key()
+        self.secret_key = secret_key or os.environ.get('JWT_SECRET_KEY')
+        if not self.secret_key:
+            raise ValueError("JWT署名のための環境変数 'JWT_SECRET_KEY' が設定されていません。")
         self.encryption_key = encryption_key
         self.fernet = self._initialize_encryption()
         
