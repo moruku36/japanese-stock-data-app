@@ -71,6 +71,15 @@ textColor = "#262730"
 
 ## 🐛 トラブルシューティング
 
+### 依存競合（rich 14系 など）
+
+`streamlit==1.37.0` は `rich<14` を要求します。環境に `rich 14.x` が入っている場合は以下で修復してください。
+
+```bash
+pip uninstall -y rich markdown-it-py mdurl Pygments
+pip install -r requirements.txt -c constraints.txt --upgrade --force-reinstall
+```
+
 ### 「Main module does not exist」エラー
 
 このエラーが発生した場合：
