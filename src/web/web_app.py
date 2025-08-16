@@ -1402,6 +1402,42 @@ def main():
             </div>
         </div>
         """, unsafe_allow_html=True)
+
+    # グローバル銘柄検索（オートコンプリート）
+    try:
+        def render_autocomplete_search(_company_searcher):
+            st.sidebar.markdown("### 🔎 銘柄検索（オートコンプリート）")
+            query = st.sidebar.text_input("コード/企業名で検索", key="global_search_query", placeholder="例: 7203 / トヨタ")
+            suggestions = []
+            if _company_searcher and query:
+                # 数字4桁ならコード検索を最優先
+                q = query.strip()
+                if q.isdigit() and len(q) == 4:
+                    company = _company_searcher.search_by_code(q)
+                    if company:
+                        suggestions.append(company)
+                # 名前検索
+                for res in _company_searcher.search_by_name(q, limit=10):
+                    suggestions.append(res['company'])
+                # 重複除去
+                seen = set()
+                uniq = []
+                for c in suggestions:
+                    key = c.get('code')
+                    if key not in seen:
+                        uniq.append(c)
+                        seen.add(key)
+                suggestions = uniq
+            if suggestions:
+                options = [f"{c.get('code')} - {c.get('name')}" for c in suggestions]
+                selected = st.sidebar.selectbox("候補", options, key="global_search_selection")
+                if st.sidebar.button("この銘柄を選択", use_container_width=True):
+                    code = selected.split(" - ")[0]
+                    st.session_state.selected_ticker = code
+                    st.sidebar.success(f"選択: {code}")
+        render_autocomplete_search(company_searcher)
+    except Exception:
+        pass
     
     # シンプルUIトグル（既定: ON）
     if 'use_simple_ui' not in st.session_state:
@@ -1488,7 +1524,7 @@ def main():
 
             a1, a2, a3 = st.columns([2,1,1])
             with a1:
-                aticker = st.text_input("銘柄コード", value="7203")
+                aticker = st.text_input("銘柄コード", value=st.session_state.get("selected_ticker", "7203"))
             with a2:
                 adays = st.number_input("日数", min_value=5, max_value=365, value=60)
             with a3:
@@ -3955,12 +3991,12 @@ def main():
     
     # 高優先機能のページ処理
     elif page == "🎯 強化ダッシュボード" and HIGH_PRIORITY_FEATURES_ENABLED:
-        if show_enhanced_dashboard_ui:
+        try:
+            from dashboard.enhanced_dashboard import show_enhanced_dashboard_ui, show_integrated_notifications
             show_enhanced_dashboard_ui()
-            if show_integrated_notifications:
-                show_integrated_notifications()
-        else:
-            st.error("強化ダッシュボード機能が利用できません")
+            show_integrated_notifications()
+        except Exception as e:
+            st.error(f"強化ダッシュボード機能が利用できません: {e}")
     
     elif page == "🔔 カスタムアラート" and HIGH_PRIORITY_FEATURES_ENABLED:
         if show_alert_management_ui:
