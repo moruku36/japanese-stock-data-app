@@ -2,6 +2,8 @@ import os
 import datetime as dt
 import pandas as pd
 import pandas_datareader.data as web
+from pandas_datareader._utils import RemoteDataError
+import requests
 from typing import Optional, Dict, Any, List
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -9,19 +11,7 @@ import asyncio
 import aiohttp
 from io import StringIO
 
-# 設定とユーティリティをインポート
-import sys
-import os
-
-# プロジェクトルートとsrcディレクトリをパスに追加
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.join(current_dir, '..')
-project_root = os.path.join(src_dir, '..')
-
-# パスを設定
-sys.path.insert(0, src_dir)
-sys.path.insert(0, project_root)
-
+# 設定とユーティリティをインポート（絶対インポートを使用し、sys.path操作は行わない）
 from config.config import config
 from utils.utils import (
     RetryHandler, OptimizedCache, DataValidator, FileManager, 
@@ -412,10 +402,12 @@ class JapaneseStockDataFetcher:
             
             return df
             
-        except Exception as e:
-            logger.warning(f"Yahoo Financeからのデータ取得に失敗しました: {e}")
+        except (RemoteDataError, requests.exceptions.RequestException) as e:
+            logger.warning(f"Yahoo Financeからのデータ取得中にネットワークまたはAPIエラーが発生: {e}")
             logger.info("stooqの使用をお勧めします。Yahoo Financeは現在アクセス制限があります。")
-            # 空のDataFrameを返す
+            return pd.DataFrame()
+        except (ValueError, KeyError) as e:
+            logger.error(f"Yahoo Financeから取得したデータの処理中にエラーが発生: {e}")
             return pd.DataFrame()
     
     def save_to_csv(self, df: pd.DataFrame, ticker_symbol: str, source: str = "stooq"):
