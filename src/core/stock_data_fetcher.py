@@ -7,6 +7,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import asyncio
 import aiohttp
+from io import StringIO
 
 # 設定とユーティリティをインポート
 import sys
@@ -157,13 +158,34 @@ class JapaneseStockDataFetcher:
         Returns:
             Dict[str, pd.DataFrame]: 銘柄コードをキーとしたデータフレーム辞書
         """
-        results = {}
-        
-        def fetch_single_stock(ticker):
+        # stooq は非同期CSV取得に対応（高速・低オーバーヘッド）
+        if source == "stooq":
             try:
-                if source == "stooq":
-                    df = self.fetch_stock_data_stooq(ticker, start_date, end_date)
-                elif source == "yahoo":
+                return asyncio.run(
+                    self.fetch_multiple_stocks_async(
+                        ticker_symbols=ticker_symbols,
+                        start_date=start_date,
+                        end_date=end_date,
+                        source=source,
+                    )
+                )
+            except RuntimeError:
+                # 既存のイベントループがある環境（例: Notebook）では代替手段
+                return asyncio.get_event_loop().run_until_complete(
+                    self.fetch_multiple_stocks_async(
+                        ticker_symbols=ticker_symbols,
+                        start_date=start_date,
+                        end_date=end_date,
+                        source=source,
+                    )
+                )
+
+        # それ以外のソースは従来のスレッド並列で対応
+        results: Dict[str, pd.DataFrame] = {}
+
+        def fetch_single_stock(ticker: str):
+            try:
+                if source == "yahoo":
                     df = self.fetch_stock_data_yahoo(ticker, start_date, end_date)
                 else:
                     raise ValueError(f"サポートされていないデータソース: {source}")
@@ -171,19 +193,88 @@ class JapaneseStockDataFetcher:
             except Exception as e:
                 logger.error(f"銘柄 {ticker} のデータ取得に失敗: {e}")
                 return ticker, None
-        
-        # 並行処理でデータ取得
+
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_ticker = {
-                executor.submit(fetch_single_stock, ticker): ticker 
-                for ticker in ticker_symbols
-            }
-            
+            future_to_ticker = {executor.submit(fetch_single_stock, t): t for t in ticker_symbols}
             for future in as_completed(future_to_ticker):
                 ticker, df = future.result()
                 if df is not None:
                     results[ticker] = df
-        
+
+        return results
+
+    async def _fetch_stooq_csv(self, session: aiohttp.ClientSession, ticker_symbol: str, start_date: str, end_date: str) -> Optional[pd.DataFrame]:
+        """stooq のCSV APIを用いて非同期に1銘柄のデータを取得し DataFrame を返す"""
+        try:
+            if not DataValidator.validate_ticker_symbol(ticker_symbol):
+                return None
+
+            # デフォルトの日付設定を適用
+            if start_date is None:
+                start_date = '2024-01-01'
+            if end_date is None:
+                end_date = dt.date.today().strftime('%Y-%m-%d')
+
+            if not DataValidator.validate_date_range(start_date, end_date):
+                return None
+
+            # stooq CSV エンドポイント
+            # 例: https://stooq.com/q/d/l/?s=4784.JP&d1=20240101&d2=20241231&i=d
+            d1 = start_date.replace('-', '')
+            d2 = end_date.replace('-', '')
+            symbol = f"{ticker_symbol}.JP"
+            url = f"https://stooq.com/q/d/l/?s={symbol}&d1={d1}&d2={d2}&i=d"
+
+            async with session.get(url, timeout=30) as resp:
+                if resp.status != 200:
+                    logger.warning(f"stooq CSV取得失敗: {ticker_symbol} status={resp.status}")
+                    return None
+                content = await resp.text()
+
+            if not content or 'Date' not in content:
+                return None
+
+            df = pd.read_csv(StringIO(content))
+            # 必須カラム検証
+            required = ['Date', 'Open', 'High', 'Low', 'Close']
+            if not all(c in df.columns for c in required):
+                return None
+
+            # インデックスとコード付与
+            df['Date'] = pd.to_datetime(df['Date'])
+            df = df.set_index('Date').sort_index()
+            df.insert(0, 'code', ticker_symbol, allow_duplicates=False)
+
+            # メモリ最適化
+            df = MemoryOptimizer.optimize_dataframe(df)
+            return df
+        except Exception as e:
+            logger.error(f"stooq CSV 非同期取得失敗: {ticker_symbol}: {e}")
+            return None
+
+    async def fetch_multiple_stocks_async(self, ticker_symbols: List[str], start_date: str = None, end_date: str = None, source: str = "stooq") -> Dict[str, pd.DataFrame]:
+        """複数銘柄を非同期に取得（stooq対応）。他ソースは従来手段にフォールバック"""
+        results: Dict[str, pd.DataFrame] = {}
+
+        if source != "stooq":
+            # 非対応ソースは同期版へフォールバック
+            return self.fetch_multiple_stocks(ticker_symbols, start_date, end_date, source)
+
+        # セマフォで同時接続数を制限
+        semaphore = asyncio.Semaphore(self.max_workers)
+
+        async def _task(ticker: str):
+            async with semaphore:
+                df = await self._fetch_stooq_csv(session, ticker, start_date, end_date)
+                if df is not None:
+                    results[ticker] = df
+
+        # SSL検証は標準のまま（stooqは有効な証明書）
+        timeout = aiohttp.ClientTimeout(total=60)
+        async with aiohttp.ClientSession(timeout=timeout, headers={'User-Agent': 'Mozilla/5.0'}) as session:
+            tasks = [asyncio.create_task(_task(t)) for t in ticker_symbols]
+            await asyncio.gather(*tasks, return_exceptions=True)
+
         return results
     
     @performance_monitor
