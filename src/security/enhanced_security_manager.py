@@ -127,13 +127,17 @@ class EnhancedSecurityManager:
     def _initialize_encryption(self):
         """暗号化システムを初期化"""
         if not CRYPTOGRAPHY_AVAILABLE:
-            logger.warning("暗号化ライブラリが利用できません")
+            logger.error("暗号化ライブラリ 'cryptography' がインストールされていません。pip install cryptography を実行してください。")
             return None
         
         if not self.encryption_key:
-            # パスワードベースのキー生成
-            password = os.environ.get('SECURITY_PASSWORD', 'default_password').encode()
-            salt = os.environ.get('SECURITY_SALT', 'default_salt').encode()
+            # パスワードベースのキー生成（デフォルト値は許可しない）
+            password_env = os.environ.get('SECURITY_PASSWORD')
+            salt_env = os.environ.get('SECURITY_SALT')
+            if not password_env or not salt_env:
+                raise ValueError("セキュリティキー生成のための環境変数 'SECURITY_PASSWORD' と 'SECURITY_SALT' が設定されていません。")
+            password = password_env.encode()
+            salt = salt_env.encode()
             
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
@@ -516,28 +520,34 @@ class EnhancedSecurityManager:
         return decorator
     
     def _store_user_credentials(self, user_id: str, hashed_password: str, salt: str):
-        """ユーザー認証情報を保存（実際の実装ではデータベース使用）"""
-        # 簡易実装：実際にはセキュアなデータベースに保存
-        credentials_file = f"credentials_{user_id}.json"
-        credentials = {
-            "hashed_password": hashed_password,
-            "salt": salt
-        }
-        
+        """ユーザー認証情報を暗号化して保存（環境変数のマスターキー必須）"""
+        if not self.fernet:
+            raise ValueError("暗号化が利用できないため、認証情報を安全に保存できません。'cryptography' と SECURITY_PASSWORD/SECURITY_SALT を設定してください。")
         try:
-            with open(credentials_file, 'w') as f:
-                json.dump(credentials, f)
+            payload = json.dumps({"hashed_password": hashed_password, "salt": salt}, ensure_ascii=False)
+            encrypted = self.encrypt_sensitive_data(payload)
+            secrets_dir = os.path.join(os.getcwd(), 'secrets')
+            os.makedirs(secrets_dir, exist_ok=True)
+            credentials_file = os.path.join(secrets_dir, f"credentials_{user_id}.enc")
+            with open(credentials_file, 'w', encoding='utf-8') as f:
+                f.write(encrypted)
         except Exception as e:
             logger.error(f"認証情報の保存に失敗: {e}")
     
     def _get_user_credentials(self, user_id: str) -> Tuple[Optional[str], Optional[str]]:
-        """ユーザー認証情報を取得"""
-        credentials_file = f"credentials_{user_id}.json"
-        
+        """ユーザー認証情報を復号して取得"""
+        if not self.fernet:
+            logger.error("暗号化が利用できないため、認証情報を取得できません")
+            return None, None
+        credentials_file = os.path.join(os.getcwd(), 'secrets', f"credentials_{user_id}.enc")
         try:
-            with open(credentials_file, 'r') as f:
-                credentials = json.load(f)
-                return credentials.get("hashed_password"), credentials.get("salt")
+            with open(credentials_file, 'r', encoding='utf-8') as f:
+                encrypted = f.read()
+            decrypted = self.decrypt_sensitive_data(encrypted)
+            if not decrypted:
+                return None, None
+            credentials = json.loads(decrypted)
+            return credentials.get("hashed_password"), credentials.get("salt")
         except Exception as e:
             logger.error(f"認証情報の取得に失敗: {e}")
             return None, None
@@ -568,7 +578,14 @@ class EnhancedSecurityManager:
         logger.info(f"監査ログ: {json.dumps(log_entry, ensure_ascii=False)}")
 
 # グローバルインスタンス
-security_manager = EnhancedSecurityManager()
+security_manager = None
+try:
+    if os.environ.get('JWT_SECRET_KEY'):
+        security_manager = EnhancedSecurityManager()
+    else:
+        logger.warning("JWT_SECRET_KEY が未設定のため、security_manager は初期化されていません")
+except Exception as e:
+    logger.error(f"セキュリティマネージャの初期化に失敗: {e}")
 
 if __name__ == "__main__":
     # テスト実行

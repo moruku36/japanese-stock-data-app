@@ -148,6 +148,7 @@ stock_system*.log
 
 # Credentials (do not commit)
 credentials_*.json
+secrets/
 
 # Temporary files
 *.tmp
