@@ -43,6 +43,12 @@ def get_engine():
 
 def get_session_factory():
     engine = get_engine()
+    # テーブル定義を取り込む（遅延importでメタデータに登録）
+    try:
+        from src.portfolio.models import PortfolioModel, HoldingModel  # noqa: F401
+    except Exception:
+        # 失敗しても続行（必要なタイミングで作成される）
+        pass
     Base.metadata.create_all(engine)
     return sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 
