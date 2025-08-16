@@ -382,7 +382,7 @@ def show_market_overview_section(dashboard: EnhancedDashboard):
             height=400
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
 
 def show_sector_analysis_section(dashboard: EnhancedDashboard):
     """セクター分析セクション"""
@@ -462,11 +462,7 @@ def show_watchlist_section(dashboard: EnhancedDashboard):
         # 表示用データフレーム（数値列を除外）
         display_df = df_watchlist[['銘柄', 'セクター', '価格', '変動', '変動率', '出来高']]
         
-        st.dataframe(
-            display_df,
-            hide_index=True,
-            use_container_width=True
-        )
+        st.dataframe(display_df, hide_index=True, use_container_width=True)
         
         # ヒートマップ（Plotlyが利用可能な場合）
         if PLOTLY_AVAILABLE:
@@ -513,7 +509,7 @@ def show_watchlist_section(dashboard: EnhancedDashboard):
                 yaxis=dict(showticklabels=False)
             )
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
 
 def show_market_sentiment_section(dashboard: EnhancedDashboard):
     """市場センチメントセクション"""
@@ -568,7 +564,7 @@ def show_market_sentiment_section(dashboard: EnhancedDashboard):
             ))
             
             fig.update_layout(height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
         
         with col2:
             # 上昇/下落分布円グラフ

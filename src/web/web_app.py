@@ -1444,7 +1444,7 @@ def main():
         st.session_state.use_simple_ui = True
     st.session_state.use_simple_ui = st.sidebar.toggle("シンプルUI", value=st.session_state.use_simple_ui)
 
-    # シンプルUI: タブでフル機能に直接アクセス
+    # シンプルUI: タブでフル機能に直接アクセス（レスポンシブに配慮）
     if st.session_state.use_simple_ui:
         tabs = st.tabs(["🏠 ホーム", "🎯 ダッシュボード", "📈 最適化", "📡 監視", "🔬 分析"])
 
@@ -1456,7 +1456,8 @@ def main():
             </div>
             """, unsafe_allow_html=True)
 
-            col1, col2, col3 = st.columns([2,1,1])
+            # 小画面でも崩れないよう比率を調整
+            col1, col2, col3 = st.columns([3,2,2])
             with col1:
                 simple_ticker = st.text_input("銘柄コード", value="7203", placeholder="例: 7203")
             with col2:
@@ -1522,7 +1523,7 @@ def main():
             </div>
             """, unsafe_allow_html=True)
 
-            a1, a2, a3 = st.columns([2,1,1])
+            a1, a2, a3 = st.columns([3,2,2])
             with a1:
                 aticker = st.text_input("銘柄コード", value=st.session_state.get("selected_ticker", "7203"))
             with a2:

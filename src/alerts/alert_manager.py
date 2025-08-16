@@ -774,7 +774,7 @@ def show_alert_statistics_ui(alert_manager: AlertManager):
             for k, v in stats['alert_types'].items()
         ])
         
-        st.bar_chart(chart_data.set_index('タイプ'))
+        st.bar_chart(chart_data.set_index('タイプ'), use_container_width=True)
 
 # 通知表示用関数
 def show_notifications():

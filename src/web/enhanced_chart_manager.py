@@ -830,7 +830,7 @@ if __name__ == "__main__":
     fig = chart_manager.create_customized_chart(test_data, settings, "テスト株価")
     
     if fig:
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
     
     # 設定エクスポート
     if st.button("設定をエクスポート"):
