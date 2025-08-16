@@ -1550,6 +1550,7 @@ def main():
                 "🛡️ セキュリティ管理",
                 "⚙️ UI最適化",
                 "📈 強化チャート機能",
+                "🔎 銘柄スクリーニング",
                 "🔔 カスタムアラート"
             ])
     
@@ -1624,12 +1625,22 @@ def main():
 
     if page == "🔔 カスタムアラート":
         try:
-            from alerts.alert_manager import show_alert_management_ui, show_notifications
+            from alerts.alert_manager import show_alert_management_ui, show_notifications, run_background_alert_checks
             st.markdown("## 🔔 カスタムアラート")
+            # 軽量チェック（ページ表示のたびに最新データで評価）
+            run_background_alert_checks(fetcher=fetcher)
             show_alert_management_ui()
             show_notifications()
         except Exception as e:
             st.error(f"アラート機能の表示に失敗しました: {e}")
+        return
+
+    if page == "🔎 銘柄スクリーニング":
+        try:
+            from web.screener_page import render_screener_page
+            render_screener_page()
+        except Exception as e:
+            st.error(f"スクリーニング画面の表示に失敗しました: {e}")
         return
 
     # ホームページ

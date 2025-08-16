@@ -805,3 +805,26 @@ if __name__ == "__main__":
     st.title("🔔 カスタムアラート機能テスト")
     show_alert_management_ui()
     show_notifications()
+
+def run_background_alert_checks(fetcher=None, interval_seconds: int = 60):
+    """簡易バックグラウンドチェック（Streamlit上でページ描画時に随時呼び出し）"""
+    try:
+        from core.stock_data_fetcher import JapaneseStockDataFetcher
+        from datetime import datetime, timedelta
+
+        if 'alert_manager' not in st.session_state:
+            st.session_state.alert_manager = AlertManager()
+        alert_manager: AlertManager = st.session_state.alert_manager
+
+        fetcher = fetcher or JapaneseStockDataFetcher()
+
+        symbols = sorted({a.symbol for a in alert_manager.get_active_alerts() if a.status == AlertStatus.ACTIVE})
+        if not symbols:
+            return
+
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d')
+        data = fetcher.fetch_multiple_stocks(symbols, start_date, end_date, source="stooq")
+        alert_manager.check_alerts(data)
+    except Exception:
+        pass
