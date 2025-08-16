@@ -12,10 +12,15 @@ import logging
 from typing import Dict, Any, Optional
 from pathlib import Path
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_CONFIG_PATH = BASE_DIR / "config.json"
+
 class Config:
     """システム設定クラス"""
     
-    def __init__(self, config_file: str = "config.json"):
+    def __init__(self, config_file: str = str(DEFAULT_CONFIG_PATH)):
         """
         初期化
         
@@ -93,8 +98,8 @@ class Config:
             "charts": {
                 "default_figsize": (12, 8),
                 "dpi": 200,
-                "style": "seaborn-v0_8",
-                "font_family": ["Arial Unicode MS", "DejaVu Sans"],
+                "style": "seaborn-v0_8-whitegrid",
+                "font_family": ["Meiryo", "Yu Gothic UI", "Arial Unicode MS", "DejaVu Sans"],
                 "save_format": "png"
             },
             
