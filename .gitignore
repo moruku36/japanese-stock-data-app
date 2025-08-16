@@ -146,6 +146,9 @@ __pycache__/
 logs/
 stock_system*.log
 
+# Credentials (do not commit)
+credentials_*.json
+
 # Temporary files
 *.tmp
 *.temp
