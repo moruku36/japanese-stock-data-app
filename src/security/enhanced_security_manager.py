@@ -21,6 +21,8 @@ from functools import wraps
 import threading
 from collections import defaultdict, deque
 import json
+from passlib.hash import argon2
+from .db import get_session_factory, UserModel
 
 # 暗号化ライブラリ（オプション）
 try:
@@ -88,6 +90,7 @@ class EnhancedSecurityManager:
             secret_key (str): JWT署名用の秘密鍵
             encryption_key (str): 暗号化用のキー
         """
+        # .env 経由の環境変数も許可
         self.secret_key = secret_key or os.environ.get('JWT_SECRET_KEY')
         if not self.secret_key:
             raise ValueError("JWT署名のための環境変数 'JWT_SECRET_KEY' が設定されていません。")
@@ -119,6 +122,8 @@ class EnhancedSecurityManager:
         self.permissions = self._initialize_permissions()
         
         logger.info("強化されたセキュリティシステムを初期化しました")
+        # DB セッションファクトリ
+        self._session_factory = get_session_factory()
     
     def _generate_secret_key(self) -> str:
         """秘密鍵を生成"""
@@ -243,18 +248,16 @@ class EnhancedSecurityManager:
             return None
     
     def hash_password(self, password: str, salt: str = None) -> Tuple[str, str]:
-        """パスワードをハッシュ化"""
-        if not salt:
-            salt = secrets.token_hex(16)
-        
-        # PBKDF2でハッシュ化
-        hash_obj = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return hash_obj.hex(), salt
+        """パスワードをハッシュ化 (Argon2)"""
+        # Argon2 は内部でソルトを含むため別管理不要だが互換のため戻り値に空ソルトを返す
+        return argon2.hash(password), ""
     
     def verify_password(self, password: str, hashed: str, salt: str) -> bool:
-        """パスワードを検証"""
-        hash_obj = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return hash_obj.hex() == hashed
+        """パスワードを検証 (Argon2)"""
+        try:
+            return argon2.verify(password, hashed)
+        except Exception:
+            return False
     
     def validate_password_strength(self, password: str) -> Tuple[bool, List[str]]:
         """パスワード強度を検証"""
@@ -292,21 +295,32 @@ class EnhancedSecurityManager:
         
         user_id = secrets.token_hex(16)
         hashed_password, salt = self.hash_password(password)
-        
+
+        # DBに保存
+        with self._session_factory() as session:
+            model = UserModel(
+                id=user_id,
+                username=username,
+                email=email,
+                role=role.value,
+                permissions=",".join(self.permissions.get(role, [])),
+                password_hash=hashed_password,
+                password_salt=salt,
+                is_active=True,
+            )
+            session.add(model)
+            session.commit()
+
+        # メモリ上の簡易キャッシュも更新
         user = User(
             user_id=user_id,
             username=username,
             email=email,
             role=role,
             permissions=self.permissions.get(role, []),
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
-        
         self.users[user_id] = user
-        
-        # パスワードは別途保存（実際の実装ではデータベース使用）
-        self._store_user_credentials(user_id, hashed_password, salt)
-        
         logger.info(f"ユーザーを作成しました: {username} ({role.value})")
         return user
     
@@ -329,9 +343,11 @@ class EnhancedSecurityManager:
             logger.warning(f"ユーザーが見つからないか無効です: {username}")
             return None
         
-        # パスワード検証
-        stored_hash, salt = self._get_user_credentials(user.user_id)
-        if not stored_hash or not self.verify_password(password, stored_hash, salt):
+        # パスワード検証 (DB から)
+        with self._session_factory() as session:
+            model = session.get(UserModel, user.user_id)
+            stored_hash = model.password_hash if model else None
+        if not stored_hash or not self.verify_password(password, stored_hash, ""):
             self._record_failed_attempt(username)
             logger.warning(f"パスワードが正しくありません: {username}")
             return None

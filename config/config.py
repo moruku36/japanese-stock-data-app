@@ -11,6 +11,7 @@ import json
 import logging
 from typing import Dict, Any, Optional
 from pathlib import Path
+from dotenv import load_dotenv
 
 from pathlib import Path
 
@@ -33,6 +34,8 @@ class Config:
     
     def _load_config(self) -> Dict[str, Any]:
         """設定を読み込み"""
+        # .env を読み込んで環境変数を反映
+        load_dotenv()
         default_config = {
             # データソース設定
             "data_sources": {
