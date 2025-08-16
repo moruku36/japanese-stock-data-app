@@ -1549,7 +1549,8 @@ def main():
                 "📡 データソース管理",
                 "🛡️ セキュリティ管理",
                 "⚙️ UI最適化",
-                "📈 強化チャート機能"
+                "📈 強化チャート機能",
+                "🔔 カスタムアラート"
             ])
     
     # 書き込み権限がある場合の機能
@@ -1596,6 +1597,41 @@ def main():
     if SECURITY_ENABLED and st.session_state.authenticated:
         show_logout_button()
     
+    # ルーティング
+    if page == "📈 強化チャート機能":
+        try:
+            from web.enhanced_chart_manager import EnhancedChartManager
+            cm = EnhancedChartManager()
+            st.markdown("## 📈 強化チャート機能")
+            # データ入力
+            col1, col2 = st.columns([2,1])
+            with col1:
+                ticker = st.text_input("銘柄コード", value="7203")
+            with col2:
+                days = st.number_input("日数", min_value=5, max_value=365, value=120)
+            if st.button("チャート生成", type="primary"):
+                end_date = datetime.now().strftime('%Y-%m-%d')
+                start_date = (datetime.now() - timedelta(days=int(days))).strftime('%Y-%m-%d')
+                df = fetcher.fetch_stock_data_stooq(ticker, start_date, end_date)
+                if df is not None and not df.empty:
+                    settings = cm.show_chart_customization_panel()
+                    fig = cm.create_customized_chart(df, settings, f"{ticker} 株価")
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"強化チャートの表示に失敗しました: {e}")
+        return
+
+    if page == "🔔 カスタムアラート":
+        try:
+            from alerts.alert_manager import show_alert_management_ui, show_notifications
+            st.markdown("## 🔔 カスタムアラート")
+            show_alert_management_ui()
+            show_notifications()
+        except Exception as e:
+            st.error(f"アラート機能の表示に失敗しました: {e}")
+        return
+
     # ホームページ
     if page == "🏠 ホーム":
         st.markdown("""
