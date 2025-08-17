@@ -73,7 +73,16 @@ textColor = "#262730"
 
 ### 依存競合（rich 14系 など）
 
-`streamlit==1.37.0` は `rich<14` を要求します。環境に `rich 14.x` が入っている場合は以下で修復してください。
+`streamlit==1.37.0` は `rich<14` を要求します。Cloud側の自動処理が `rich 14.x` を入れ直すことがありますが、本リポジトリでは `constraints.txt` により `rich==13.9.4` を固定し、`requirements.txt` 冒頭で `-c constraints.txt` を指定しています。これにより強制的に `rich 13.9.4` が選ばれます。
+
+Python 3.13 環境との互換性のため、以下の主要ライブラリを更新済みです。
+- numpy==2.3.2
+- scipy==1.16.1
+- matplotlib==3.10.5
+- aiohttp==3.12.15
+- psutil==7.0.0
+
+Streamlit Cloud で `inotify instance limit reached` を避けるため、`.streamlit/config.toml` で `fileWatcherType = "none"` を設定してください（本リポジトリに同梱予定）。
 
 ```bash
 pip uninstall -y rich markdown-it-py mdurl Pygments

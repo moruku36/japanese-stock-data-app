@@ -105,3 +105,24 @@ Main file path: streamlit_app.py
 1. エラーメッセージを確認
 2. 管理者権限でデバッグ情報を確認
 3. Streamlit Cloudのログを確認
+
+## 🧩 追加の安定化設定（Cloud 推奨）
+
+`.streamlit/config.toml` を次のように作成し、ファイル監視を無効化します（inotify 限界回避・再起動安定化）。
+
+```toml
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#3b82f6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f7f7f9"
+textColor = "#111827"
+```

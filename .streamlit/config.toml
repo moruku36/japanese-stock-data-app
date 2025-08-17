@@ -12,6 +12,21 @@ primaryColor = "#3b82f6"
 backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f7f7f9"
 textColor = "#111827"
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+primaryColor = "#3b82f6"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f7f7f9"
+textColor = "#111827"
 [global]
 developmentMode = false
 

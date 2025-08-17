@@ -917,45 +917,95 @@ def get_cached_data(key: str, *args, _fetcher=None, _fundamental_analyzer=None, 
             return _fetcher.fetch_stock_data_yahoo(ticker, start_date, end_date)
     elif "fundamental_data" in key:
         ticker = args[0] if args else kwargs.get('ticker_symbol')
-        return _fundamental_analyzer.get_financial_data(ticker)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.get_financial_data(ticker)
+        except Exception:
+            return None
     elif "popular_companies" in key:
         limit = args[0] if args else kwargs.get('limit', 10)
         return _company_searcher.get_popular_companies(limit)
     elif "industry_per_stats" in key:
         sector = args[0] if args else kwargs.get('sector')
-        return _fundamental_analyzer.get_industry_per_comparison(sector)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.get_industry_per_comparison(sector)
+        except Exception:
+            return None
     elif "undervalued_companies" in key:
         sector = args[0] if args else kwargs.get('sector')
         threshold = args[1] if len(args) > 1 else kwargs.get('threshold')
-        return _fundamental_analyzer.find_undervalued_companies(sector, threshold)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.find_undervalued_companies(sector, threshold)
+        except Exception:
+            return None
     elif "overvalued_companies" in key:
         sector = args[0] if args else kwargs.get('sector')
         threshold = args[1] if len(args) > 1 else kwargs.get('threshold')
-        return _fundamental_analyzer.find_overvalued_companies(sector, threshold)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.find_overvalued_companies(sector, threshold)
+        except Exception:
+            return None
     elif "target_price_analysis" in key:
         ticker = args[0] if args else kwargs.get('ticker_symbol')
-        return _fundamental_analyzer.analyze_target_price(ticker)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.analyze_target_price(ticker)
+        except Exception:
+            return None
     elif "target_price_opportunities" in key:
         min_upside = args[0] if args else kwargs.get('min_upside')
         max_upside = args[1] if len(args) > 1 else kwargs.get('max_upside')
-        return _fundamental_analyzer.find_target_price_opportunities(min_upside, max_upside)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.find_target_price_opportunities(min_upside, max_upside)
+        except Exception:
+            return None
     elif "sector_target_price_analysis" in key:
         sector = args[0] if args else kwargs.get('sector')
-        return _fundamental_analyzer.get_sector_target_price_analysis(sector)
+        if _fundamental_analyzer is None:
+            return None
+        try:
+            return _fundamental_analyzer.get_sector_target_price_analysis(sector)
+        except Exception:
+            return None
     elif "comprehensive_data" in key:
         ticker = args[0] if args else kwargs.get('ticker')
         start_date = args[1] if len(args) > 1 else kwargs.get('start_date')
         end_date = args[2] if len(args) > 2 else kwargs.get('end_date')
-        data = _advanced_data_manager.get_comprehensive_stock_data(ticker, start_date, end_date)
-        return serialize_advanced_data(data)
+        if _advanced_data_manager is None:
+            return {}
+        try:
+            data = _advanced_data_manager.get_comprehensive_stock_data(ticker, start_date, end_date)
+            return serialize_advanced_data(data)
+        except Exception:
+            return {}
     elif "sentiment_analysis" in key:
         ticker = args[0] if args else kwargs.get('ticker')
-        data = _advanced_data_manager.get_sentiment_analysis(ticker)
-        return serialize_sentiment_data(data)
+        if _advanced_data_manager is None:
+            return {}
+        try:
+            data = _advanced_data_manager.get_sentiment_analysis(ticker)
+            return serialize_sentiment_data(data)
+        except Exception:
+            return {}
     elif "market_intelligence" in key:
         ticker = args[0] if args else kwargs.get('ticker')
-        data = _advanced_data_manager.get_market_intelligence(ticker)
-        return serialize_intelligence_data(data)
+        if _advanced_data_manager is None:
+            return {}
+        try:
+            data = _advanced_data_manager.get_market_intelligence(ticker)
+            return serialize_intelligence_data(data)
+        except Exception:
+            return {}
     
     return None
 
@@ -1756,11 +1806,17 @@ def main():
                 """, unsafe_allow_html=True)
         
         with col2:
+            fa_count = 0
+            try:
+                if fundamental_analyzer and getattr(fundamental_analyzer, "financial_data", None) is not None:
+                    fa_count = len(fundamental_analyzer.financial_data)
+            except Exception:
+                fa_count = 0
             st.markdown(f"""
             <div class="metric-container">
                 <div class="metric-icon">📈</div>
                 <div class="metric-content">
-                    <div class="metric-value">{len(fundamental_analyzer.financial_data)}</div>
+                    <div class="metric-value">{fa_count}</div>
                     <div class="metric-label">ファンダメンタル分析対応</div>
                 </div>
             </div>
