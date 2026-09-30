@@ -15,7 +15,7 @@ pytz==2024.1
 requests==2.31.0
 scipy==1.16.1
 seaborn==0.13.2
-soupsieve==2.5
+soupsieve==2.9
 tenacity==8.5.0
 yfinance==0.2.65
 rich==13.9.4
